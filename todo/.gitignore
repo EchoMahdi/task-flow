@@ -1,0 +1,10 @@
+
+vendor/
+frontend/node_modules/
+.idea/
+.venv/
+storage/logs/
+public/uploads/
+/dist/
+/build/
+.env
