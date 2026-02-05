@@ -405,4 +405,73 @@ class AuthController extends Controller
             'message' => 'Verification email sent',
         ]);
     }
+
+    /**
+     * Export user data.
+     */
+    public function exportData(Request $request): JsonResponse
+    {
+        $user = $this->authService->getCurrentUser($request->user());
+        
+        $exportData = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'timezone' => $user->timezone,
+                'locale' => $user->locale,
+                'created_at' => $user->created_at,
+            ],
+            'profile' => $user->profile ? [
+                'bio' => $user->profile->bio,
+                'birth_date' => $user->profile->birth_date,
+                'website' => $user->profile->website,
+                'company' => $user->profile->company,
+                'job_title' => $user->profile->job_title,
+            ] : null,
+            'preferences' => $user->preferences ? $user->preferences->toArray() : null,
+            'tasks' => $user->tasks->map(function ($task) {
+                return [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'priority' => $task->priority,
+                    'is_completed' => $task->is_completed,
+                    'due_date' => $task->due_date,
+                    'created_at' => $task->created_at,
+                    'updated_at' => $task->updated_at,
+                    'tags' => $task->tags->pluck('name')->toArray(),
+                ];
+            })->toArray(),
+            'tags' => $user->tags->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'color' => $tag->color,
+                    'created_at' => $tag->created_at,
+                ];
+            })->toArray(),
+            'exported_at' => now()->toIso8601String(),
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'data' => $exportData,
+        ]);
+    }
+
+    /**
+     * Delete user account.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        $this->authService->deleteAccount($user);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Account deleted successfully',
+        ]);
+    }
 }

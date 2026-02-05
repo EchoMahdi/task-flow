@@ -37,6 +37,10 @@ Route::prefix('auth')->middleware(['auth:sanctum'])->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/preferences', [AuthController::class, 'updatePreferences']);
     
+    // Data management
+    Route::get('/export-data', [AuthController::class, 'exportData']);
+    Route::delete('/account', [AuthController::class, 'deleteAccount']);
+    
     // Password management
     Route::put('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authService } from '../services/authService'
+import { authService, initCsrf } from '../services/authService'
 
 const AuthContext = createContext(null)
 
@@ -8,13 +8,31 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Check authentication status on mount
+  // Check authentication status and initialize CSRF on mount
   useEffect(() => {
-    checkAuth()
+    const initialize = async () => {
+      try {
+        // First, initialize CSRF protection for Laravel Sanctum
+        await initCsrf()
+        
+        // Then check auth status
+        const userData = await authService.getUser()
+        setUser(userData)
+      } catch (err) {
+        console.warn('Auth initialization failed:', err)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initialize()
   }, [])
 
   const checkAuth = async () => {
+    setLoading(true)
     try {
+      await initCsrf() // Re-initialize CSRF
       const userData = await authService.getUser()
       setUser(userData)
     } catch (err) {
@@ -29,6 +47,8 @@ export function AuthProvider({ children }) {
     setError(null)
     setLoading(true)
     try {
+      // Ensure CSRF is initialized before login
+      await initCsrf()
       const response = await authService.login(email, password)
       setUser(response.user)
       return response
@@ -47,6 +67,8 @@ export function AuthProvider({ children }) {
     setError(null)
     setLoading(true)
     try {
+      // Ensure CSRF is initialized before registration
+      await initCsrf()
       const response = await authService.register(name, email, password, passwordConfirmation)
       setUser(response.user)
       return response
@@ -97,7 +119,8 @@ export function AuthProvider({ children }) {
         logout,
         refreshUser,
         clearError,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        checkAuth
       }}
     >
       {children}

@@ -320,7 +320,7 @@ class AuthService
             'token' => Str::random(80),
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
-            'device_type' => $deviceInfo['device_type'],
+            'device_type' => $deviceInfo['deviceType'],
             'browser' => $deviceInfo['browser'],
             'platform' => $deviceInfo['platform'],
             'is_active' => true,
@@ -373,7 +373,7 @@ class AuthService
             $platform = 'iOS';
         }
 
-        return compact('device_type', 'browser', 'platform');
+        return compact('deviceType', 'browser', 'platform');
     }
 
     /**
@@ -459,5 +459,43 @@ class AuthService
             'token' => $token,
             'session' => $session,
         ];
+    }
+
+    /**
+     * Delete user account and all associated data.
+     */
+    public function deleteAccount(User $user): bool
+    {
+        // Delete all user tokens
+        $user->tokens()->delete();
+        
+        // Delete all sessions
+        $user->sessions()->delete();
+        
+        // Delete all user tasks (this will also cascade to task_tags via model events)
+        $user->tasks()->delete();
+        
+        // Delete all user tags
+        $user->tags()->delete();
+        
+        // Delete notification settings
+        $user->notificationSettings()->delete();
+        
+        // Delete notification logs
+        $user->notificationLogs()->delete();
+        
+        // Delete notification rules
+        $user->notificationRules()->delete();
+        
+        // Delete user preferences
+        $user->preferences()->delete();
+        
+        // Delete user profile
+        $user->profile()->delete();
+        
+        // Finally, delete the user
+        $user->delete();
+        
+        return true;
     }
 }

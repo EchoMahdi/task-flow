@@ -39,7 +39,7 @@ class Task extends Model
 
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class)->withTimestamps();
+        return $this->belongsToMany(Tag::class, 'task_tag')->withTimestamps();
     }
 
     public function scopeFilter($query, array $filters)
@@ -55,9 +55,9 @@ class Task extends Model
             $query->where('priority', $priority);
         });
 
-        $query->when($filters['is_completed'] !== null, function ($query, $isCompleted) {
-            $query->where('is_completed', $isCompleted);
-        });
+        if (isset($filters['is_completed']) && $filters['is_completed'] !== null) {
+            $query->where('is_completed', (bool) $filters['is_completed']);
+        }
 
         $query->when($filters['tag_id'] ?? false, function ($query, $tagId) {
             $query->whereHas('tags', function ($query) use ($tagId) {

@@ -68,12 +68,8 @@ class UserPreference extends Model
      */
     public const LANGUAGES = [
         'en' => 'English',
-        'es' => 'Español',
-        'fr' => 'Français',
-        'de' => 'Deutsch',
-        'pt' => 'Português',
-        'zh' => '中文',
-        'ja' => '日本語',
+        'fa' => 'Farsi',
+        
     ];
 
     /**

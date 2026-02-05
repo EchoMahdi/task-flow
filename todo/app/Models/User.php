@@ -181,6 +181,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user's notification settings.
+     */
+    public function notificationSettings(): HasOne
+    {
+        return $this->hasOne(UserNotificationSetting::class);
+    }
+
+    /**
      * Get password reset tokens.
      */
     public function passwordResetTokens(): HasMany
@@ -278,7 +286,7 @@ class User extends Authenticatable
     /**
      * Send password reset notification.
      */
-    public function sendPasswordResetNotification(string $token): void
+    public function sendPasswordResetNotification( $token)
     {
         $this->notify(new \App\Notifications\ResetPasswordNotification($token));
     }
@@ -328,10 +336,16 @@ class User extends Authenticatable
     {
         parent::boot();
         
-        // Create default profile and preferences on user creation
+        // Create default profile, preferences and notification settings on user creation
         static::created(function (User $user) {
             $user->profile()->create([]);
             $user->preferences()->create([]);
+            $user->notificationSettings()->create([
+                'email_notifications_enabled' => true,
+                'in_app_notifications_enabled' => true,
+                'timezone' => $user->timezone,
+                'default_reminder_offset' => 30,
+            ]);
         });
     }
 }
