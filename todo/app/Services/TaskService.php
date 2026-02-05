@@ -19,6 +19,22 @@ class TaskService
         return $this->taskRepository->getAllTasks($request);
     }
 
+    /**
+     * Get tasks for a specific date range (for calendar view)
+     */
+    public function getTasksForDateRange(array $filters)
+    {
+        return $this->taskRepository->getTasksForDateRange($filters);
+    }
+
+    /**
+     * Update task due date (for drag & drop)
+     */
+    public function updateTaskDate(int $id, string $dueDate)
+    {
+        return $this->taskRepository->updateTask($id, ['due_date' => $dueDate]);
+    }
+
     public function getTask(int $id)
     {
         return $this->taskRepository->getTaskById($id);

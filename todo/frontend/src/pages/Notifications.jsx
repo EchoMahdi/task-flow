@@ -16,7 +16,7 @@ const Notifications = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await api.get('/notifications');
+        const response = await api.get('/notifications/history');
         setNotifications(response.data.data || []);
         setUnreadCount(response.data.data?.filter(n => !n.read).length || 0);
       } catch (error) {

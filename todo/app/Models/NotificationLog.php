@@ -17,12 +17,14 @@ class NotificationLog extends Model
         'channel',
         'status',
         'sent_at',
+        'read_at',
         'error_message',
         'metadata',
     ];
 
     protected $casts = [
         'sent_at' => 'datetime',
+        'read_at' => 'datetime',
         'metadata' => 'array',
     ];
 
@@ -64,6 +66,24 @@ class NotificationLog extends Model
             'status' => self::STATUS_SENT,
             'sent_at' => now(),
         ]);
+    }
+
+    /**
+     * Mark this log as read.
+     */
+    public function markAsRead(): void
+    {
+        $this->update([
+            'read_at' => now(),
+        ]);
+    }
+
+    /**
+     * Check if this notification has been read.
+     */
+    public function isRead(): bool
+    {
+        return $this->read_at !== null;
     }
 
     /**

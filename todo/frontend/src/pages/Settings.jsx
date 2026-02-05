@@ -6,11 +6,12 @@ import { Icons } from '../components/ui/Icons';
 import { preferenceService } from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
-import { setTheme, toggleDarkMode } from '../App';
+import { useTheme } from '../App';
 
 const Settings = () => {
   const { user, refreshUser, logout } = useAuth();
   const { t, changeLanguage, direction } = useI18n();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
@@ -33,10 +34,12 @@ const Settings = () => {
   const [preferences, setPreferences] = useState({
     theme: 'light',
     language: 'en',
+    calendarType: 'gregorian',
     dateFormat: 'm/d/Y',  // PHP format
     timeFormat: 'h:i A',  // PHP format
     startOfWeek: 1,  // monday = 1
     defaultTaskView: 'list',
+    showWeekNumbers: false,
   });
 
   // Map backend date format to frontend display value
@@ -102,10 +105,12 @@ const Settings = () => {
           setPreferences({
             theme: prefs.theme ?? 'light',
             language: prefs.language ?? 'en',
+            calendarType: prefs.calendar_type ?? 'gregorian',
             dateFormat: getDateFormatValue(prefs.date_format),
             timeFormat: getTimeFormatValue(prefs.time_format),
             startOfWeek: prefs.start_of_week === 0 ? 'sunday' : (prefs.start_of_week === 6 ? 'saturday' : 'monday'),
             defaultTaskView: prefs.default_task_view ?? 'list',
+            showWeekNumbers: prefs.show_week_numbers ?? false,
           });
         }
         
@@ -122,10 +127,45 @@ const Settings = () => {
     fetchPreferences();
   }, [user]);
 
-  const handleNotificationChange = (key) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+  const handleNotificationChange = async (key) => {
+    const newValue = !notifications[key];
+    setNotifications((prev) => ({ ...prev, [key]: newValue }));
     setSuccess(''); // Clear previous success messages
+    
+    // Auto-save notification settings
+    try {
+      setSaving(true);
+      const data = {
+        ...notifications,
+        [key]: newValue,
+        theme: preferences.theme,
+        language: preferences.language,
+        calendar_type: preferences.calendarType,
+        date_format: getBackendDateFormat(preferences.dateFormat),
+        time_format: getBackendTimeFormat(preferences.timeFormat),
+        start_of_week: { 'sunday': 0, 'monday': 1, 'saturday': 6 }[preferences.startOfWeek] ?? 1,
+        default_task_view: preferences.defaultTaskView,
+        show_week_numbers: preferences.showWeekNumbers,
+      };
+      await preferenceService.updatePreferences(data);
+      await refreshUser();
+      setSuccess('Setting saved!');
+    } catch (err) {
+      console.error('Failed to save notification setting:', err);
+      // Revert the change on error
+      setNotifications((prev) => ({ ...prev, [key]: !newValue }));
+      setError('Failed to save setting. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // Sync preferences with theme context on mount
+  useEffect(() => {
+    if (theme) {
+      setPreferences(prev => ({ ...prev, theme }))
+    }
+  }, [theme])
 
   const handlePreferenceChange = (e) => {
     const { name, value } = e.target;
@@ -141,6 +181,13 @@ const Settings = () => {
     if (name === 'language') {
       changeLanguage(value);
     }
+  };
+
+  // Handle dark mode toggle directly
+  const handleDarkModeToggle = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    setPreferences(prev => ({ ...prev, theme: newTheme }));
   };
 
   // REAL API call to save settings - no more mock behavior
@@ -164,10 +211,12 @@ const Settings = () => {
         ...notifications,
         theme: preferences.theme,
         language: preferences.language,
+        calendar_type: preferences.calendarType,
         date_format: backendDateFormat,
         time_format: backendTimeFormat,
         start_of_week: startOfWeekMap[preferences.startOfWeek] ?? 1,
         default_task_view: preferences.defaultTaskView,
+        show_week_numbers: preferences.showWeekNumbers,
       };
       
       // Make real API call to backend
@@ -252,6 +301,11 @@ const Settings = () => {
   const languageOptions = [
     { value: 'en', label: t ? t('settings.languageEn') : 'English' },
     { value: 'fa', label: t ? t('settings.languageFa') : 'Persian (فارسی)' },
+  ];
+
+  const calendarOptions = [
+    { value: 'gregorian', label: 'Gregorian' },
+    { value: 'jalali', label: 'Jalali (شمسی)' },
   ];
 
   const dateFormatOptions = [
@@ -445,8 +499,43 @@ const Settings = () => {
                     options={languageOptions}
                   />
                 </div>
+                
+                {/* Dark Mode Toggle */}
+                <div className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg border border-secondary-200">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary-100' : 'bg-secondary-200'}`}>
+                      {theme === 'dark' ? (
+                        <Icons.Moon className="w-5 h-5 text-primary-600" />
+                      ) : (
+                        <Icons.Sun className="w-5 h-5 text-warning-500" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {t ? t('settings.darkMode') : 'Dark Mode'}
+                      </div>
+                      <div className="text-xs text-secondary-500">
+                        {theme === 'dark' 
+                          ? (t ? t('settings.darkModeOn') : 'Dark mode is enabled')
+                          : (t ? t('settings.darkModeOff') : 'Switch between light and dark theme')
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <Toggle
+                    checked={theme === 'dark'}
+                    onChange={handleDarkModeToggle}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Select
+                    label="Calendar Type"
+                    name="calendarType"
+                    value={preferences.calendarType}
+                    onChange={handlePreferenceChange}
+                    options={calendarOptions}
+                  />
                   <Select
                     label="Date Format"
                     name="dateFormat"

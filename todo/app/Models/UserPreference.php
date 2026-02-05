@@ -14,6 +14,7 @@ class UserPreference extends Model
         'user_id',
         'theme',
         'language',
+        'calendar_type',
         'email_notifications',
         'push_notifications',
         'task_reminders',
@@ -28,6 +29,7 @@ class UserPreference extends Model
         'time_format',
         'start_of_week',
         'default_task_view',
+        'show_week_numbers',
     ];
 
     protected $casts = [
@@ -41,6 +43,7 @@ class UserPreference extends Model
         'two_factor_enabled' => 'boolean',
         'session_timeout' => 'integer',
         'items_per_page' => 'integer',
+        'show_week_numbers' => 'boolean',
     ];
 
     /**
@@ -49,6 +52,7 @@ class UserPreference extends Model
     public const DEFAULTS = [
         'theme' => 'light',
         'language' => 'en',
+        'calendar_type' => 'gregorian',
         'email_notifications' => true,
         'push_notifications' => true,
         'weekly_digest' => false,
@@ -59,6 +63,7 @@ class UserPreference extends Model
         'date_format' => 'Y-m-d',
         'time_format' => 'H:i',
         'start_of_week' => 1,
+        'show_week_numbers' => false,
     ];
 
     /**
@@ -68,6 +73,14 @@ class UserPreference extends Model
         'light' => 'Light',
         'dark' => 'Dark',
         'system' => 'System',
+    ];
+
+    /**
+     * Available calendar types.
+     */
+    public const CALENDAR_TYPES = [
+        'gregorian' => 'Gregorian',
+        'jalali' => 'Jalali',
     ];
 
     /**

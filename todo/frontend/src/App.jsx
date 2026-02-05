@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import { useEffect, useCallback, useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useCallback, useState, createContext, useContext } from 'react'
 import { useAuth } from './context/AuthContext.jsx'
 import { I18nProvider, useI18n } from './context/I18nContext.jsx'
 
@@ -25,60 +25,87 @@ import { NotFound, Unauthorized, ServerError, LoadingPage } from './pages/ErrorP
 // Services
 import { preferenceService } from './services/preferenceService.js'
 
-/**
- * Theme Manager - Handles dark/light mode with persistence
- */
-const ThemeManager = ({ children }) => {
+// ============================================================================
+// Theme Context and Provider
+// ============================================================================
+
+const ThemeContext = createContext(null)
+
+ const useTheme = () => useContext(ThemeContext) || { 
+  theme: 'light', 
+  setTheme: () => {}, 
+  toggleDarkMode: () => {} 
+}
+
+const ThemeProvider = ({ children }) => {
+  const [theme, setThemeState] = useState('light')
+  const [initialized, setInitialized] = useState(false)
   const { changeLanguage } = useI18n()
   const { user } = useAuth()
-  const [initialized, setInitialized] = useState(false)
 
-  // Initialize theme and language from backend or localStorage
-  const initializeThemeAndLanguage = useCallback(async () => {
-    if (typeof window === 'undefined') return
-
-    // Check for stored theme preference
-    const storedTheme = localStorage.getItem('app_theme')
-    const storedLanguage = localStorage.getItem('app_language')
-
-    // Apply theme immediately from localStorage
-    if (storedTheme) {
-      applyTheme(storedTheme)
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      applyTheme('dark')
-    }
-
-    // Apply language from localStorage
-    if (storedLanguage) {
-      changeLanguage(storedLanguage)
-    }
-
-    // If user is logged in, sync with backend preferences
-    if (user) {
-      try {
-        const prefs = await preferenceService.getPreferences()
-        if (prefs) {
-          // Apply theme from backend
-          const backendTheme = prefs.theme || 'light'
-          localStorage.setItem('app_theme', backendTheme)
-          applyTheme(backendTheme)
-
-          // Apply language from backend
-          const backendLanguage = prefs.language || 'en'
-          localStorage.setItem('app_language', backendLanguage)
-          changeLanguage(backendLanguage)
-        }
-      } catch (err) {
-        console.error('Failed to fetch preferences for theme/lang sync:', err)
+  // Apply theme to document
+  const applyTheme = useCallback((themeName) => {
+    if (typeof document === 'undefined') return
+    const root = document.documentElement
+    root.classList.remove('dark')
+    if (themeName === 'dark') {
+      root.classList.add('dark')
+    } else if (themeName === 'system') {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.classList.add('dark')
       }
     }
+  }, [])
 
-    setInitialized(true)
-  }, [user, changeLanguage])
-
+  // Initialize theme and language from backend or localStorage
   useEffect(() => {
-    initializeThemeAndLanguage()
-  }, [initializeThemeAndLanguage])
+    if (typeof window === 'undefined') return
+
+    const initialize = async () => {
+      // Check for stored theme preference
+      const storedTheme = localStorage.getItem('app_theme')
+      const storedLanguage = localStorage.getItem('app_language')
+
+      // Apply theme immediately from localStorage
+      if (storedTheme) {
+        applyTheme(storedTheme)
+        setThemeState(storedTheme)
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        applyTheme('dark')
+        setThemeState('dark')
+      }
+
+      // Apply language from localStorage
+      if (storedLanguage) {
+        changeLanguage(storedLanguage)
+      }
+
+      // If user is logged in, sync with backend preferences
+      if (user) {
+        try {
+          const prefs = await preferenceService.getPreferences()
+          if (prefs) {
+            // Apply theme from backend
+            const backendTheme = prefs.theme || 'light'
+            localStorage.setItem('app_theme', backendTheme)
+            applyTheme(backendTheme)
+            setThemeState(backendTheme)
+
+            // Apply language from backend
+            const backendLanguage = prefs.language || 'en'
+            localStorage.setItem('app_language', backendLanguage)
+            changeLanguage(backendLanguage)
+          }
+        } catch (err) {
+          console.error('Failed to fetch preferences for theme/lang sync:', err)
+        }
+      }
+
+      setInitialized(true)
+    }
+
+    initialize()
+  }, [user, changeLanguage, applyTheme])
 
   // Listen for system theme changes
   useEffect(() => {
@@ -87,91 +114,58 @@ const ThemeManager = ({ children }) => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = (e) => {
       const storedTheme = localStorage.getItem('app_theme')
-      if (!storedTheme) {
-        // Only auto-apply if user hasn't set a preference
-        applyTheme(e.matches ? 'dark' : 'light')
+      if (!storedTheme || storedTheme === 'system') {
+        // Only auto-apply if user hasn't set a preference or is using system
+        const newTheme = e.matches ? 'dark' : 'light'
+        applyTheme(newTheme)
+        setThemeState(newTheme)
       }
     }
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  }, [applyTheme])
 
-  return initialized ? children : null
-}
+  // Set theme with backend sync
+  const setTheme = useCallback(async (newTheme) => {
+    if (typeof document === 'undefined') return
 
-/**
- * Apply theme to document
- * @param {string} theme - 'light', 'dark', or 'system'
- */
-const applyTheme = (theme) => {
-  if (typeof document === 'undefined') return
+    applyTheme(newTheme)
+    setThemeState(newTheme)
+    localStorage.setItem('app_theme', newTheme)
 
-  const root = document.documentElement
-
-  if (theme === 'dark') {
-    root.classList.add('dark')
-  } else if (theme === 'light') {
-    root.classList.remove('dark')
-  } else if (theme === 'system') {
-    // Check system preference
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
+    // Sync with backend if user is logged in
+    if (user) {
+      try {
+        await preferenceService.updatePreferences({ theme: newTheme })
+      } catch (err) {
+        console.error('Failed to sync theme to backend:', err)
+      }
     }
-  }
+  }, [user, applyTheme])
+
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(newTheme)
+    return newTheme
+  }, [theme, setTheme])
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, toggleDarkMode }}>
+      {initialized ? children : (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <LoadingPage message="Loading..." />
+        </div>
+      )}
+    </ThemeContext.Provider>
+  )
 }
 
-/**
- * Get current effective theme
- * @returns {string} 'light' or 'dark'
- */
- const getEffectiveTheme = () => {
-  if (typeof document === 'undefined') return 'light'
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-}
-
-/**
- * Toggle dark mode
- */
- const toggleDarkMode = () => {
-  if (typeof document === 'undefined') return
-
-  const root = document.documentElement
-  const isDark = root.classList.contains('dark')
-  const newTheme = isDark ? 'light' : 'dark'
-
-  root.classList.toggle('dark')
-  localStorage.setItem('app_theme', newTheme)
-
-  return newTheme
-}
-
-/**
- * Set theme
- * @param {string} theme - 'light', 'dark', or 'system'
- */
- const setTheme = (theme) => {
-  if (typeof document === 'undefined') return
-
-  const root = document.documentElement
-
-  if (theme === 'system') {
-    root.classList.remove('dark')
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      root.classList.add('dark')
-    }
-  } else if (theme === 'dark') {
-    root.classList.add('dark')
-  } else {
-    root.classList.remove('dark')
-  }
-
-  localStorage.setItem('app_theme', theme)
-}
-
+// ============================================================================
 // Route Guards
+// ============================================================================
+
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
   
@@ -192,9 +186,13 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/dashboard" /> : children
 }
 
+// ============================================================================
+// Main App
+// ============================================================================
+
 function AppContent() {
   return (
-    <ThemeManager>
+    <ThemeProvider>
       <Routes>
         {/* Public Routes */}
         <Route 
@@ -315,7 +313,7 @@ function AppContent() {
         {/* 404 - Must be last */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </ThemeManager>
+    </ThemeProvider>
   )
 }
 
@@ -330,4 +328,4 @@ function App() {
 export default App
 
 // Export theme utilities for use in components
-export { ThemeManager, applyTheme, getEffectiveTheme, toggleDarkMode, setTheme }
+export { ThemeProvider, useTheme }

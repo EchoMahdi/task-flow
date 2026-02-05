@@ -220,4 +220,40 @@ class NotificationService
                 'error_message' => 'Task deleted or notification cancelled',
             ]);
     }
+
+    /**
+     * Mark a notification log as read.
+     */
+    public function markNotificationAsRead(int $id, int $userId): ?NotificationLog
+    {
+        $log = NotificationLog::where('id', $id)
+            ->where('user_id', $userId)
+            ->first();
+        
+        if ($log) {
+            $log->markAsRead();
+        }
+        
+        return $log;
+    }
+
+    /**
+     * Mark all notifications as read for a user.
+     */
+    public function markAllNotificationsAsRead(int $userId): int
+    {
+        return NotificationLog::where('user_id', $userId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+    }
+
+    /**
+     * Delete a notification log.
+     */
+    public function deleteNotificationLog(int $id, int $userId): bool
+    {
+        return NotificationLog::where('id', $id)
+            ->where('user_id', $userId)
+            ->delete();
+    }
 }

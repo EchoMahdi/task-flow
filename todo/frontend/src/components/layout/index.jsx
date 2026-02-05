@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Icons } from '../ui/Icons';
 import { Avatar, Dropdown, DropdownItem, Badge } from '../ui/index';
@@ -7,6 +7,7 @@ import { Avatar, Dropdown, DropdownItem, Badge } from '../ui/index';
 // Header Component for authenticated pages
 export const Header = ({ onMenuClick, sidebarOpen }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [notificationCount] = React.useState(3);
 
   return (
@@ -95,16 +96,16 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
               <p className="text-sm font-semibold text-secondary-900">{user?.name || 'User'}</p>
               <p className="text-xs text-secondary-500">{user?.email || 'user@example.com'}</p>
             </div>
-            <DropdownItem onClick={() => {}}>
+            <DropdownItem onClick={() => navigate('/profile')}>
               <Icons.User className="w-4 h-4" />
               <span>Profile</span>
             </DropdownItem>
-            <DropdownItem onClick={() => {}}>
+            <DropdownItem onClick={() => navigate('/settings')}>
               <Icons.Cog className="w-4 h-4" />
               <span>Settings</span>
             </DropdownItem>
             <div className="border-t border-secondary-100 my-1" />
-            <DropdownItem danger onClick={logout}>
+            <DropdownItem danger onClick={() => { logout(); navigate('/login'); }}>
               <Icons.Logout className="w-4 h-4" />
               <span>Sign out</span>
             </DropdownItem>

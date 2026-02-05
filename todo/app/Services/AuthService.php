@@ -8,6 +8,7 @@ use App\Models\PasswordResetToken;
 use App\Models\UserPreference;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -139,24 +140,69 @@ class AuthService
 
     /**
      * Update user profile.
+     * Persists both core user fields and extended profile fields to the database.
      */
     public function updateProfile(User $user, array $data): User
     {
+        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Starting update', [
+            'user_id' => $user->id,
+            'has_profile_data' => isset($data['profile']),
+            'profile_data' => $data['profile'] ?? null,
+        ]);
+        
+        // Update core user fields only
         $user->update([
             'name' => $data['name'] ?? $user->name,
             'timezone' => $data['timezone'] ?? $user->timezone,
             'locale' => $data['locale'] ?? $user->locale,
         ]);
 
-        // Update profile if provided
+        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Core fields updated', [
+            'user_id' => $user->id,
+        ]);
+
+        // Persist profile data to database
         if (isset($data['profile'])) {
+            $profileData = [
+                'bio' => $data['profile']['bio'] ?? null,
+                'birth_date' => $data['profile']['birth_date'] ?? null,
+                'website' => $data['profile']['website'] ?? null,
+                'company' => $data['profile']['company'] ?? null,
+                'job_title' => $data['profile']['job_title'] ?? null,
+                'phone' => $data['profile']['phone'] ?? null,
+                'location' => $data['profile']['location'] ?? null,
+            ];
+            
+            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Saving profile', [
+                'user_id' => $user->id,
+                'profile_data' => $profileData,
+            ]);
+            
             $user->profile()->updateOrCreate(
                 ['user_id' => $user->id],
-                $data['profile']
+                $profileData
             );
+            
+            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Profile saved', [
+                'user_id' => $user->id,
+                'profile_exists' => $user->profile !== null,
+            ]);
+        } else {
+            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: No profile data in request', [
+                'user_id' => $user->id,
+                'data_keys' => array_keys($data),
+            ]);
         }
 
-        return $user->fresh(['profile', 'preferences']);
+        $freshUser = $user->fresh(['profile', 'preferences']);
+        
+        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Final result', [
+            'user_id' => $freshUser->id,
+            'profile_bio' => $freshUser->profile?->bio,
+            'profile_company' => $freshUser->profile?->company,
+        ]);
+
+        return $freshUser;
     }
 
     /**
@@ -167,6 +213,7 @@ class AuthService
         $allowedFields = [
             'theme',
             'language',
+            'calendar_type',
             'email_notifications',
             'push_notifications',
             'task_reminders',
@@ -180,6 +227,7 @@ class AuthService
             'time_format',
             'start_of_week',
             'default_task_view',
+            'show_week_numbers',
         ];
 
         $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
@@ -228,7 +276,7 @@ class AuthService
 
         if (!$user) {
             // Don't reveal if user exists
-            return true;
+            return false;
         }
 
         // Create reset token
@@ -277,31 +325,26 @@ class AuthService
     }
 
     /**
-     * Send email verification.
+     * Send email verification using signed URL.
      */
     public function sendEmailVerification(User $user): void
     {
-        $token = sha1($user->id . $user->email . Str::random(40));
-        
-        $verificationUrl = route('verification.verify', [
-            'id' => $user->id,
-            'hash' => $token,
-        ]);
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $user->id]
+        );
 
         $user->notify(new \App\Notifications\VerifyEmailNotification($verificationUrl));
     }
 
     /**
-     * Verify email.
+     * Verify email using signed URL validation.
      */
-    public function verifyEmail(User $user, string $hash): bool
+    public function verifyEmail(User $user): bool
     {
-        $expectedHash = sha1($user->id . $user->email . Str::random(40));
-
-        if (!hash_equals($expectedHash, $hash)) {
-            return false;
-        }
-
+        // Signature validation is now handled by the route middleware
+        // This method only marks the email as verified if not already done
         if ($user->hasVerifiedEmail()) {
             return true;
         }
@@ -312,7 +355,7 @@ class AuthService
     /**
      * Create a new session for the user.
      */
-    protected function createSession(User $user): UserSession
+    public function createSession(User $user): UserSession
     {
         $userAgent = request()->userAgent();
         $ipAddress = request()->ip();

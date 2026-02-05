@@ -6,6 +6,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "tasks": "Tasks",
+    "calendar": "Calendar",
     "notifications": "Notifications",
     "profile": "Profile",
     "settings": "Settings",
@@ -38,24 +39,61 @@
     "export": "Export",
     "import": "Import",
     "download": "Download",
-    "upload": "Upload"
-  },
-  "auth": {
-    "login": "Login",
-    "register": "Register",
-    "logout": "Logout",
+    "upload": "Upload",
     "email": "Email",
     "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot Password",
-    "resetPassword": "Reset Password",
-    "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?",
-    "signUp": "Sign Up",
-    "signIn": "Sign In",
-    "welcomeBack": "Welcome Back",
-    "createAccount": "Create Account"
+    "name": "Name",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "login": "Login",
+    "submit": "Submit"
+  },
+  "validation": {
+    "required": "The :attribute field is required.",
+    "email": "The :attribute must be a valid email address.",
+    "min": {
+      "string": "The :attribute must be at least :min characters."
+    },
+    "max": {
+      "string": "The :attribute cannot exceed :max characters."
+    },
+    "confirmed": "The :attribute confirmation does not match.",
+    "unique": "The :attribute has already been taken.",
+    "exists": "The selected :attribute is invalid.",
+    "date": "The :attribute is not a valid date.",
+    "in": "The selected :attribute is invalid.",
+    "array": "The :attribute must be an array."
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue",
+      "success": "Login successful",
+      "failed": "Invalid credentials. Please try again.",
+      "hide_password": "Hide password",
+      "show_password": "Show password",
+      "or_continue": "Or continue with",
+      "no_account": "Don't have an account?",
+      "sign_up_link": "Sign up for free"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Sign up to get started with TaskFlow",
+      "success": "Registration successful",
+      "failed": "Registration failed. Please try again."
+    },
+    "logout": {
+      "success": "Logged out successfully"
+    },
+    "forgot_password": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email to reset your password",
+      "success": "If an account exists with that email, a password reset link has been sent."
+    },
+    "reset_password": {
+      "title": "Reset Password",
+      "success": "Password reset successfully"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -103,7 +141,12 @@
     "filterByStatus": "Filter by status",
     "filterByPriority": "Filter by priority",
     "sortBy": "Sort by",
-    "searchTasks": "Search tasks"
+    "searchTasks": "Search tasks",
+    "create_success": "Task created successfully",
+    "update_success": "Task updated successfully",
+    "delete_success": "Task deleted successfully",
+    "complete_success": "Task marked as completed",
+    "incomplete_success": "Task marked as incomplete"
   },
   "settings": {
     "title": "Settings",
@@ -115,6 +158,9 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
+    "darkMode": "Dark Mode",
+    "darkModeOn": "Dark mode is enabled",
+    "darkModeOff": "Switch between light and dark theme",
     "language": "Language",
     "languageEn": "English",
     "languageFa": "Persian",
@@ -132,7 +178,8 @@
     "exportDataDesc": "Download a copy of all your data",
     "deleteAccount": "Delete Account",
     "deleteAccountDesc": "Permanently delete your account and all associated data",
-    "deleteAccountWarning": "⚠️ WARNING: This will PERMANENTLY delete your account and ALL associated data."
+    "deleteAccountWarning": "⚠️ WARNING: This will PERMANENTLY delete your account and ALL associated data.",
+    "preferences_updated": "Preferences updated successfully"
   },
   "notifications": {
     "title": "Notifications",
@@ -156,7 +203,16 @@
     "serverError": "Server Error",
     "networkError": "Network Error",
     "tryAgain": "Try Again",
-    "goHome": "Go Home"
+    "goHome": "Go Home",
+    "validation_failed": "Validation failed",
+    "not_found": "Resource not found",
+    "server_error": "An unexpected error occurred"
+  },
+  "success": {
+    "operation_completed": "Operation completed successfully",
+    "data_saved": "Data saved successfully",
+    "data_deleted": "Data deleted successfully",
+    "data_updated": "Data updated successfully"
   },
   "weekdays": {
     "sunday": "Sunday",
@@ -216,6 +272,37 @@
     "thisMonth": "This Month",
     "am": "AM",
     "pm": "PM"
+  },
+  "datetime": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "overdue": "Overdue",
+    "now": "Now",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "View and manage your tasks in calendar view",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "today": "Today",
+    "more": "more",
+    "noTasks": "No tasks for this day",
+    "dragHint": "Drag tasks to reschedule"
+  },
+  "filters": {
+    "title": "Filters",
+    "status": "Status",
+    "priority": "Priority",
+    "dateRange": "Date Range",
+    "includeCompleted": "Include Completed",
+    "clear": "Clear Filters",
+    "completedIncluded": "Completed included"
   },
   "format": {
     "date": "MM/DD/YYYY",

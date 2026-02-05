@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\NotificationLogResource;
 use App\Http\Resources\NotificationRuleResource;
 use App\Http\Resources\UserNotificationSettingResource;
 use App\Models\NotificationLog;
@@ -170,6 +171,65 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'data' => NotificationLogResource::collection($logs),
+        ]);
+    }
+
+    /**
+     * Mark a notification as read.
+     */
+    public function markAsRead(int $id): JsonResponse
+    {
+        $userId = Auth::id();
+        
+        $log = $this->notificationService->markNotificationAsRead($id, $userId);
+
+        if (!$log) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification marked as read',
+        ]);
+    }
+
+    /**
+     * Mark all notifications as read.
+     */
+    public function markAllAsRead(): JsonResponse
+    {
+        $userId = Auth::id();
+        
+        $count = $this->notificationService->markAllNotificationsAsRead($userId);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} notifications marked as read",
+        ]);
+    }
+
+    /**
+     * Delete a notification log.
+     */
+    public function deleteNotificationLog(int $id): JsonResponse
+    {
+        $userId = Auth::id();
+        
+        $deleted = $this->notificationService->deleteNotificationLog($id, $userId);
+
+        if (!$deleted) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification deleted',
         ]);
     }
 }

@@ -25,8 +25,9 @@ Route::prefix('auth')->middleware('guest')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     
-    // Email verification
-    Route::get('/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    // Email verification (using signed URLs)
+    Route::get('/verify/{id}', [AuthController::class, 'verifyEmail'])
+        ->middleware('signed')
         ->name('verification.verify');
 });
 

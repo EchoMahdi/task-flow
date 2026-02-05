@@ -29,6 +29,7 @@ export const preferenceService = {
     const mappedData = {
       theme: data.theme,
       language: data.language,
+      calendar_type: data.calendar_type ?? data.calendarType ?? 'gregorian',
       email_notifications: data.email_notifications ?? data.emailNotifications ?? true,
       push_notifications: data.push_notifications ?? data.pushNotifications ?? true,
       task_reminders: data.task_reminders ?? data.taskReminders ?? true,
@@ -41,6 +42,7 @@ export const preferenceService = {
       // Handle start_of_week conversion - Sunday=0, Monday=1, Saturday=6
       start_of_week: data.start_of_week ?? (data.startOfWeek === 'sunday' ? 0 : (data.startOfWeek === 'saturday' ? 6 : 1)),
       default_task_view: data.default_task_view ?? data.defaultTaskView ?? 'list',
+      show_week_numbers: data.show_week_numbers ?? data.showWeekNumbers ?? false,
     }
     
     const response = await api.put('/auth/preferences', mappedData)
@@ -87,7 +89,26 @@ export const preferenceService = {
    */
   async updateProfile(profileData) {
     await initCsrf()
-    const response = await api.put('/auth/profile', { profile: profileData })
+    
+    // Separate top-level fields from profile nested fields
+    const { timezone, locale, ...profileNestedData } = profileData;
+    
+    const payload = {};
+    
+    // Add top-level fields if present
+    if (timezone !== undefined) {
+      payload.timezone = timezone;
+    }
+    if (locale !== undefined) {
+      payload.locale = locale;
+    }
+    
+    // Add nested profile data if present
+    if (Object.keys(profileNestedData).length > 0) {
+      payload.profile = profileNestedData;
+    }
+    
+    const response = await api.put('/auth/profile', payload)
     return response.data.data
   },
 

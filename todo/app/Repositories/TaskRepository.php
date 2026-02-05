@@ -26,6 +26,46 @@ class TaskRepository implements TaskRepositoryInterface
         return $query->paginate($request->get('per_page', 15));
     }
 
+    /**
+     * Get tasks for a specific date range (for calendar view)
+     * Uses standard Gregorian dates only - calendar conversion happens on frontend
+     */
+    public function getTasksForDateRange(array $filters)
+    {
+        $query = $this->task->where('user_id', Auth::id())
+            ->with('tags');
+
+        // Date range filter
+        if (isset($filters['start_date']) && isset($filters['end_date'])) {
+            $query->whereBetween('due_date', [
+                $filters['start_date'],
+                $filters['end_date']
+            ]);
+        }
+
+        // Status filter
+        if (isset($filters['status']) && is_array($filters['status'])) {
+            $query->whereIn('status', $filters['status']);
+        }
+
+        // Priority filter
+        if (isset($filters['priority']) && is_array($filters['priority'])) {
+            $query->whereIn('priority', $filters['priority']);
+        }
+
+        // Include/exclude completed
+        if (isset($filters['include_completed'])) {
+            if (!$filters['include_completed']) {
+                $query->where('is_completed', false);
+            }
+        } else {
+            // By default, exclude completed tasks
+            $query->where('is_completed', false);
+        }
+
+        return $query->orderBy('due_date', 'asc')->get();
+    }
+
     public function getTaskById(int $id)
     {
         return $this->task->where('user_id', Auth::id())->with('tags')->findOrFail($id);

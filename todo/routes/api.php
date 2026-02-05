@@ -17,9 +17,16 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/api-auth.php';
 require __DIR__.'/api-notifications.php';
+require __DIR__.'/api-social.php';
 
 // Task Routes
 Route::apiResource('tasks', TaskController::class)->middleware(['auth:sanctum']);
+
+// Additional Task Calendar Routes
+Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/calendar', [TaskController::class, 'calendar']);
+    Route::patch('/{id}/date', [TaskController::class, 'updateDate']);
+});
 
 // Tag Routes
 Route::apiResource('tags', TagController::class)->middleware(['auth:sanctum']);

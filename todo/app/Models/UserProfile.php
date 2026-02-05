@@ -23,6 +23,8 @@ class UserProfile extends Model
         'city',
         'country',
         'postal_code',
+        'phone',
+        'location',
     ];
 
     protected $casts = [

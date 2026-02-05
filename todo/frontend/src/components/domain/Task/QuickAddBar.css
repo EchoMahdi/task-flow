@@ -1,0 +1,238 @@
+/**
+ * ============================================================================
+ * QuickAddBar Component Styles
+ * Uses design tokens for all styling
+ * ============================================================================
+ */
+
+/* Base Quick Add Bar */
+.quick-add-bar {
+  /* Layout */
+  width: 100%;
+  
+  /* Background */
+  background-color: var(--quick-add-bg, var(--bg-elevated));
+  
+  /* Borders */
+  border: 1px solid var(--quick-add-border, var(--border-light));
+  border-radius: var(--radius-lg);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.quick-add-bar:hover {
+  border-color: var(--border-default);
+}
+
+/* Form */
+.quick-add-bar__form {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+/* Toggle Button (collapsed state) */
+.quick-add-bar__toggle {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  
+  /* Typography */
+  text-align: left;
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.quick-add-bar__toggle:hover {
+  background-color: var(--bg-hover);
+  border-radius: var(--radius-md);
+}
+
+/* Icon */
+.quick-add-bar__icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.quick-add-bar__icon-wrapper {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  
+  /* Background */
+  background-color: var(--color-primary-100);
+  border-radius: var(--radius-full);
+}
+
+.quick-add-bar__icon-wrapper .quick-add-bar__icon {
+  color: var(--color-primary-600);
+}
+
+/* Placeholder */
+.quick-add-bar__placeholder {
+  font-size: var(--text-sm);
+  color: var(--text-placeholder);
+}
+
+/* Input */
+.quick-add-bar__input {
+  /* Layout */
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  
+  /* Typography */
+  font-size: var(--text-sm);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  
+  /* Borders */
+  border: none;
+  background: transparent;
+  
+  /* Focus */
+  outline: none;
+}
+
+.quick-add-bar__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+/* Actions */
+.quick-add-bar__actions {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* Cancel Button */
+.quick-add-bar__cancel {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.quick-add-bar__cancel:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Submit Button */
+.quick-add-bar__submit {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--color-primary-600);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.quick-add-bar__submit:hover:not(:disabled) {
+  background-color: var(--color-primary-100);
+}
+
+.quick-add-bar__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Action Icon */
+.quick-add-bar__action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================================================
+   Dark Mode Adjustments
+   ============================================================================ */
+
+[data-theme="dark"] .quick-add-bar {
+  background-color: var(--quick-add-bg, var(--bg-elevated));
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .quick-add-bar:hover {
+  border-color: var(--border-default);
+}
+
+[data-theme="dark"] .quick-add-bar__toggle:hover {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .quick-add-bar__icon-wrapper {
+  background-color: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .quick-add-bar__icon-wrapper .quick-add-bar__icon {
+  color: var(--color-primary-400);
+}
+
+[data-theme="dark"] .quick-add-bar__submit:hover:not(:disabled) {
+  background-color: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .quick-add-bar__cancel:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .quick-add-bar__form {
+    padding: var(--space-2);
+  }
+  
+  .quick-add-bar__actions {
+    gap: var(--space-2);
+  }
+}
+
+/* ============================================================================
+   END OF QUICK ADD BAR STYLES
+   ============================================================================
+ */

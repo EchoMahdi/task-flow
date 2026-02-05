@@ -8,19 +8,23 @@ use App\Http\Resources\AuthResource;
 use App\Http\Resources\SessionResource;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     protected AuthService $authService;
+    protected TranslationService $translator;
 
-    public function __construct(AuthService $authService)
+    public function __construct(AuthService $authService, TranslationService $translator)
     {
         $this->authService = $authService;
+        $this->translator = $translator;
     }
 
     /**
@@ -42,7 +46,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registration successful. Please check your email to verify your account.',
+                'message' => $this->translator->get('auth.register.success'),
                 'data' => [
                     'user' => new UserResource($user),
                     'token' => $token,
@@ -50,11 +54,7 @@ class AuthController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
@@ -64,6 +64,14 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         try {
+            // Debug: Log request details
+            Log::debug('Login attempt', [
+                'email' => $request->email,
+                'origin' => $request->header('Origin'),
+                'user_agent' => $request->userAgent(),
+                'ip' => $request->ip(),
+            ]);
+            
             $credentials = $request->validate([
                 'email' => ['required', 'string', 'email'],
                 'password' => ['required', 'string'],
@@ -71,16 +79,22 @@ class AuthController extends Controller
 
             $result = $this->authService->login($credentials);
 
+            Log::debug('Login success', ['user_id' => $result['user']->id]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Login successful',
+                'message' => $this->translator->get('auth.login.success'),
                 'data' => new AuthResource($result),
             ]);
 
         } catch (ValidationException $e) {
+            Log::warning('Login validation failed', [
+                'email' => $request->email,
+                'errors' => $e->errors(),
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials',
+                'message' => $this->translator->get('auth.login.failed'),
                 'errors' => $e->errors(),
             ], 401);
         }
@@ -98,7 +112,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged out successfully',
+            'message' => $this->translator->get('auth.logout.success'),
         ]);
     }
 
@@ -112,7 +126,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged out from all devices successfully',
+            'message' => $this->translator->get('auth.logout.success'),
         ]);
     }
 
@@ -136,33 +150,51 @@ class AuthController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            // Log incoming request data for debugging
+            Log::debug('updateProfile: Incoming request data', [
+                'user_id' => $user->id,
+                'all_input' => $request->all(),
+                'has_profile' => $request->has('profile'),
+            ]);
 
             $validated = $request->validate([
                 'name' => ['sometimes', 'string', 'max:255'],
                 'timezone' => ['sometimes', 'timezone'],
                 'locale' => ['sometimes', 'string', 'size:2'],
                 'profile' => ['sometimes', 'array'],
-                'profile.bio' => ['sometimes', 'string', 'max:1000'],
-                'profile.birth_date' => ['sometimes', 'date'],
-                'profile.website' => ['sometimes', 'url'],
-                'profile.company' => ['sometimes', 'string', 'max:255'],
-                'profile.job_title' => ['sometimes', 'string', 'max:255'],
+                'profile.bio' => ['nullable', 'string', 'max:1000'],
+                'profile.birth_date' => ['nullable', 'date'],
+                'profile.website' => ['nullable', 'url', 'max:255'],
+                'profile.company' => ['nullable', 'string', 'max:255'],
+                'profile.job_title' => ['nullable', 'string', 'max:255'],
+                'profile.phone' => ['nullable', 'string', 'max:50'],
+                'profile.location' => ['nullable', 'string', 'max:255'],
+            ]);
+
+            Log::debug('updateProfile: Validation passed', [
+                'validated_data' => $validated,
             ]);
 
             $user = $this->authService->updateProfile($user, $validated);
 
+            Log::debug('updateProfile: Service returned user', [
+                'user_id' => $user->id,
+                'profile_exists' => $user->profile !== null,
+                'profile_bio' => $user->profile?->bio,
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Profile updated successfully',
+                'message' => $this->translator->get('success.data_updated'),
                 'data' => new UserResource($user),
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
+            Log::warning('updateProfile: Validation failed', [
                 'errors' => $e->errors(),
-            ], 422);
+            ]);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
@@ -177,6 +209,7 @@ class AuthController extends Controller
             $validated = $request->validate([
                 'theme' => ['sometimes', 'in:light,dark,system'],
                 'language' => ['sometimes', 'string'],
+                'calendar_type' => ['sometimes', 'in:gregorian,jalali'],
                 'email_notifications' => ['sometimes', 'boolean'],
                 'push_notifications' => ['sometimes', 'boolean'],
                 'task_reminders' => ['sometimes', 'boolean'],
@@ -190,22 +223,19 @@ class AuthController extends Controller
                 'time_format' => ['sometimes', 'string'],
                 'start_of_week' => ['sometimes', 'integer', 'min:0', 'max:6'],
                 'default_task_view' => ['sometimes', 'string'],
+                'show_week_numbers' => ['sometimes', 'boolean'],
             ]);
 
             $preferences = $this->authService->updatePreferences($user, $validated);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Preferences updated successfully',
+                'message' => $this->translator->get('preferences.updated'),
                 'data' => $preferences,
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
@@ -230,15 +260,11 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password changed successfully. Please login again.',
+                'message' => $this->translator->get('success.data_updated'),
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
@@ -267,13 +293,13 @@ class AuthController extends Controller
         if (!$revoked) {
             return response()->json([
                 'success' => false,
-                'message' => 'Session not found',
+                'message' => $this->translator->get('errors.not_found'),
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Session revoked successfully',
+            'message' => $this->translator->get('success.operation_completed'),
         ]);
     }
 
@@ -310,15 +336,11 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'If an account exists with that email, a password reset link has been sent.',
+                'message' => $this->translator->get('auth.forgot_password.success'),
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
@@ -342,26 +364,22 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Password reset successfully. Please login with your new password.',
+                'message' => $this->translator->get('auth.reset_password.success'),
             ]);
 
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
+            return $this->translator->validationErrorResponse($e);
         }
     }
 
     /**
      * Verify email.
+     * Note: Signature validation is handled by the 'signed' middleware on the route.
      */
     public function verifyEmail(Request $request): JsonResponse
     {
         $request->validate([
             'id' => ['required', 'integer'],
-            'hash' => ['required', 'string'],
         ]);
 
         $user = User::find($request->id);
@@ -369,22 +387,23 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found',
+                'message' => $this->translator->get('errors.not_found'),
             ], 404);
         }
 
-        $verified = $this->authService->verifyEmail($user, $request->hash);
+        // Signature is already validated by the middleware
+        $verified = $this->authService->verifyEmail($user);
 
         if (!$verified) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid verification link',
+                'message' => $this->translator->get('errors.validation_failed'),
             ], 400);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Email verified successfully',
+            'message' => $this->translator->get('success.operation_completed'),
         ]);
     }
 
@@ -398,7 +417,7 @@ class AuthController extends Controller
         if ($user->hasVerifiedEmail()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email already verified',
+                'message' => $this->translator->get('errors.validation_failed'),
             ], 400);
         }
 
@@ -406,7 +425,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Verification email sent',
+            'message' => $this->translator->get('success.operation_completed'),
         ]);
     }
 
@@ -475,7 +494,7 @@ class AuthController extends Controller
         
         return response()->json([
             'success' => true,
-            'message' => 'Account deleted successfully',
+            'message' => $this->translator->get('success.data_deleted'),
         ]);
     }
 }

@@ -1,0 +1,490 @@
+/**
+ * ============================================================================
+ * TaskRow Component Styles
+ * Uses design tokens for all styling
+ * ============================================================================
+ */
+
+/* Base Task Row */
+.task-row {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: var(--task-row-height, 56px);
+  
+  /* Background */
+  background-color: var(--task-row-bg, var(--bg-elevated));
+  
+  /* Borders */
+  border: 1px solid var(--task-row-border, var(--border-light));
+  border-radius: var(--radius-lg);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+/* Hover State */
+.task-row:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================================================
+   Priority States
+   ============================================================================ */
+
+/* High Priority - Red left border */
+.task-row--priority-high {
+  border-left: 3px solid var(--task-priority-high, var(--color-danger-500));
+}
+
+/* Medium Priority - Orange left border */
+.task-row--priority-medium {
+  border-left: 3px solid var(--task-priority-medium, var(--color-warning-500));
+}
+
+/* Low Priority - Green left border */
+.task-row--priority-low {
+  border-left: 3px solid var(--task-priority-low, var(--color-success-500));
+}
+
+/* ============================================================================
+   Status States
+   ============================================================================ */
+
+/* Completed Task */
+.task-row--complete {
+  opacity: 0.6;
+}
+
+.task-row--complete .task-row__title {
+  text-decoration: line-through;
+}
+
+/* Overdue Task */
+.task-row--overdue {
+  background-color: var(--task-overdue, var(--color-danger-100));
+}
+
+[data-theme="dark"] .task-row--overdue {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+/* Due Today */
+.task-row--due-today {
+  background-color: var(--task-due-soon, var(--color-warning-100));
+}
+
+[data-theme="dark"] .task-row--due-today {
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+/* ============================================================================
+   Checkbox
+   ============================================================================ */
+
+.task-row__checkbox {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+  
+  /* Focus */
+  outline: none;
+}
+
+.task-row__checkbox:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--focus-ring);
+  border-radius: var(--radius-full);
+}
+
+.task-row__checkbox-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.task-row__checkbox-icon--checked {
+  color: var(--task-complete, var(--color-success-500));
+}
+
+/* ============================================================================
+   Content (Title)
+   ============================================================================ */
+
+.task-row__content {
+  /* Layout */
+  flex: 1;
+  min-width: 0;
+}
+
+.task-row__title {
+  /* Typography */
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  
+  /* Cursor */
+  cursor: pointer;
+  user-select: none;
+  
+  /* Truncation */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-row__title:hover {
+  color: var(--text-secondary);
+}
+
+.task-row__input {
+  /* Layout */
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  
+  /* Typography */
+  font-size: var(--text-sm);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+  
+  /* Borders */
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-primary);
+  
+  /* Focus */
+  outline: none;
+}
+
+.task-row__input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+/* ============================================================================
+   Metadata
+   ============================================================================ */
+
+.task-row__meta {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Due Date */
+.task-row__due-date {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  
+  /* Typography */
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  
+  /* Background */
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.task-row__due-date--overdue {
+  color: var(--task-overdue, var(--color-danger-500));
+  background-color: var(--color-danger-100);
+}
+
+.task-row__due-date--today {
+  color: var(--task-due-soon, var(--color-warning-500));
+  background-color: var(--color-warning-100);
+}
+
+.task-row__icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Priority Badge */
+.task-row__priority {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  
+  /* Typography */
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  
+  /* Borders */
+  border-radius: var(--radius-full);
+}
+
+.task-row__priority--high {
+  color: var(--color-white);
+  background-color: var(--task-priority-high, var(--color-danger-500));
+}
+
+.task-row__priority--medium {
+  color: var(--color-white);
+  background-color: var(--task-priority-medium, var(--color-warning-500));
+}
+
+.task-row__priority--low {
+  color: var(--color-white);
+  background-color: var(--task-priority-low, var(--color-success-500));
+}
+
+/* Tags */
+.task-row__tag {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  
+  /* Typography */
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  
+  /* Background */
+  background-color: var(--tag-color, var(--color-secondary-200));
+  border-radius: var(--radius-full);
+}
+
+/* ============================================================================
+   Actions
+   ============================================================================ */
+
+.task-row__actions {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.task-row:hover .task-row__actions {
+  opacity: 1;
+}
+
+.task-row__action {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+  
+  /* Focus */
+  outline: none;
+}
+
+.task-row__action:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.task-row__action:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--focus-ring);
+}
+
+.task-row__action-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================================================
+   Dark Mode Adjustments
+   ============================================================================ */
+
+[data-theme="dark"] .task-row {
+  background-color: var(--task-row-bg, var(--bg-elevated));
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .task-row:hover {
+  border-color: var(--border-default);
+}
+
+[data-theme="dark"] .task-row__title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .task-row__input {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-default);
+}
+
+[data-theme="dark"] .task-row__due-date {
+  background-color: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .task-row__action:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .task-row {
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .task-row__meta {
+    display: none;
+  }
+  
+  .task-row__actions {
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   Animation States
+   ============================================================================ */
+
+/* Staggered fade-in for list items */
+.stagger-item {
+  animation: staggerFadeIn 0.3s ease-out backwards;
+  will-change: opacity, transform;
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Task completing animation */
+.task-row--completing {
+  animation: taskCompleting 0.3s ease-out forwards;
+}
+
+@keyframes taskCompleting {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+    background-color: var(--color-success-100);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* Task uncompleting animation */
+.task-row--completing.task-row--completing-reverse {
+  animation: taskUncompleting 0.3s ease-out forwards;
+}
+
+@keyframes taskUncompleting {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Priority pulse animation */
+.task-row--priority-high:hover {
+  animation: pulse-high 2s ease-in-out infinite;
+}
+
+@keyframes pulse-high {
+  0%, 100% {
+    border-left-color: var(--task-priority-high, var(--color-danger-500));
+  }
+  50% {
+    border-left-color: var(--color-danger-400);
+  }
+}
+
+/* Focus ring animation */
+.task-row:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-visible-ring);
+}
+
+/* Row focus state */
+.task-row:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================================
+   Accessibility - Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .task-row {
+    transition: none;
+  }
+  
+  .stagger-item {
+    animation: none;
+  }
+  
+  .task-row--completing {
+    animation: none;
+    transition: opacity 0.1s;
+  }
+  
+  .task-row--priority-high:hover {
+    animation: none;
+  }
+}
+
+/* GPU acceleration for animations */
+.task-row,
+.task-row__checkbox,
+.task-row__checkbox-icon,
+.task-row__action,
+.task-row__title {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ============================================================================
+   END OF TASK ROW STYLES
+   ============================================================================ */

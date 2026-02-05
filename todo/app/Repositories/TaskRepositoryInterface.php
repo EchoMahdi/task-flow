@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 interface TaskRepositoryInterface
 {
     public function getAllTasks(Request $request);
+    public function getTasksForDateRange(array $filters);
     public function getTaskById(int $id);
     public function createTask(array $data);
     public function updateTask(int $id, array $data);

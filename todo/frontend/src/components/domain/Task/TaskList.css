@@ -1,0 +1,252 @@
+/**
+ * ============================================================================
+ * TaskList Component Styles
+ * Uses design tokens for all styling
+ * ============================================================================
+ */
+
+/* Base Task List */
+.task-list {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.task-list__empty {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  
+  /* Background */
+  background-color: var(--task-list-empty-bg, var(--bg-elevated));
+  
+  /* Borders */
+  border: 1px dashed var(--task-list-empty-border, var(--border-light));
+  border-radius: var(--radius-xl);
+  
+  /* Typography */
+  text-align: center;
+}
+
+.task-list__empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+}
+
+.task-list__empty-title {
+  /* Typography */
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.task-list__empty-description {
+  /* Typography */
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  max-width: 280px;
+}
+
+.task-list__empty-action {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  
+  /* Interactive */
+  background-color: var(--color-primary-600);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  
+  /* Typography */
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-white);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.task-list__empty-action:hover {
+  background-color: var(--color-primary-700);
+}
+
+.task-list__empty-action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================================================
+   Items Container
+   ============================================================================ */
+
+.task-list__items {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ============================================================================
+   No Results
+   ============================================================================ */
+
+.task-list__no-results {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  
+  /* Typography */
+  text-align: center;
+}
+
+.task-list__no-results-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+}
+
+.task-list__no-results-text {
+  /* Typography */
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   Grouped View
+   ============================================================================ */
+
+.task-list__group {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-list__group-title {
+  /* Layout */
+  padding: var(--space-2) var(--space-3);
+  
+  /* Typography */
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.task-list__group-items {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.task-list__footer {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  
+  /* Typography */
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.task-list__count {
+  font-weight: var(--font-medium);
+}
+
+.task-list__show-completed {
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  
+  /* Typography */
+  font-size: var(--text-sm);
+  color: var(--color-primary-600);
+  
+  /* Transitions */
+  transition: color var(--transition-fast);
+}
+
+.task-list__show-completed:hover {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   Dark Mode Adjustments
+   ============================================================================ */
+
+[data-theme="dark"] .task-list__empty {
+  background-color: var(--task-list-empty-bg, var(--bg-elevated));
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .task-list__empty-title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .task-list__empty-description {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .task-list__show-completed {
+  color: var(--color-primary-400);
+}
+
+[data-theme="dark"] .task-list__show-completed:hover {
+  color: var(--color-primary-300);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .task-list__empty {
+    padding: var(--space-8) var(--space-4);
+  }
+  
+  .task-list__empty-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .task-list__empty-title {
+    font-size: var(--text-base);
+  }
+  
+  .task-list__footer {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* ============================================================================
+   END OF TASK LIST STYLES
+   ============================================================================
+ */

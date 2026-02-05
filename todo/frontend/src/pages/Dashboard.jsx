@@ -411,7 +411,7 @@ const Dashboard = () => {
               <div className="quick-action-icon bg-warning-100">
                 <Icons.Bell className="w-6 h-6 text-warning-600" />
               </div>
-              <span className="text-sm font-medium text-secondary-700">Notifications</span>
+              <span className="text-sm font-medium text-secondary-700">System</span>
             </Link>
             <Link 
               to="/settings" 

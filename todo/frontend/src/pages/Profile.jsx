@@ -102,7 +102,7 @@ const Profile = () => {
     setSuccess('');
 
     try {
-      // Update profile on backend
+      // Update profile on backend - send profile fields directly (not double-wrapped)
       await preferenceService.updateProfile({
         bio: profileData.bio,
         phone: profileData.phone,

@@ -58,6 +58,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Add language header for backend i18n
+    const language = localStorage.getItem('app_language') || 'en'
+    config.headers['Accept-Language'] = language
+    
     return config
   },
   (error) => {

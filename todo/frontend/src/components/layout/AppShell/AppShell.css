@@ -1,0 +1,281 @@
+/**
+ * ============================================================================
+ * AppShell Component Styles
+ * Implements the 3-zone layout using design tokens
+ * ============================================================================
+ */
+
+/* App Shell Base */
+.app-shell {
+  /* Layout - Full viewport */
+  display: grid;
+  width: 100%;
+  height: 100vh;
+  
+  /* Grid template - 3 zones */
+  grid-template-columns: var(--nav-rail-width, 260px) 1fr;
+  grid-template-rows: 1fr;
+  
+  /* Overflow handling */
+  overflow: hidden;
+  
+  /* Background */
+  background-color: var(--bg-primary);
+}
+
+/* ============================================================================
+   Navigation Rail (Left Zone)
+   ============================================================================ */
+
+.app-shell__nav-rail {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: var(--nav-rail-width, 260px);
+  max-width: var(--nav-rail-width, 260px);
+  
+  /* Background */
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-light);
+  
+  /* Transitions */
+  transition: all var(--transition-normal);
+  
+  /* Overflow */
+  overflow: hidden;
+}
+
+/* Collapsed State */
+.app-shell__nav-rail--collapsed {
+  width: var(--nav-rail-collapsed, 72px);
+  max-width: var(--nav-rail-collapsed, 72px);
+}
+
+.app-shell__nav-content {
+  /* Layout */
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+/* Navigation Toggle Button */
+.app-shell__nav-toggle {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--header-height, 64px);
+  padding: var(--space-4);
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.app-shell__nav-toggle:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.app-shell__nav-toggle-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-fast);
+}
+
+.app-shell__nav-toggle-icon--flipped {
+  transform: rotate(180deg);
+}
+
+/* ============================================================================
+   Main Workspace (Center Zone)
+   ============================================================================ */
+
+.app-shell__workspace {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  
+  /* Overflow */
+  overflow: hidden;
+  
+  /* Background */
+  background-color: var(--bg-primary);
+}
+
+/* ============================================================================
+   Context Panel (Right Zone)
+   ============================================================================ */
+
+.app-shell__context-panel {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: var(--context-panel-width, 360px);
+  max-width: var(--context-panel-max-width, 480px);
+  
+  /* Background */
+  background-color: var(--bg-elevated);
+  border-left: 1px solid var(--border-light);
+  
+  /* Animation */
+  animation: context-slide-in var(--transition-normal) ease-out;
+}
+
+@keyframes context-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Context Panel Header */
+.app-shell__context-header {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--header-height, 64px);
+  padding: var(--space-4);
+  
+  /* Borders */
+  border-bottom: 1px solid var(--border-light);
+}
+
+.app-shell__context-close {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  
+  /* Interactive */
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+.app-shell__context-close:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.app-shell__context-close-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Context Panel Content */
+.app-shell__context-content {
+  /* Layout */
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+/* ============================================================================
+   Dark Mode Adjustments
+   ============================================================================ */
+
+[data-theme="dark"] .app-shell__nav-rail {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .app-shell__context-panel {
+  background-color: var(--bg-elevated);
+  border-color: var(--border-light);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+/* Tablet - 2 column layout */
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: var(--nav-rail-collapsed, 72px) 1fr;
+  }
+  
+  .app-shell__nav-rail {
+    width: var(--nav-rail-collapsed, 72px);
+    max-width: var(--nav-rail-collapsed, 72px);
+  }
+  
+  .app-shell__context-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: var(--z-50);
+    box-shadow: var(--shadow-xl);
+  }
+}
+
+/* Mobile - Stacked layout */
+@media (max-width: 768px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .app-shell__nav-rail {
+    /* Hide on mobile, use bottom navigation instead */
+    display: none;
+  }
+  
+  .app-shell__context-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ============================================================================
+   Accessibility
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__nav-rail,
+  .app-shell__context-panel,
+  .app-shell__nav-toggle-icon {
+    transition: none;
+  }
+  
+  .app-shell__context-panel {
+    animation: none;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.app-shell__nav-toggle:focus-visible,
+.app-shell__context-close:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--focus-ring);
+}
+
+/* ============================================================================
+   END OF APP SHELL STYLES
+   ============================================================================ */

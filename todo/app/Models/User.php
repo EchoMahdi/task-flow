@@ -205,6 +205,38 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user's tags.
+     */
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    /**
+     * Get user's social accounts.
+     */
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    /**
+     * Get user's notification logs.
+     */
+    public function notificationLogs(): HasMany
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
+
+    /**
+     * Get user's notification rules.
+     */
+    public function notificationRules(): HasMany
+    {
+        return $this->hasMany(NotificationRule::class);
+    }
+
+    /**
      * Get roles for the user.
      */
     public function roles(): HasMany
@@ -296,7 +328,8 @@ class User extends Authenticatable
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\VerifyEmailNotification());
+        $verificationUrl = \Illuminate\Auth\Notifications\VerifyEmail::createVerificationUrl($this);
+        $this->notify(new \App\Notifications\VerifyEmailNotification($verificationUrl));
     }
 
     /**

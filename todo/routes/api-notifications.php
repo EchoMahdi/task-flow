@@ -18,6 +18,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Notification history
     Route::get('/notifications/history', [NotificationController::class, 'getNotificationHistory']);
     
+    // Notification management
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'deleteNotificationLog']);
+    
     // Task-specific notification rules
     Route::prefix('/tasks/{task}/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'getTaskNotifications']);
