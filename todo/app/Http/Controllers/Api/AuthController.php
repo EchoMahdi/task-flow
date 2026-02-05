@@ -179,13 +179,17 @@ class AuthController extends Controller
                 'language' => ['sometimes', 'string'],
                 'email_notifications' => ['sometimes', 'boolean'],
                 'push_notifications' => ['sometimes', 'boolean'],
+                'task_reminders' => ['sometimes', 'boolean'],
+                'daily_digest' => ['sometimes', 'boolean'],
                 'weekly_digest' => ['sometimes', 'boolean'],
+                'weekly_report' => ['sometimes', 'boolean'],
                 'marketing_emails' => ['sometimes', 'boolean'],
                 'session_timeout' => ['sometimes', 'integer', 'min:5', 'max:1440'],
                 'items_per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
                 'date_format' => ['sometimes', 'string'],
                 'time_format' => ['sometimes', 'string'],
                 'start_of_week' => ['sometimes', 'integer', 'min:0', 'max:6'],
+                'default_task_view' => ['sometimes', 'string'],
             ]);
 
             $preferences = $this->authService->updatePreferences($user, $validated);
@@ -430,7 +434,7 @@ class AuthController extends Controller
                 'job_title' => $user->profile->job_title,
             ] : null,
             'preferences' => $user->preferences ? $user->preferences->toArray() : null,
-            'tasks' => $user->tasks->map(function ($task) {
+            'tasks' => $user->tasks ? $user->tasks->map(function ($task) {
                 return [
                     'id' => $task->id,
                     'title' => $task->title,
@@ -440,17 +444,17 @@ class AuthController extends Controller
                     'due_date' => $task->due_date,
                     'created_at' => $task->created_at,
                     'updated_at' => $task->updated_at,
-                    'tags' => $task->tags->pluck('name')->toArray(),
+                    'tags' => $task->tags ? $task->tags->pluck('name')->toArray() : [],
                 ];
-            })->toArray(),
-            'tags' => $user->tags->map(function ($tag) {
+            })->toArray() : [],
+            'tags' => $user->tags ? $user->tags->map(function ($tag) {
                 return [
                     'id' => $tag->id,
                     'name' => $tag->name,
                     'color' => $tag->color,
                     'created_at' => $tag->created_at,
                 ];
-            })->toArray(),
+            })->toArray() : [],
             'exported_at' => now()->toIso8601String(),
         ];
         

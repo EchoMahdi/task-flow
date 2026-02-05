@@ -498,37 +498,13 @@ export const Toggle = ({
           onChange={onChange}
           disabled={disabled}
         />
-        <div className={`w-10 h-6 rounded-full transition-colors ${checked ? 'bg-primary-600' : 'bg-secondary-300'}`} />
-        <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform ${checked ? 'translate-x-4' : ''}`} />
+        <div className={`block w-10 h-6 rounded-full transition-colors ${checked ? 'bg-primary-600' : 'bg-secondary-300'}`} />
+        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${checked ? 'transform translate-x-4' : ''}`} />
       </div>
       {label && <span className="ml-3 text-sm text-secondary-700">{label}</span>}
     </label>
   );
 };
 
-// Tooltip Component
-export const Tooltip = ({ children, content, position = 'top' }) => {
-  const [isVisible, setIsVisible] = React.useState(false);
-
-  const positions = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
-  };
-
-  return (
-    <div
-      className="relative inline-block"
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
-    >
-      {children}
-      {isVisible && (
-        <div className={`tooltip ${positions[position]}`}>
-          {content}
-        </div>
-      )}
-    </div>
-  );
-};
+// Toast Notification Component
+export { ToastProvider, useToast, ToastContainer } from './Toast';

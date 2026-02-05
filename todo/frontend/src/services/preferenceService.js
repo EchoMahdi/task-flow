@@ -19,26 +19,28 @@ export const preferenceService = {
   /**
    * Update user preferences on backend
    * This is a REAL API call that persists data to the database
-   * @param {Object} preferences - Preferences object with snake_case keys
+   * @param {Object} data - Flat preferences object with snake_case keys
    * @returns {Promise<Object>} Updated preferences
    */
-  async updatePreferences(preferences) {
+  async updatePreferences(data) {
     await initCsrf() // Ensure CSRF is initialized
     
-    // Map frontend camelCase to backend snake_case
+    // Map frontend camelCase to backend snake_case - handle all fields
     const mappedData = {
-      theme: preferences.theme,
-      language: preferences.language,
-      email_notifications: preferences.emailNotifications,
-      push_notifications: preferences.pushNotifications,
-      task_reminders: preferences.taskReminders,
-      daily_digest: preferences.dailyDigest,
-      weekly_report: preferences.weeklyReport,
-      marketing_emails: preferences.marketingEmails,
-      date_format: preferences.dateFormat,
-      time_format: preferences.timeFormat,
-      start_of_week: preferences.startOfWeek === 'sunday' ? 0 : 1,
-      default_task_view: preferences.defaultTaskView,
+      theme: data.theme,
+      language: data.language,
+      email_notifications: data.email_notifications ?? data.emailNotifications ?? true,
+      push_notifications: data.push_notifications ?? data.pushNotifications ?? true,
+      task_reminders: data.task_reminders ?? data.taskReminders ?? true,
+      daily_digest: data.daily_digest ?? data.dailyDigest ?? false,
+      weekly_digest: data.weekly_digest ?? data.weeklyDigest ?? false,
+      weekly_report: data.weekly_report ?? data.weeklyReport ?? true,
+      marketing_emails: data.marketing_emails ?? data.marketingEmails ?? false,
+      date_format: data.date_format ?? data.dateFormat ?? 'Y-m-d',
+      time_format: data.time_format ?? data.timeFormat ?? 'H:i',
+      // Handle start_of_week conversion - Sunday=0, Monday=1, Saturday=6
+      start_of_week: data.start_of_week ?? (data.startOfWeek === 'sunday' ? 0 : (data.startOfWeek === 'saturday' ? 6 : 1)),
+      default_task_view: data.default_task_view ?? data.defaultTaskView ?? 'list',
     }
     
     const response = await api.put('/auth/preferences', mappedData)

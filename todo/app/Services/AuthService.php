@@ -169,13 +169,17 @@ class AuthService
             'language',
             'email_notifications',
             'push_notifications',
+            'task_reminders',
+            'daily_digest',
             'weekly_digest',
+            'weekly_report',
             'marketing_emails',
             'session_timeout',
             'items_per_page',
             'date_format',
             'time_format',
             'start_of_week',
+            'default_task_view',
         ];
 
         $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);

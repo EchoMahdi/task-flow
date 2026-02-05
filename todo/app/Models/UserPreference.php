@@ -16,7 +16,10 @@ class UserPreference extends Model
         'language',
         'email_notifications',
         'push_notifications',
+        'task_reminders',
+        'daily_digest',
         'weekly_digest',
+        'weekly_report',
         'marketing_emails',
         'two_factor_enabled',
         'session_timeout',
@@ -24,12 +27,16 @@ class UserPreference extends Model
         'date_format',
         'time_format',
         'start_of_week',
+        'default_task_view',
     ];
 
     protected $casts = [
         'email_notifications' => 'boolean',
         'push_notifications' => 'boolean',
+        'task_reminders' => 'boolean',
+        'daily_digest' => 'boolean',
         'weekly_digest' => 'boolean',
+        'weekly_report' => 'boolean',
         'marketing_emails' => 'boolean',
         'two_factor_enabled' => 'boolean',
         'session_timeout' => 'integer',

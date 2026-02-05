@@ -108,7 +108,7 @@ const TaskList = () => {
     const variants = {
       high: 'danger',
       medium: 'warning',
-      low: 'secondary',
+      low: 'success',
     };
     return <Badge variant={variants[priority] || 'secondary'}>{priority}</Badge>;
   };
@@ -121,30 +121,66 @@ const TaskList = () => {
     );
   };
 
-  const getDueDateBadge = (dueDate, isCompleted) => {
-    if (!dueDate) return <span className="text-secondary-400 text-sm">No date</span>;
-    if (isCompleted) return <span className="text-success-600 text-sm">{new Date(dueDate).toLocaleDateString()}</span>;
+  const getDueDateInfo = (dueDate, isCompleted) => {
+    if (!dueDate) return { text: 'No date', className: 'text-secondary-400 text-sm' };
     
     const due = new Date(dueDate);
     const today = new Date();
-    const isOverdue = due < today;
+    const isOverdue = due < today && !isCompleted;
     
     if (isOverdue) {
-      return <Badge variant="danger">{due.toLocaleDateString()}</Badge>;
+      return { 
+        text: due.toLocaleDateString(), 
+        className: 'badge-danger text-xs' 
+      };
     }
     
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (due.toDateString() === tomorrow.toDateString()) {
-      return <Badge variant="warning">Tomorrow</Badge>;
+      return { text: 'Tomorrow', className: 'badge-warning text-xs' };
     }
     
-    return <span className="text-secondary-600 text-sm">{due.toLocaleDateString()}</span>;
+    if (due.toDateString() === today.toDateString()) {
+      return { text: 'Today', className: 'badge-primary text-xs' };
+    }
+    
+    return { text: due.toLocaleDateString(), className: 'text-secondary-600 text-sm' };
   };
+
+  // Filter options
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'completed', label: 'Completed' },
+  ];
+
+  const priorityOptions = [
+    { value: 'all', label: 'All Priority' },
+    { value: 'high', label: 'High' },
+    { value: 'medium', label: 'Medium' },
+    { value: 'low', label: 'Low' },
+  ];
+
+  const sortOptions = [
+    { value: 'created_at-desc', label: 'Newest First' },
+    { value: 'created_at-asc', label: 'Oldest First' },
+    { value: 'due_date-asc', label: 'Due Date (Soon)' },
+    { value: 'due_date-desc', label: 'Due Date (Later)' },
+    { value: 'priority-desc', label: 'Priority (High)' },
+    { value: 'priority-asc', label: 'Priority (Low)' },
+  ];
+
+  const perPageOptions = [
+    { value: '10', label: '10 per page' },
+    { value: '25', label: '25 per page' },
+    { value: '50', label: '50 per page' },
+    { value: '100', label: '100 per page' },
+  ];
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -163,14 +199,14 @@ const TaskList = () => {
           <div className="flex flex-wrap gap-4">
             {/* Search */}
             <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
+              <div className="search-input">
+                <Icons.Search className="search-icon" />
                 <input
                   type="text"
                   placeholder="Search tasks..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full"
                 />
               </div>
             </form>
@@ -179,23 +215,26 @@ const TaskList = () => {
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="px-3 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="filter-select"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
 
             {/* Priority Filter */}
             <select
               value={filters.priority}
               onChange={(e) => handleFilterChange('priority', e.target.value)}
-              className="px-3 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="filter-select"
             >
-              <option value="all">All Priority</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              {priorityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
 
             {/* Sort */}
@@ -206,26 +245,26 @@ const TaskList = () => {
                 handleFilterChange('sort_by', sort_by);
                 handleFilterChange('sort_order', sort_order);
               }}
-              className="px-3 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="filter-select"
             >
-              <option value="created_at-desc">Newest First</option>
-              <option value="created_at-asc">Oldest First</option>
-              <option value="due_date-asc">Due Date (Soon)</option>
-              <option value="due_date-desc">Due Date (Later)</option>
-              <option value="priority-desc">Priority (High)</option>
-              <option value="priority-asc">Priority (Low)</option>
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
 
             {/* Per Page */}
             <select
               value={filters.per_page}
               onChange={(e) => handleFilterChange('per_page', e.target.value)}
-              className="px-3 py-2 border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="filter-select"
             >
-              <option value="10">10 per page</option>
-              <option value="25">25 per page</option>
-              <option value="50">50 per page</option>
-              <option value="100">100 per page</option>
+              {perPageOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </Card>
@@ -236,7 +275,15 @@ const TaskList = () => {
             {loading ? (
               <div className="p-6 space-y-4">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} variant="text" className="w-full h-16" />
+                  <div key={i} className="flex items-center gap-4 p-4">
+                    <Skeleton variant="card" className="w-5 h-5 rounded" />
+                    <div className="flex-1">
+                      <Skeleton variant="text" className="w-48 h-5 mb-2" />
+                      <Skeleton variant="text" className="w-64 h-4" />
+                    </div>
+                    <Skeleton variant="card" className="w-20 h-6 rounded-full" />
+                    <Skeleton variant="card" className="w-16 h-6 rounded-full" />
+                  </div>
                 ))}
               </div>
             ) : tasks.length === 0 ? (
@@ -257,10 +304,11 @@ const TaskList = () => {
                 <table className="w-full">
                   <thead className="bg-secondary-50 border-y border-secondary-100">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider w-12">
                         <input
                           type="checkbox"
-                          className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                          className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                          aria-label="Select all tasks"
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
@@ -275,62 +323,74 @@ const TaskList = () => {
                       <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
                         Due Date
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-right text-xs font-semibold text-secondary-500 uppercase tracking-wider w-24">
                         Actions
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-secondary-100">
-                    {tasks.map((task) => (
-                      <tr key={task.id} className="hover:bg-secondary-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <input
-                            type="checkbox"
-                            checked={task.is_completed}
-                            onChange={() => handleStatusToggle(task)}
-                            className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                          />
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link
-                            to={`/tasks/${task.id}`}
-                            className={`block ${task.is_completed ? 'text-secondary-500 line-through' : 'text-secondary-900 hover:text-primary-600'}`}
-                          >
-                            <span className="font-medium">{task.title}</span>
-                          </Link>
-                          {task.description && (
-                            <p className="text-sm text-secondary-500 truncate max-w-md mt-1">
-                              {task.description}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getStatusBadge(task.is_completed)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getPriorityBadge(task.priority)}
-                        </td>
-                        <td className="px-6 py-4">
-                          {getDueDateBadge(task.due_date, task.is_completed)}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                    {tasks.map((task, index) => {
+                      const dueDateInfo = getDueDateInfo(task.due_date, task.is_completed);
+                      return (
+                        <tr 
+                          key={task.id} 
+                          className="hover:bg-secondary-50/50 transition-colors duration-150 animate-fade-in"
+                          style={{ animationDelay: `${index * 30}ms` }}
+                        >
+                          <td className="px-6 py-4">
+                            <input
+                              type="checkbox"
+                              checked={task.is_completed}
+                              onChange={() => handleStatusToggle(task)}
+                              className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer transition-all duration-150"
+                              aria-label={`Mark task "${task.title}" as ${task.is_completed ? 'incomplete' : 'completed'}`}
+                            />
+                          </td>
+                          <td className="px-6 py-4">
                             <Link
-                              to={`/tasks/${task.id}/edit`}
-                              className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 rounded-lg transition-colors"
+                              to={`/tasks/${task.id}`}
+                              className={`block transition-colors duration-150 ${task.is_completed ? 'text-secondary-500 line-through' : 'text-secondary-900 hover:text-primary-600'}`}
                             >
-                              <Icons.Pencil className="w-4 h-4" />
+                              <span className="font-medium">{task.title}</span>
                             </Link>
-                            <button
-                              onClick={() => handleDelete(task.id)}
-                              className="p-2 text-secondary-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors"
-                            >
-                              <Icons.Trash className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                            {task.description && (
+                              <p className="text-sm text-secondary-500 truncate max-w-md mt-1">
+                                {task.description}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {getStatusBadge(task.is_completed)}
+                          </td>
+                          <td className="px-6 py-4">
+                            {getPriorityBadge(task.priority)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={dueDateInfo.className}>
+                              {dueDateInfo.text}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Link
+                                to={`/tasks/${task.id}/edit`}
+                                className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 rounded-lg transition-all duration-150"
+                                aria-label={`Edit task "${task.title}"`}
+                              >
+                                <Icons.Pencil className="w-4 h-4" />
+                              </Link>
+                              <button
+                                onClick={() => handleDelete(task.id)}
+                                className="p-2 text-secondary-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-150"
+                                aria-label={`Delete task "${task.title}"`}
+                              >
+                                <Icons.Trash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -340,7 +400,7 @@ const TaskList = () => {
 
         {/* Pagination */}
         {pagination.last_page > 1 && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-secondary-500">
               Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to{' '}
               {Math.min(pagination.current_page * pagination.per_page, pagination.total)} of{' '}
@@ -352,8 +412,9 @@ const TaskList = () => {
                 size="sm"
                 disabled={pagination.current_page === 1}
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page - 1 }))}
+                icon={<Icons.ChevronLeft className="w-4 h-4 mr-1" />}
+                iconPosition="left"
               >
-                <Icons.ChevronLeft className="w-4 h-4" />
                 Previous
               </Button>
               <Button
@@ -363,7 +424,7 @@ const TaskList = () => {
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page + 1 }))}
               >
                 Next
-                <Icons.ChevronRight className="w-4 h-4" />
+                <Icons.ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           </div>

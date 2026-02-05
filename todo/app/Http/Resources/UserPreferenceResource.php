@@ -14,9 +14,9 @@ class UserPreferenceResource extends JsonResource
     {
         return [
             'theme' => $this->theme,
-            'theme_label' => $this->theme ? \App\Models\UserPreference::THEMES[$this->theme] : null,
+            'theme_label' => $this->theme ? (\App\Models\UserPreference::THEMES[$this->theme] ?? null) : null,
             'language' => $this->language,
-            'language_label' => $this->language ? \App\Models\UserPreference::LANGUAGES[$this->language] : null,
+            'language_label' => $this->language ? (\App\Models\UserPreference::LANGUAGES[$this->language] ?? null) : null,
             'email_notifications' => $this->email_notifications,
             'push_notifications' => $this->push_notifications,
             'weekly_digest' => $this->weekly_digest,
@@ -25,9 +25,9 @@ class UserPreferenceResource extends JsonResource
             'session_timeout' => $this->session_timeout,
             'items_per_page' => $this->items_per_page,
             'date_format' => $this->date_format,
-            'date_format_label' => $this->date_format ? \App\Models\UserPreference::DATE_FORMATS[$this->date_format] : null,
+            'date_format_label' => $this->date_format ? (\App\Models\UserPreference::DATE_FORMATS[$this->date_format] ?? null) : null,
             'time_format' => $this->time_format,
-            'time_format_label' => $this->time_format ? \App\Models\UserPreference::TIME_FORMATS[$this->time_format] : null,
+            'time_format_label' => $this->time_format ? (\App\Models\UserPreference::TIME_FORMATS[$this->time_format] ?? null) : null,
             'start_of_week' => $this->start_of_week,
         ];
     }

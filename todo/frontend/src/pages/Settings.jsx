@@ -5,9 +5,12 @@ import { Card, CardBody, Button, Toggle, Select, Alert, PageHeader, Divider } fr
 import { Icons } from '../components/ui/Icons';
 import { preferenceService } from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
+import { setTheme, toggleDarkMode } from '../App';
 
 const Settings = () => {
   const { user, refreshUser, logout } = useAuth();
+  const { t, changeLanguage, direction } = useI18n();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
@@ -30,11 +33,51 @@ const Settings = () => {
   const [preferences, setPreferences] = useState({
     theme: 'light',
     language: 'en',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    startOfWeek: 'sunday',
+    dateFormat: 'm/d/Y',  // PHP format
+    timeFormat: 'h:i A',  // PHP format
+    startOfWeek: 1,  // monday = 1
     defaultTaskView: 'list',
   });
+
+  // Map backend date format to frontend display value
+  const getDateFormatValue = (backendFormat) => {
+    const mapping = {
+      'Y-m-d': 'YYYY-MM-DD',
+      'm/d/Y': 'MM/DD/YYYY',
+      'd/m/Y': 'DD/MM/YYYY',
+      'd.m.Y': 'DD.MM.YYYY',
+    };
+    return mapping[backendFormat] || 'MM/DD/YYYY';
+  };
+
+  // Map frontend display value to backend date format
+  const getBackendDateFormat = (frontendValue) => {
+    const mapping = {
+      'YYYY-MM-DD': 'Y-m-d',
+      'MM/DD/YYYY': 'm/d/Y',
+      'DD/MM/YYYY': 'd/m/Y',
+      'DD.MM.YYYY': 'd.m.Y',
+    };
+    return mapping[frontendValue] || 'm/d/Y';
+  };
+
+  // Map backend time format to frontend display value
+  const getTimeFormatValue = (backendFormat) => {
+    const mapping = {
+      'H:i': '24h',
+      'h:i A': '12h',
+    };
+    return mapping[backendFormat] || '12h';
+  };
+
+  // Map frontend display value to backend time format
+  const getBackendTimeFormat = (frontendValue) => {
+    const mapping = {
+      '24h': 'H:i',
+      '12h': 'h:i A',
+    };
+    return mapping[frontendValue] || 'h:i A';
+  };
 
   // Fetch preferences from backend on mount
   useEffect(() => {
@@ -59,9 +102,9 @@ const Settings = () => {
           setPreferences({
             theme: prefs.theme ?? 'light',
             language: prefs.language ?? 'en',
-            dateFormat: prefs.date_format ?? 'MM/DD/YYYY',
-            timeFormat: prefs.time_format ?? '12h',
-            startOfWeek: prefs.start_of_week === 0 ? 'sunday' : 'monday',
+            dateFormat: getDateFormatValue(prefs.date_format),
+            timeFormat: getTimeFormatValue(prefs.time_format),
+            startOfWeek: prefs.start_of_week === 0 ? 'sunday' : (prefs.start_of_week === 6 ? 'saturday' : 'monday'),
             defaultTaskView: prefs.default_task_view ?? 'list',
           });
         }
@@ -88,6 +131,16 @@ const Settings = () => {
     const { name, value } = e.target;
     setPreferences((prev) => ({ ...prev, [name]: value }));
     setSuccess(''); // Clear previous success messages
+    
+    // Apply theme change immediately
+    if (name === 'theme') {
+      setTheme(value);
+    }
+    
+    // Apply language change immediately
+    if (name === 'language') {
+      changeLanguage(value);
+    }
   };
 
   // REAL API call to save settings - no more mock behavior
@@ -97,10 +150,24 @@ const Settings = () => {
     setSuccess('');
 
     try {
+      // Convert frontend format to backend format
+      const backendDateFormat = getBackendDateFormat(preferences.dateFormat);
+      const backendTimeFormat = getBackendTimeFormat(preferences.timeFormat);
+      const startOfWeekMap = {
+        'sunday': 0,
+        'monday': 1,
+        'saturday': 6,
+      };
+
       // Combine notifications and preferences into one object
       const data = {
         ...notifications,
-        ...preferences,
+        theme: preferences.theme,
+        language: preferences.language,
+        date_format: backendDateFormat,
+        time_format: backendTimeFormat,
+        start_of_week: startOfWeekMap[preferences.startOfWeek] ?? 1,
+        default_task_view: preferences.defaultTaskView,
       };
       
       // Make real API call to backend
@@ -177,18 +244,14 @@ const Settings = () => {
   };
 
   const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'system', label: 'System' },
+    { value: 'light', label: t ? t('settings.themeLight') : 'Light' },
+    { value: 'dark', label: t ? t('settings.themeDark') : 'Dark' },
+    { value: 'system', label: t ? t('settings.themeSystem') : 'System' },
   ];
 
   const languageOptions = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Spanish' },
-    { value: 'fr', label: 'French' },
-    { value: 'de', label: 'German' },
-    { value: 'ja', label: 'Japanese' },
-    { value: 'zh', label: 'Chinese' },
+    { value: 'en', label: t ? t('settings.languageEn') : 'English' },
+    { value: 'fa', label: t ? t('settings.languageFa') : 'Persian (فارسی)' },
   ];
 
   const dateFormatOptions = [
@@ -368,14 +431,14 @@ const Settings = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Select
-                    label="Theme"
+                    label={t ? t('settings.theme') : 'Theme'}
                     name="theme"
                     value={preferences.theme}
                     onChange={handlePreferenceChange}
                     options={themeOptions}
                   />
                   <Select
-                    label="Language"
+                    label={t ? t('settings.language') : 'Language'}
                     name="language"
                     value={preferences.language}
                     onChange={handlePreferenceChange}
