@@ -9,8 +9,9 @@
  */
 
 import React, { useState } from 'react';
-import { Icons } from '../../ui/Icons';
 import './AppShell.css';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * AppShell Component
@@ -50,7 +51,7 @@ export const AppShell = ({
           onClick={() => setIsNavCollapsed(!isNavCollapsed)}
           aria-label={isNavCollapsed ? 'Expand navigation' : 'Collapse navigation'}
         >
-          <Icons.ChevronLeft
+          <ChevronLeftIcon
             className={[
               'app-shell__nav-toggle-icon',
               isNavCollapsed && 'app-shell__nav-toggle-icon--flipped',
@@ -73,7 +74,7 @@ export const AppShell = ({
               onClick={onCloseContext}
               aria-label="Close context panel"
             >
-              <Icons.X className="app-shell__context-close-icon" />
+              <CloseIcon className="app-shell__context-close-icon" />
             </button>
           </div>
           <div className="app-shell__context-content">

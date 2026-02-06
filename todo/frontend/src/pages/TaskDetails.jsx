@@ -22,7 +22,20 @@ import {
   IconButton
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
-import { Icons } from '../components/ui/Icons';
+import AddIcon from '@mui/icons-material/Add';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import ErrorIcon from '@mui/icons-material/Error';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import FlagIcon from '@mui/icons-material/Flag';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import DescriptionIcon from '@mui/icons-material/Description';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 
 const TaskDetails = () => {
   const { id } = useParams();
@@ -123,13 +136,13 @@ const TaskDetails = () => {
   const getActivityIcon = (type) => {
     switch (type) {
       case 'created':
-        return <Icons.Plus className="w-4 h-4" />;
+        return <AddIcon sx={{ fontSize: 16 }} />;
       case 'status_changed':
-        return <Icons.ArrowRight className="w-4 h-4" />;
+        return <ArrowForwardIcon sx={{ fontSize: 16 }} />;
       case 'subtask_completed':
-        return <Icons.CheckCircle className="w-4 h-4" />;
+        return <CheckCircleIcon sx={{ fontSize: 16 }} />;
       default:
-        return <Icons.Clock className="w-4 h-4" />;
+        return <ScheduleIcon sx={{ fontSize: 16 }} />;
     }
   };
 
@@ -161,7 +174,7 @@ const TaskDetails = () => {
     return (
       <MainLayout>
         <Box sx={{ maxWidth: 1000, mx: 'auto', textAlign: 'center', py: 6 }}>
-          <Icons.ExclamationCircle sx={{ fontSize: 64, color: 'action.disabled', mx: 'auto', mb: 2 }} />
+          <ErrorIcon sx={{ fontSize: 64, color: 'action.disabled', mx: 'auto', mb: 2 }} />
           <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>Task not found</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>The task you're looking for doesn't exist or has been deleted.</Typography>
           <Link to="/tasks">
@@ -188,24 +201,24 @@ const TaskDetails = () => {
               <Button variant="outlined" onClick={handleToggleComplete}>
                 {task.status === 'completed' ? (
                   <>
-                    <Icons.X sx={{ mr: 1, fontSize: 16 }} />
+                    <CloseIcon sx={{ mr: 1, fontSize: 16 }} />
                     Mark Incomplete
                   </>
                 ) : (
                   <>
-                    <Icons.Check sx={{ mr: 1, fontSize: 16 }} />
+                    <CheckIcon sx={{ mr: 1, fontSize: 16 }} />
                     Mark Complete
                   </>
                 )}
               </Button>
               <Link to={`/tasks/${id}/edit`}>
                 <Button variant="outlined">
-                  <Icons.Pencil sx={{ mr: 1, fontSize: 16 }} />
+                  <EditIcon sx={{ mr: 1, fontSize: 16 }} />
                   Edit
                 </Button>
               </Link>
               <Button variant="contained" color="error" onClick={() => setDeleteModal(true)}>
-                <Icons.Trash sx={{ mr: 1, fontSize: 16 }} />
+                <DeleteIcon sx={{ mr: 1, fontSize: 16 }} />
                 Delete
               </Button>
             </Box>
@@ -229,9 +242,9 @@ const TaskDetails = () => {
                     bgcolor: task.status === 'completed' ? 'success.light' : 'primary.light'
                   }}>
                     {task.status === 'completed' ? (
-                      <Icons.CheckCircle sx={{ fontSize: 24, color: 'success.main' }} />
+                      <CheckCircleIcon sx={{ fontSize: 24, color: 'success.main' }} />
                     ) : (
-                      <Icons.ClipboardList sx={{ fontSize: 24, color: 'primary.main' }} />
+                      <FormatListBulletedIcon sx={{ fontSize: 24, color: 'primary.main' }} />
                     )}
                   </Box>
                   <Box sx={{ flex: 1 }}>
@@ -290,7 +303,7 @@ const TaskDetails = () => {
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   Subtasks ({completedSubtasks}/{task.subtasks.length})
                 </Typography>
-                <Button variant="text" size="small" startIcon={<Icons.Plus />}>
+                <Button variant="text" size="small" startIcon={<AddIcon />}>
                   Add
                 </Button>
               </Box>
@@ -335,7 +348,7 @@ const TaskDetails = () => {
                             '&:hover': { borderColor: 'primary.main' }
                           }}
                         >
-                          {subtask.completed && <Icons.Check sx={{ fontSize: 12, color: 'white' }} />}
+                          {subtask.completed && <CheckIcon sx={{ fontSize: 12, color: 'white' }} />}
                         </IconButton>
                       </ListItemIcon>
                       <ListItemText 
@@ -392,7 +405,7 @@ const TaskDetails = () => {
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Icons.Calendar sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <CalendarTodayIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Due Date</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
@@ -402,21 +415,21 @@ const TaskDetails = () => {
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Icons.Flag sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <FlagIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Priority</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', textTransform: 'capitalize' }}>{task.priority}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Icons.Clock sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <ScheduleIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Created</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.createdAt)}</Typography>
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Icons.Pencil sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <EditIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Last Updated</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.updatedAt)}</Typography>
@@ -432,15 +445,15 @@ const TaskDetails = () => {
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
-                  <Icons.Bell sx={{ mr: 1, fontSize: 16 }} />
+                  <NotificationsIcon sx={{ mr: 1, fontSize: 16 }} />
                   Set Reminder
                 </Button>
                 <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
-                  <Icons.Document sx={{ mr: 1, fontSize: 16 }} />
+                  <DescriptionIcon sx={{ mr: 1, fontSize: 16 }} />
                   Duplicate Task
                 </Button>
                 <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
-                  <Icons.ArrowRight sx={{ mr: 1, fontSize: 16 }} />
+                  <ArrowForwardIcon sx={{ mr: 1, fontSize: 16 }} />
                   Move to Project
                 </Button>
               </Box>

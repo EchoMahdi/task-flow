@@ -6,7 +6,8 @@ import {
   Divider, Container
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
-import { Icons } from '../components/ui/Icons';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { preferenceService } from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
@@ -573,7 +574,7 @@ const Settings = () => {
                   }}
                 >
                   <Box sx={{ color: 'text.secondary', mt: 0.5 }}>
-                    <Icons.Document />
+                    <DescriptionIcon />
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
@@ -607,7 +608,7 @@ const Settings = () => {
                   }}
                 >
                   <Box sx={{ color: 'error.main', mt: 0.5 }}>
-                    <Icons.ExclamationTriangle />
+                    <ErrorOutlineIcon />
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body1" sx={{ fontWeight: 500, color: 'error.dark' }}>

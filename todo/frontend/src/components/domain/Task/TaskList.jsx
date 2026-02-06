@@ -6,11 +6,11 @@
  * ============================================================================
  */
 
-import React, { useState, useMemo } from 'react';
-import { TaskRow } from './TaskRow';
-import { QuickAddBar } from './QuickAddBar';
-import { Icons } from '../../ui/Icons';
-import './TaskList.css';
+import React, { useState, useMemo } from "react";
+import { Box, Typography, Button, Stack, Divider, Paper } from "@mui/material";
+import { Add, Search, Assignment } from "@mui/icons-material";
+import { TaskRow } from "./TaskRow";
+import { QuickAddBar } from "./QuickAddBar";
 
 /**
  * Sort tasks by date
@@ -21,36 +21,37 @@ import './TaskList.css';
 const sortTasks = (tasks, sortBy, sortOrder) => {
   const sorted = [...tasks].sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortBy) {
-      case 'dueDate':
+      case "dueDate":
         if (!a.dueDate && !b.dueDate) comparison = 0;
         else if (!a.dueDate) comparison = 1;
         else if (!b.dueDate) comparison = -1;
         else comparison = new Date(a.dueDate) - new Date(b.dueDate);
         break;
-      case 'priority':
+      case "priority":
         const priorityOrder = { high: 0, medium: 1, low: 2, none: 3 };
-        comparison = (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3);
+        comparison =
+          (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3);
         break;
-      case 'title':
+      case "title":
         comparison = a.title.localeCompare(b.title);
         break;
-      case 'created':
+      case "created":
       default:
         comparison = new Date(a.createdAt) - new Date(b.createdAt);
         break;
     }
-    
-    return sortOrder === 'desc' ? -comparison : comparison;
+
+    return sortOrder === "desc" ? -comparison : comparison;
   });
-  
+
   return sorted;
 };
 
 /**
  * TaskList Component
- * 
+ *
  * @param {Object} props
  * @param {Array} props.tasks - Array of task objects
  * @param {Function} props.onToggleTask - Callback when task is toggled
@@ -62,7 +63,7 @@ const sortTasks = (tasks, sortBy, sortOrder) => {
  * @param {string} props.sortBy - Sort field
  * @param {string} props.sortOrder - Sort order
  */
- const TaskList = ({
+const TaskList = ({
   tasks = [],
   onToggleTask,
   onUpdateTask,
@@ -70,65 +71,67 @@ const sortTasks = (tasks, sortBy, sortOrder) => {
   onOpenDetail,
   onAddTask,
   filters = {},
-  sortBy = 'dueDate',
-  sortOrder = 'asc',
+  sortBy = "dueDate",
+  sortOrder = "asc",
+  onFilterChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Filter tasks based on current filters
   const filteredTasks = useMemo(() => {
     let result = [...tasks];
-    
+
     // Filter by completed status
     if (filters.showCompleted === false) {
       result = result.filter((task) => !task.completed);
     } else if (filters.showCompleted === true) {
       result = result.filter((task) => task.completed);
     }
-    
+
     // Filter by priority
-    if (filters.priority && filters.priority !== 'all') {
+    if (filters.priority && filters.priority !== "all") {
       result = result.filter((task) => task.priority === filters.priority);
     }
-    
+
     // Filter by tags
     if (filters.tags && filters.tags.length > 0) {
-      result = result.filter((task) => 
-        task.tags?.some((tag) => filters.tags.includes(tag.id))
+      result = result.filter((task) =>
+        task.tags?.some((tag) => filters.tags.includes(tag.id)),
       );
     }
-    
+
     // Filter by search query
     if (filters.search) {
       const query = filters.search.toLowerCase();
-      result = result.filter((task) =>
-        task.title.toLowerCase().includes(query) ||
-        task.description?.toLowerCase().includes(query)
+      result = result.filter(
+        (task) =>
+          task.title.toLowerCase().includes(query) ||
+          task.description?.toLowerCase().includes(query),
       );
     }
-    
+
     // Sort tasks
     result = sortTasks(result, sortBy, sortOrder);
-    
+
     return result;
   }, [tasks, filters, sortBy, sortOrder]);
 
   // Group tasks by date if needed
   const groupedTasks = useMemo(() => {
     if (!filters.groupBy) return { all: filteredTasks };
-    
+
     const groups = {};
     filteredTasks.forEach((task) => {
-      const key = task.dueDate 
-        ? new Date(task.dueDate).toDateString() 
-        : 'no-date';
-      
+      const key = task.dueDate
+        ? new Date(task.dueDate).toDateString()
+        : "no-date";
+
       if (!groups[key]) {
         groups[key] = [];
       }
       groups[key].push(task);
     });
-    
+
     return groups;
   }, [filteredTasks, filters.groupBy]);
 
@@ -139,136 +142,162 @@ const sortTasks = (tasks, sortBy, sortOrder) => {
     }
   };
 
-  // Handle toggle task
-  const handleToggleTask = (taskId) => {
-    if (onToggleTask) {
-      onToggleTask(taskId);
-    }
-  };
-
-  // Handle update task
-  const handleUpdateTask = (task) => {
-    if (onUpdateTask) {
-      onUpdateTask(task);
-    }
-  };
-
-  // Handle delete task
-  const handleDeleteTask = (taskId) => {
-    if (onDeleteTask) {
-      onDeleteTask(taskId);
-    }
-  };
-
-  // Handle open task detail
-  const handleOpenDetail = (task) => {
-    if (onOpenDetail) {
-      onOpenDetail(task);
+  // Handle toggle show completed
+  const handleToggleShowCompleted = () => {
+    if (onFilterChange) {
+      onFilterChange({
+        ...filters,
+        showCompleted: filters.showCompleted === false ? undefined : false,
+      });
     }
   };
 
   // Empty state
   if (tasks.length === 0) {
     return (
-      <div className="task-list">
-        <div className="task-list__empty">
-          <Icons.ClipboardList className="task-list__empty-icon" />
-          <h3 className="task-list__empty-title">No tasks yet</h3>
-          <p className="task-list__empty-description">
+      <Box>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 8,
+            textAlign: "center",
+            bgcolor: "background.default",
+          }}
+        >
+          <Assignment
+            sx={{
+              fontSize: 64,
+              color: "text.disabled",
+              mb: 2,
+            }}
+          />
+          <Typography variant="h6" gutterBottom>
+            No tasks yet
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Create your first task to get started
-          </p>
-          <button
-            className="task-list__empty-action"
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
             onClick={() => setIsExpanded(true)}
           >
-            <Icons.Plus className="task-list__empty-action-icon" />
             Add your first task
-          </button>
-        </div>
-        
+          </Button>
+        </Paper>
+
         {isExpanded && (
-          <QuickAddBar
-            onAddTask={handleAddTask}
-            autoFocus
-          />
+          <Box sx={{ mt: 3 }}>
+            <QuickAddBar onAddTask={handleAddTask} autoFocus />
+          </Box>
         )}
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="task-list">
+    <Box>
       {/* Quick Add Bar */}
-      <QuickAddBar
-        onAddTask={handleAddTask}
-        autoFocus={false}
-      />
-      
+      <Box sx={{ mb: 3 }}>
+        <QuickAddBar onAddTask={handleAddTask} autoFocus={false} />
+      </Box>
+
       {/* Task List */}
-      <div className="task-list__items">
+      <Stack spacing={2}>
         {filteredTasks.length === 0 ? (
-          <div className="task-list__no-results">
-            <Icons.Search className="task-list__no-results-icon" />
-            <p className="task-list__no-results-text">No tasks match your filters</p>
-          </div>
+          // No results
+          <Paper
+            elevation={0}
+            sx={{
+              p: 6,
+              textAlign: "center",
+              bgcolor: "background.default",
+            }}
+          >
+            <Search
+              sx={{
+                fontSize: 48,
+                color: "text.disabled",
+                mb: 2,
+              }}
+            />
+            <Typography variant="body1" color="text.secondary">
+              No tasks match your filters
+            </Typography>
+          </Paper>
         ) : filters.groupBy ? (
           // Grouped view
-          Object.entries(groupedTasks).map(([groupDate, groupTasks]) => (
-            <div key={groupDate} className="task-list__group">
-              <h3 className="task-list__group-title">
-                {groupDate === 'no-date' ? 'No due date' : groupDate}
-              </h3>
-              <div className="task-list__group-items stagger-children">
-                {groupTasks.map((task, index) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    index={index}
-                    onToggle={handleToggleTask}
-                    onEdit={handleUpdateTask}
-                    onOpenDetail={handleOpenDetail}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
+          <Stack spacing={3}>
+            {Object.entries(groupedTasks).map(([groupDate, groupTasks]) => (
+              <Box key={groupDate}>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  sx={{ mb: 1.5, textTransform: "uppercase", fontSize: 12 }}
+                >
+                  {groupDate === "no-date" ? "No due date" : groupDate}
+                </Typography>
+                <Stack spacing={1}>
+                  {groupTasks.map((task, index) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onToggle={onToggleTask}
+                      onEdit={onUpdateTask}
+                      onDelete={onDeleteTask}
+                      onOpenDetail={onOpenDetail}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
         ) : (
           // Flat view
-          <div className="task-list__items-list stagger-children">
+          <Stack spacing={1}>
             {filteredTasks.map((task, index) => (
               <TaskRow
                 key={task.id}
                 task={task}
                 index={index}
-                onToggle={handleToggleTask}
-                onEdit={handleUpdateTask}
-                onOpenDetail={handleOpenDetail}
+                onToggle={onToggleTask}
+                onEdit={onUpdateTask}
+                onDelete={onDeleteTask}
+                onOpenDetail={onOpenDetail}
               />
             ))}
-          </div>
+          </Stack>
         )}
-      </div>
-      
+      </Stack>
+
       {/* Footer with task count */}
       {filteredTasks.length > 0 && (
-        <div className="task-list__footer">
-          <span className="task-list__count">
-            {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
-          </span>
+        <Box
+          sx={{
+            mt: 3,
+            pt: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderTop: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {filteredTasks.length} task{filteredTasks.length !== 1 ? "s" : ""}
+          </Typography>
           {filters.showCompleted === false && (
-            <button
-              className="task-list__show-completed"
-              onClick={() => {/* TODO: Toggle show completed */}}
-            >
+            <Button size="small" onClick={handleToggleShowCompleted}>
               Show completed
-            </button>
+            </Button>
           )}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 
-TaskList.displayName = 'TaskList';
+TaskList.displayName = "TaskList";
 
 export default TaskList;

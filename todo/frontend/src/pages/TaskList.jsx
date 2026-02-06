@@ -19,7 +19,14 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { Icons } from '../components/ui/Icons';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { taskService } from '../services/taskService';
 
 const TaskList = () => {
@@ -205,7 +212,7 @@ const TaskList = () => {
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{pagination.total} tasks total</Typography>
           </Box>
           <Link to="/tasks/new">
-            <Button variant="contained" startIcon={<Icons.Plus />}>
+            <Button variant="contained" startIcon={<AddIcon />}>
               New Task
             </Button>
           </Link>
@@ -216,17 +223,31 @@ const TaskList = () => {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {/* Search */}
             <Box component="form" onSubmit={handleSearch} sx={{ flex: 1, minWidth: 200, position: 'relative' }}>
-              <Box sx={{ position: 'relative' }}>
-                <Icons.Search sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary' }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <SearchIcon sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', zIndex: 1 }} />
                 <TextField
                   type="text"
                   placeholder="Search tasks..."
                   value={filters.search}
-                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  sx={{ width: '100%', '& .MuiOutlinedInput-root': { pl: 5 } }}
+                  onChange={(e) => {
+                    setFilters(prev => ({ ...prev, search: e.target.value }));
+                    // Auto-search on input (with short debounce)
+                    clearTimeout(window.searchTimeout);
+                    window.searchTimeout = setTimeout(() => fetchTasks(), 300);
+                  }}
+                  sx={{ width: '100%', '& .MuiOutlinedInput-root': { pl: 5, pr: 1 } }}
                   size="small"
                   variant="outlined"
                 />
+                {filters.search && (
+                  <CloseIcon 
+                    sx={{ position: 'absolute', right: 40, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+                    onClick={() => {
+                      setFilters(prev => ({ ...prev, search: '' }));
+                      fetchTasks();
+                    }}
+                  />
+                )}
               </Box>
             </Box>
 
@@ -315,12 +336,12 @@ const TaskList = () => {
               </Box>
             ) : tasks.length === 0 ? (
               <Box
-                icon={<Icons.ClipboardList sx={{ fontSize: 48 }} />}
+                icon={<FormatListBulletedIcon sx={{ fontSize: 48 }} />}
                 title="No tasks found"
                 description="Get started by creating your first task."
                 action={
                   <Link to="/tasks/new">
-                    <Button variant="contained" startIcon={<Icons.Plus />}>
+                    <Button variant="contained" startIcon={<AddIcon />}>
                       Create Task
                     </Button>
                   </Link>
@@ -417,7 +438,7 @@ const TaskList = () => {
                                 }}
                                 aria-label={`Edit task "${task.title}"`}
                               >
-                                <Icons.Pencil sx={{ fontSize: 16 }} />
+                                <EditIcon sx={{ fontSize: 16 }} />
                               </Link>
                               <button
                                 onClick={() => handleDelete(task.id)}
@@ -432,7 +453,7 @@ const TaskList = () => {
                                 }}
                                 aria-label={`Delete task "${task.title}"`}
                               >
-                                <Icons.Trash sx={{ fontSize: 16, color: 'error.main' }} />
+                                <DeleteIcon sx={{ fontSize: 16, color: 'error.main' }} />
                               </button>
                             </Box>
                           </TableCell>
@@ -460,7 +481,7 @@ const TaskList = () => {
                 size="small"
                 disabled={pagination.current_page === 1}
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page - 1 }))}
-                startIcon={<Icons.ChevronLeft />}
+                startIcon={<ChevronLeftIcon />}
               >
                 Previous
               </Button>
@@ -469,7 +490,7 @@ const TaskList = () => {
                 size="small"
                 disabled={pagination.current_page === pagination.last_page}
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page + 1 }))}
-                endIcon={<Icons.ChevronRight />}
+                endIcon={<ChevronRightIcon />}
               >
                 Next
               </Button>

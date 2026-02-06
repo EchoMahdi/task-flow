@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import dateService from '../../services/dateService';
-import { Icons } from './Icons';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import CloseIcon from '@mui/icons-material/Close';
 
 const JalaliCalendar = ({
   value,
@@ -169,7 +172,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => navigateMonth(-1)}
           >
-            <Icons.ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon />
           </button>
           <button 
             type="button"
@@ -183,7 +186,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => navigateMonth(1)}
           >
-            <Icons.ChevronLeft className="w-4 h-4" />
+            <ChevronLeftIcon />
           </button>
         </div>
         <div className="calendar-days-grid">
@@ -204,7 +207,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => setViewYear(viewYear - 1)}
           >
-            <Icons.ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon />
           </button>
           <span className="calendar-header-label">{viewYear}</span>
           <button 
@@ -212,7 +215,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => setViewYear(viewYear + 1)}
           >
-            <Icons.ChevronLeft className="w-4 h-4" />
+            <ChevronLeftIcon />
           </button>
         </div>
         <div className="calendar-months-grid">
@@ -243,7 +246,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => setViewYear(viewYear - 12)}
           >
-            <Icons.ChevronRight className="w-4 h-4" />
+            <ChevronRightIcon />
           </button>
           <span className="calendar-header-label">{startYear} - {startYear + 11}</span>
           <button 
@@ -251,7 +254,7 @@ const JalaliCalendar = ({
             className="calendar-nav-btn" 
             onClick={() => setViewYear(viewYear + 12)}
           >
-            <Icons.ChevronLeft className="w-4 h-4" />
+            <ChevronLeftIcon />
           </button>
         </div>
         <div className="calendar-years-grid">
@@ -345,7 +348,7 @@ const JalaliCalendar = ({
             onClick={() => !disabled && setIsOpen(!isOpen)}
             disabled={disabled}
           >
-            <Icons.Calendar className="w-5 h-5" />
+            <CalendarTodayIcon className="w-5 h-5" />
           </button>
           {selectedDate && (
             <button
@@ -353,7 +356,7 @@ const JalaliCalendar = ({
               className="calendar-clear"
               onClick={handleClear}
             >
-              <Icons.X className="w-4 h-4" />
+              <CloseIcon className="w-4 h-4" />
             </button>
           )}
         </div>

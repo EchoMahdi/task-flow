@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Icons } from '../ui/Icons';
 import {
   Avatar,
   Menu,
@@ -21,6 +20,13 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PersonIcon from '@mui/icons-material/Person';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import GridViewIcon from '@mui/icons-material/GridView';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 // Header Component for authenticated pages
 export const Header = ({ onMenuClick, sidebarOpen }) => {
@@ -181,16 +187,16 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
               </Typography>
             </Box>
             <MenuItem onClick={() => { navigate('/profile'); handleUserClose(); }}>
-              <Icons.User sx={{ mr: 1 }} />
+              <PersonIcon sx={{ mr: 1 }} />
               <Typography>Profile</Typography>
             </MenuItem>
             <MenuItem onClick={() => { navigate('/settings'); handleUserClose(); }}>
-              <Icons.Cog sx={{ mr: 1 }} />
+              <SettingsIcon sx={{ mr: 1 }} />
               <Typography>Settings</Typography>
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-              <Icons.Logout sx={{ mr: 1 }} />
+              <LogoutIcon sx={{ mr: 1 }} />
               <Typography>Sign out</Typography>
             </MenuItem>
           </Menu>
@@ -205,11 +211,11 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Icons.Squares },
-    { name: 'Tasks', href: '/tasks', icon: Icons.ClipboardList },
-    { name: 'Notifications', href: '/notifications', icon: Icons.Bell },
-    { name: 'Profile', href: '/profile', icon: Icons.User },
-    { name: 'Settings', href: '/settings', icon: Icons.Cog },
+    { name: 'Dashboard', href: '/dashboard', icon: GridViewIcon },
+    { name: 'Tasks', href: '/tasks', icon: FormatListBulletedIcon },
+    { name: 'Notifications', href: '/notifications', icon: NotificationsIcon },
+    { name: 'Profile', href: '/profile', icon: PersonIcon },
+    { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
   
   const isActive = (href) => location.pathname === href || location.pathname.startsWith(href + '/');
@@ -253,7 +259,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, px: 3, borderBottom: 1, borderColor: 'divider' }}>
           <Link to="/dashboard" sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none' }}>
             <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icons.CheckCircle sx={{ color: 'white' }} />
+              <CheckCircleIcon sx={{ color: 'white' }} />
             </Box>
             <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
               TaskFlow
@@ -336,7 +342,7 @@ export const PublicHeader = () => {
         {/* Logo */}
         <Link to="/" sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none' }}>
           <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icons.CheckCircle sx={{ color: 'white' }} />
+            <CheckCircleIcon sx={{ color: 'white' }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
             TaskFlow
@@ -446,7 +452,7 @@ export const PublicFooter = () => {
           <Box sx={{ gridColumn: { xs: 'span 2', md: 'span 4', lg: 'span 1' } }}>
             <Link to="/" sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none', mb: 2 }}>
               <Box sx={{ width: 32, height: 32, bgcolor: 'primary.light', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icons.CheckCircle sx={{ color: 'white' }} />
+                <CheckCircleIcon sx={{ color: 'white' }} />
               </Box>
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
                 TaskFlow
@@ -536,7 +542,7 @@ export const PublicFooter = () => {
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               Made with
             </Typography>
-            <Icons.Heart sx={{ fontSize: 16, color: 'error.main' }} />
+            <FavoriteIcon sx={{ fontSize: 16, color: 'error.main' }} />
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
               by TaskFlow Team
             </Typography>
@@ -584,7 +590,7 @@ export const AuthLayout = ({ children }) => {
       <Box sx={{ maxWidth: 1200, mx: 'auto', py: 3 }}>
         <Link to="/" sx={{ display: 'flex', alignItems: 'center', gap: 1, textDecoration: 'none' }}>
           <Box sx={{ width: 32, height: 32, bgcolor: 'primary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icons.CheckCircle sx={{ color: 'white' }} />
+            <CheckCircleIcon sx={{ color: 'white' }} />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
             TaskFlow

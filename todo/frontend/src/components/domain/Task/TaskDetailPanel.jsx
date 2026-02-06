@@ -7,7 +7,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Icons } from '../../ui/Icons';
+import CheckIcon from '@mui/icons-material/CheckIcon';
+import CloseIcon from '@mui/icons-material/CloseIcon';
+import DeleteIcon from '@mui/icons-material/DeleteIcon';
+
 import { Input,  TextField, Select } from '../../ui/index';
 import './TaskDetailPanel.css';
 
@@ -172,7 +175,7 @@ export const TaskDetailPanel = ({
               aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
             >
               {task.completed && (
-                <Icons.Check className="task-detail-panel__complete-icon" />
+                <CheckIcon />
               )}
             </button>
 
@@ -194,7 +197,7 @@ export const TaskDetailPanel = ({
             onClick={handleCancel}
             aria-label="Close panel"
           >
-            <Icons.X className="task-detail-panel__close-icon" />
+            <CloseIcon  />
           </button>
         </div>
 
@@ -321,7 +324,7 @@ export const TaskDetailPanel = ({
                 className="task-detail-panel__delete"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                <Icons.Trash className="task-detail-panel__delete-icon" />
+                <DeleteIcon />
                 Delete
               </button>
 

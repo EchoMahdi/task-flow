@@ -12,10 +12,23 @@
  */
 
 import React, { useState } from 'react';
-import { Icons } from '../../ui/Icons';
 import { Avatar } from '../../ui/index';
 import { useAuth } from '../../../context/AuthContext';
 import './NavigationRail.css';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import InboxIcon from '@mui/icons-material/Inbox';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import DateRangeIcon from '@mui/icons-material/DateRange';
+import StarIcon from '@mui/icons-material/Star';
+import FolderIcon from '@mui/icons-material/Folder';
+import LabelIcon from '@mui/icons-material/Label';
+import SettingsIcon from '@mui/icons-material/Settings';
+import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from '@/mui/icon-material';
 
 /**
  * Navigation item sub-component
@@ -82,7 +95,7 @@ const NavSection = ({
       >
         {Icon && <Icon className="nav-section__icon" />}
         <span className="nav-section__title">{title}</span>
-        <Icons.ChevronDown
+        <ExpandMoreIcon
           className={[
             'nav-section__chevron',
             isExpanded && 'nav-section__chevron--expanded',
@@ -120,9 +133,9 @@ export const NavigationRail = ({
   ];
 
   const smartLists = [
-    { id: 'sl1', name: 'All Tasks', icon: Icons.ClipboardList, count: 45 },
-    { id: 'sl2', name: 'Today', icon: Icons.Calendar, count: 8 },
-    { id: 'sl3', name: 'Completed', icon: Icons.CheckCircle, count: 127 },
+    { id: 'sl1', name: 'All Tasks', icon: FormatListBulletedIcon, count: 45 },
+    { id: 'sl2', name: 'Today', icon: CalendarTodayIcon, count: 8 },
+    { id: 'sl3', name: 'Completed', icon: CheckCircleIcon, count: 127 },
   ];
 
   const tags = [
@@ -158,12 +171,12 @@ export const NavigationRail = ({
       {/* Filters Section */}
       <NavSection
         title="Filters"
-        icon={Icons.Funnel}
+        icon={FilterListIcon}
         collapsed={collapsed}
         defaultExpanded={true}
       >
         <NavItem
-          icon={Icons.Inbox}
+          icon={InboxIcon}
           label="Inbox"
           badge={3}
           active={activeItem === 'inbox'}
@@ -171,7 +184,7 @@ export const NavigationRail = ({
           onClick={() => handleItemClick('inbox')}
         />
         <NavItem
-          icon={Icons.Clock}
+          icon={ScheduleIcon}
           label="Overdue"
           badge={5}
           active={activeItem === 'overdue'}
@@ -179,7 +192,7 @@ export const NavigationRail = ({
           onClick={() => handleItemClick('overdue')}
         />
         <NavItem
-          icon={Icons.Calendar}
+          icon={CalendarTodayIcon}
           label="Today"
           badge={8}
           active={activeItem === 'today'}
@@ -187,7 +200,7 @@ export const NavigationRail = ({
           onClick={() => handleItemClick('today')}
         />
         <NavItem
-          icon={Icons.CalendarRange}
+          icon={DateRangeIcon}
           label="Upcoming"
           badge={12}
           active={activeItem === 'upcoming'}
@@ -199,7 +212,7 @@ export const NavigationRail = ({
       {/* Smart Lists Section */}
       <NavSection
         title="Smart Lists"
-        icon={Icons.Star}
+        icon={StarIcon}
         collapsed={collapsed}
         defaultExpanded={false}
       >
@@ -219,14 +232,14 @@ export const NavigationRail = ({
       {/* Projects Section */}
       <NavSection
         title="Projects"
-        icon={Icons.Folder}
+        icon={FolderIcon}
         collapsed={collapsed}
         defaultExpanded={true}
       >
         {projects.map((project) => (
           <NavItem
             key={project.id}
-            icon={Icons.Folder}
+            icon={FolderIcon}
             label={project.name}
             badge={project.taskCount}
             active={activeItem === project.id}
@@ -236,7 +249,7 @@ export const NavigationRail = ({
         ))}
         {!collapsed && (
           <button className="nav-item nav-item--add">
-            <Icons.Plus className="nav-item__icon" />
+            <AddIcon className="nav-item__icon" />
             <span className="nav-item__label">Add Project</span>
           </button>
         )}
@@ -245,14 +258,14 @@ export const NavigationRail = ({
       {/* Tags Section */}
       <NavSection
         title="Tags"
-        icon={Icons.Tag}
+        icon={LabelIcon}
         collapsed={collapsed}
         defaultExpanded={false}
       >
         {tags.map((tag) => (
           <NavItem
             key={tag.id}
-            icon={Icons.Tag}
+            icon={LabelIcon}
             label={tag.name}
             active={activeItem === tag.id}
             collapsed={collapsed}
@@ -264,7 +277,7 @@ export const NavigationRail = ({
       {/* Settings at bottom */}
       <div className="nav-section nav-section--bottom">
         <NavItem
-          icon={Icons.Settings}
+          icon={SettingsIcon}
           label="Settings"
           active={activeItem === 'settings'}
           collapsed={collapsed}

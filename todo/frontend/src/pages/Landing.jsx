@@ -2,39 +2,45 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { PublicLayout } from '../components/layout/index';
 import { Button, Card, CardContent, Chip, Box, Typography, Container, Grid } from '@mui/material';
-import { Icons } from '../components/ui/Icons';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import LabelIcon from '@mui/icons-material/Label';
+import SecurityIcon from '@mui/icons-material/Security';
+import BoltIcon from '@mui/icons-material/Bolt';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import StarIcon from '@mui/icons-material/Star';
 
 const Landing = () => {
   const features = [
     {
-      icon: Icons.ClipboardList,
+      icon: FormatListBulletedIcon,
       title: 'Task Management',
       description: 'Create, organize, and track your tasks with ease. Set priorities, due dates, and never miss a deadline.',
     },
     {
-      icon: Icons.Bell,
+      icon: NotificationsIcon,
       title: 'Smart Notifications',
       description: 'Get timely reminders and updates. Customize notification preferences to stay informed without overwhelm.',
     },
     {
-      icon: Icons.ChartBar,
+      icon: BarChartIcon,
       title: 'Progress Tracking',
       description: 'Visualize your productivity with intuitive charts and statistics. Understand your work patterns.',
     },
     {
-      icon: Icons.Tag,
+      icon: LabelIcon,
       title: 'Tags & Categories',
       description: 'Organize tasks with custom tags and categories. Filter and find what you need instantly.',
     },
     {
-      icon: Icons.Shield,
+      icon: SecurityIcon,
       title: 'Secure & Private',
       description: 'Your data is encrypted and secure. We prioritize your privacy and data protection.',
     },
     {
-      icon: Icons.Lightning,
+      icon: BoltIcon,
       title: 'Lightning Fast',
       description: 'Built for speed and efficiency. Enjoy a smooth, responsive experience across all devices.',
     },
@@ -122,7 +128,7 @@ const Landing = () => {
             <Chip
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Icons.Sparkles sx={{ fontSize: 12 }} />
+                  <AutoAwesomeIcon sx={{ fontSize: 12 }} />
                   New: AI-powered task suggestions
                 </Box>
               }

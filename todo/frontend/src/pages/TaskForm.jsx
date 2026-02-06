@@ -13,10 +13,12 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Skeleton
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
-import { Icons } from '../components/ui/Icons';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { taskService } from '../services/taskService';
 import { tagService } from '../services/tagService';
 
@@ -195,7 +197,7 @@ const TaskForm = () => {
           <Alert 
             severity="error" 
             sx={{ mb: 3 }}
-            icon={<Icons.ExclamationCircle sx={{ fontSize: 20 }} />}
+            icon={<WarningAmberIcon sx={{ fontSize: 20 }} />}
             onClose={() => setError('')}
           >
             {error}
@@ -341,7 +343,7 @@ const TaskForm = () => {
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 {isEditing && (
-                  <Button type="button" variant="outlined" startIcon={<Icons.Eye />}>
+                  <Button type="button" variant="outlined" startIcon={<VisibilityIcon />}>
                     Preview
                   </Button>
                 )}

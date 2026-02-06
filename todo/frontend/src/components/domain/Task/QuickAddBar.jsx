@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Icons } from '../../ui/Icons';
+import {Add,Close,ArrowForward} from '@mui/icons-material';
 import './QuickAddBar.css';
 
 /**
@@ -83,7 +83,7 @@ import './QuickAddBar.css';
             onClick={handleExpand}
             aria-label="Add new task"
           >
-            <Icons.Plus className="quick-add-bar__icon" />
+            <Add className="quick-add-bar__icon" />
             <span className="quick-add-bar__placeholder">{placeholder}</span>
           </button>
         )}
@@ -93,7 +93,7 @@ import './QuickAddBar.css';
           <>
             {/* Add icon */}
             <div className="quick-add-bar__icon-wrapper">
-              <Icons.Plus className="quick-add-bar__icon" />
+              <Add className="quick-add-bar__icon" />
             </div>
 
             {/* Input */}
@@ -116,7 +116,7 @@ import './QuickAddBar.css';
                 onClick={handleCancel}
                 aria-label="Cancel"
               >
-                <Icons.X className="quick-add-bar__action-icon" />
+                <Close className="quick-add-bar__action-icon" />
               </button>
               <button
                 type="submit"
@@ -124,7 +124,7 @@ import './QuickAddBar.css';
                 disabled={!title.trim()}
                 aria-label="Add task"
               >
-                <Icons.ArrowRight className="quick-add-bar__action-icon" />
+                <ArrowForward className="quick-add-bar__action-icon" />
               </button>
             </div>
           </>

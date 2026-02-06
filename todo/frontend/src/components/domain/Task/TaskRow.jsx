@@ -7,8 +7,11 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Icons } from '../../ui/Icons';
 import './TaskRow.css';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 /**
  * Format date for display
@@ -181,12 +184,9 @@ export const TaskRow = ({
         role="checkbox"
       >
         {task.completed ? (
-          <Icons.CheckCircle 
-            className="task-row__checkbox-icon task-row__checkbox-icon--checked" 
-            aria-hidden="true"
-          />
+          <CheckCircleIcon/>
         ) : (
-          <Icons.Circle className="task-row__checkbox-icon" aria-hidden="true" />
+          <RadioButtonUncheckedIcon className="task-row__checkbox-icon" aria-hidden="true" />
         )}
       </button>
 
@@ -229,7 +229,7 @@ export const TaskRow = ({
             ].filter(Boolean).join(' ')}
             aria-label={`Due date: ${formatDate(task.dueDate)}`}
           >
-            <Icons.Calendar className="task-row__icon" aria-hidden="true" />
+            <CalendarTodayIcon className="task-row__icon" aria-hidden="true" />
             <span className="sr-only">Due: </span>
             {formatDate(task.dueDate)}
           </span>
@@ -270,7 +270,7 @@ export const TaskRow = ({
           onClick={(e) => { e.stopPropagation(); onOpenDetail(task); }}
           aria-label="Open task details"
         >
-          <Icons.ChevronRight className="task-row__action-icon" aria-hidden="true" />
+          <ChevronRightIcon className="task-row__action-icon" aria-hidden="true" />
         </button>
       </div>
     </div>

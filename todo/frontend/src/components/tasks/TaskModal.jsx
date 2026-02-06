@@ -15,8 +15,9 @@ import {
   Chip
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from '../../context/I18nContext';
-import { Icons } from '../ui/Icons';
 import { useDateFormat } from '../../hooks/useDateFormat';
 import taskService from '../../services/taskService';
 
@@ -358,7 +359,7 @@ const TaskModal = ({
           <>
             <Button
               variant="outlined"
-              startIcon={<Icons.Edit />}
+              startIcon={<EditIcon />}
               onClick={() => onSave(task, 'edit')}
             >
               {t('tasks.edit')}
@@ -366,7 +367,7 @@ const TaskModal = ({
             <Button
               variant="contained"
               color="error"
-              startIcon={<Icons.Trash />}
+              startIcon={<DeleteIcon />}
               onClick={handleDelete}
               disabled={loading}
             >

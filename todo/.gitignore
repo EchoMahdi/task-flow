@@ -8,3 +8,4 @@ public/uploads/
 /dist/
 /build/
 .env
+.sqlite

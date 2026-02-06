@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../context/I18nContext';
 import { AuthLayout } from '../components/layout/index';
 import { Button, TextField, Checkbox, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton } from '@mui/material';
-import { Icons } from '../components/ui/Icons';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
 import { socialAuthService } from '../services/socialAuthService';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -178,7 +179,7 @@ const Login = () => {
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Icons.Mail sx={{ fontSize: 20 }} />
+                      <EmailIcon sx={{ fontSize: 20 }} />
                     </InputAdornment>
                   ),
                 }}
@@ -200,7 +201,7 @@ const Login = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Icons.Lock sx={{ fontSize: 20 }} />
+                        <LockIcon sx={{ fontSize: 20 }} />
                       </InputAdornment>
                     ),
                     endAdornment: (

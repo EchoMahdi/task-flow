@@ -12,7 +12,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -236,7 +236,7 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} lg={3}>
             <StatCard
-              icon={AccessTimeIcon}
+              icon={ScheduleIcon}
               label="Pending"
               value={stats.pendingTasks}
               bgcolor="warning.main"
