@@ -1,4 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Box,
+  Typography,
+  IconButton,
+  Alert,
+  ToggleButtonGroup,
+  ToggleButton,
+  Chip
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from '../../context/I18nContext';
 import { Icons } from '../ui/Icons';
 import { useDateFormat } from '../../hooks/useDateFormat';
@@ -54,13 +70,17 @@ const TaskModal = ({
   };
   
   // Handle status change
-  const handleStatusChange = (status) => {
-    setFormData((prev) => ({ ...prev, status }));
+  const handleStatusChange = (event, newStatus) => {
+    if (newStatus !== null) {
+      setFormData((prev) => ({ ...prev, status: newStatus }));
+    }
   };
   
   // Handle priority change
-  const handlePriorityChange = (priority) => {
-    setFormData((prev) => ({ ...prev, priority }));
+  const handlePriorityChange = (event, newPriority) => {
+    if (newPriority !== null) {
+      setFormData((prev) => ({ ...prev, priority: newPriority }));
+    }
   };
   
   // Handle submit
@@ -132,452 +152,247 @@ const TaskModal = ({
   const isEditMode = mode === 'edit';
   const isCreateMode = mode === 'create';
   
+  // Get priority color
+  const getPriorityColor = (priority) => {
+    const colors = {
+      low: 'success',
+      medium: 'warning',
+      high: 'error',
+      urgent: 'error'
+    };
+    return colors[priority] || 'default';
+  };
+  
+  // Get status color
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'default',
+      in_progress: 'primary',
+      completed: 'success'
+    };
+    return colors[status] || 'default';
+  };
+  
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="modal-header">
-          <h2 className="modal-title">
-            {isCreateMode && t('tasks.create')}
-            {isEditMode && t('tasks.edit')}
-            {isViewMode && t('tasks.details')}
-          </h2>
-          <button className="modal-close" onClick={onClose}>
-            <Icons.X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Content */}
-        <div className="modal-content">
-          {error && (
-            <div className="error-message">
-              <Icons.ExclamationCircle className="w-4 h-4" />
-              {error}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit}>
-            {/* Title */}
-            <div className="form-group">
-              <label className="form-label">{t('tasks.title')}</label>
-              {isViewMode ? (
-                <p className="form-view-value">{formData.title}</p>
-              ) : (
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder={t('tasks.titlePlaceholder')}
-                  required
-                  disabled={loading}
-                />
-              )}
-            </div>
-            
-            {/* Due Date */}
-            <div className="form-group">
-              <label className="form-label">{t('tasks.dueDate')}</label>
-              {isViewMode ? (
-                <p className="form-view-value">{formatDueDateDisplay(formData.due_date)}</p>
-              ) : (
-                <input
-                  type="datetime-local"
-                  name="due_date"
-                  value={formData.due_date}
-                  onChange={handleChange}
-                  className="form-input"
-                  disabled={loading}
-                />
-              )}
-            </div>
-            
-            {/* Priority & Status Row */}
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">{t('tasks.priority')}</label>
-                {isViewMode ? (
-                  <span className={`priority-badge ${formData.priority}`}>
-                    {t(`priority.${formData.priority}`)}
-                  </span>
-                ) : (
-                  <div className="button-group">
-                    {priorityOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`btn-option ${formData.priority === option.value ? 'active' : ''}`}
-                        onClick={() => handlePriorityChange(option.value)}
-                        disabled={loading}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <div className="form-group">
-                <label className="form-label">{t('tasks.status')}</label>
-                {isViewMode ? (
-                  <span className={`status-badge ${formData.status}`}>
-                    {t(`status.${formData.status}`)}
-                  </span>
-                ) : (
-                  <div className="button-group">
-                    {statusOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`btn-option ${formData.status === option.value ? 'active' : ''}`}
-                        onClick={() => handleStatusChange(option.value)}
-                        disabled={loading}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Description */}
-            <div className="form-group">
-              <label className="form-label">{t('tasks.description')}</label>
-              {isViewMode ? (
-                <p className="form-view-value description">
-                  {formData.description || t('common.noDescription')}
-                </p>
-              ) : (
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="form-textarea"
-                  placeholder={t('tasks.descriptionPlaceholder')}
-                  rows={4}
-                  disabled={loading}
-                />
-              )}
-            </div>
-            
-            {/* Action Buttons */}
-            {!isViewMode && (
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={onClose}
-                  disabled={loading}
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? t('common.saving') : t('common.save')}
-                </button>
-              </div>
-            )}
-          </form>
-          
-          {/* View Mode Actions */}
-          {isViewMode && (
-            <div className="view-actions">
-              <button
-                className="btn-secondary"
-                onClick={() => onSave(task, 'edit')}
-              >
-                <Icons.Edit className="w-4 h-4" />
-                {t('tasks.edit')}
-              </button>
-              <button
-                className="btn-danger"
-                onClick={handleDelete}
-                disabled={loading}
-              >
-                <Icons.Trash className="w-4 h-4" />
-                {t('tasks.delete')}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+    <Dialog
+      open={true}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          maxHeight: '90vh'
+        }
+      }}
+    >
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 2 }}>
+        <Typography variant="h6" component="div">
+          {isCreateMode && t('tasks.create')}
+          {isEditMode && t('tasks.edit')}
+          {isViewMode && t('tasks.details')}
+        </Typography>
+        <IconButton
+          edge="end"
+          color="inherit"
+          onClick={onClose}
+          aria-label="close"
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
       
-      <style>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 20px;
-        }
+      <DialogContent dividers>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
         
-        .modal-container {
-          background: white;
-          border-radius: 16px;
-          width: 100%;
-          max-width: 500px;
-          max-height: 90vh;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 20px 24px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .modal-title {
-          font-size: 20px;
-          font-weight: 600;
-          color: #1f2937;
-          margin: 0;
-        }
-        
-        .modal-close {
-          padding: 8px;
-          background: none;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          color: #6b7280;
-          transition: all 0.2s;
-        }
-        
-        .modal-close:hover {
-          background: #f3f4f6;
-          color: #1f2937;
-        }
-        
-        .modal-content {
-          padding: 24px;
-          overflow-y: auto;
-        }
-        
-        .error-message {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px;
-          background: #fef2f2;
-          color: #dc2626;
-          border-radius: 8px;
-          margin-bottom: 16px;
-          font-size: 14px;
-        }
-        
-        .form-group {
-          margin-bottom: 20px;
-        }
-        
-        .form-label {
-          display: block;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          margin-bottom: 6px;
-        }
-        
-        .form-input,
-        .form-textarea {
-          width: 100%;
-          padding: 10px 14px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 14px;
-          transition: border-color 0.2s;
-        }
-        
-        .form-input:focus,
-        .form-textarea:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .form-textarea {
-          resize: vertical;
-          min-height: 100px;
-        }
-        
-        .form-view-value {
-          padding: 10px 14px;
-          background: #f9fafb;
-          border-radius: 8px;
-          font-size: 14px;
-          color: #1f2937;
-          margin: 0;
-        }
-        
-        .form-view-value.description {
-          line-height: 1.6;
-          white-space: pre-wrap;
-        }
-        
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        
-        .button-group {
-          display: flex;
-          gap: 4px;
-          padding: 4px;
-          background: #f3f4f6;
-          border-radius: 8px;
-        }
-        
-        .btn-option {
-          flex: 1;
-          padding: 8px 12px;
-          background: none;
-          border: none;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .btn-option:hover {
-          color: #374151;
-        }
-        
-        .btn-option.active {
-          background: white;
-          color: #1f2937;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .form-actions,
-        .view-actions {
-          display: flex;
-          gap: 12px;
-          justify-content: flex-end;
-          margin-top: 24px;
-          padding-top: 20px;
-          border-top: 1px solid #e5e7eb;
-        }
-        
-        .btn-primary,
-        .btn-secondary,
-        .btn-danger {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 10px 20px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .btn-primary {
-          background: #3b82f6;
-          color: white;
-          border: none;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-          background: #2563eb;
-        }
-        
-        .btn-secondary {
-          background: white;
-          color: #374151;
-          border: 1px solid #d1d5db;
-        }
-        
-        .btn-secondary:hover:not(:disabled) {
-          background: #f3f4f6;
-        }
-        
-        .btn-danger {
-          background: #fef2f2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-        
-        .btn-danger:hover:not(:disabled) {
-          background: #fee2e2;
-        }
-        
-        .btn-primary:disabled,
-        .btn-secondary:disabled,
-        .btn-danger:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .priority-badge {
-          display: inline-flex;
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: 500;
-        }
-        
-        .priority-badge.low {
-          background: #ecfdf5;
-          color: #059669;
-        }
-        
-        .priority-badge.medium {
-          background: #fffbeb;
-          color: #d97706;
-        }
-        
-        .priority-badge.high {
-          background: #fef2f2;
-          color: #dc2626;
-        }
-        
-        .priority-badge.urgent {
-          background: #fef2f2;
-          color: #991b1b;
-        }
-        
-        .status-badge {
-          display: inline-flex;
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: 500;
-        }
-        
-        .status-badge.pending {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-        
-        .status-badge.in_progress {
-          background: #eff6ff;
-          color: #1d4ed8;
-        }
-        
-        .status-badge.completed {
-          background: #ecfdf5;
-          color: #059669;
-        }
-      `}</style>
-    </div>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          {/* Title */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
+              {t('tasks.title')}
+            </Typography>
+            {isViewMode ? (
+              <Typography variant="body1" sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
+                {formData.title}
+              </Typography>
+            ) : (
+              <TextField
+                fullWidth
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder={t('tasks.titlePlaceholder')}
+                required
+                disabled={loading}
+                size="small"
+              />
+            )}
+          </Box>
+          
+          {/* Due Date */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
+              {t('tasks.dueDate')}
+            </Typography>
+            {isViewMode ? (
+              <Typography variant="body1" sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
+                {formatDueDateDisplay(formData.due_date)}
+              </Typography>
+            ) : (
+              <TextField
+                fullWidth
+                type="datetime-local"
+                name="due_date"
+                value={formData.due_date}
+                onChange={handleChange}
+                disabled={loading}
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+            )}
+          </Box>
+          
+          {/* Priority & Status Row */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
+                {t('tasks.priority')}
+              </Typography>
+              {isViewMode ? (
+                <Chip 
+                  label={t(`priority.${formData.priority}`)}
+                  color={getPriorityColor(formData.priority)}
+                  size="small"
+                />
+              ) : (
+                <ToggleButtonGroup
+                  value={formData.priority}
+                  exclusive
+                  onChange={handlePriorityChange}
+                  aria-label="priority"
+                  fullWidth
+                  size="small"
+                  disabled={loading}
+                >
+                  {priorityOptions.map((option) => (
+                    <ToggleButton key={option.value} value={option.value} aria-label={option.label}>
+                      {option.label}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              )}
+            </Box>
+            
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
+                {t('tasks.status')}
+              </Typography>
+              {isViewMode ? (
+                <Chip 
+                  label={t(`status.${formData.status}`)}
+                  color={getStatusColor(formData.status)}
+                  size="small"
+                />
+              ) : (
+                <ToggleButtonGroup
+                  value={formData.status}
+                  exclusive
+                  onChange={handleStatusChange}
+                  aria-label="status"
+                  fullWidth
+                  size="small"
+                  disabled={loading}
+                >
+                  {statusOptions.map((option) => (
+                    <ToggleButton key={option.value} value={option.value} aria-label={option.label}>
+                      {option.label}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              )}
+            </Box>
+          </Box>
+          
+          {/* Description */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
+              {t('tasks.description')}
+            </Typography>
+            {isViewMode ? (
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  p: 1.5, 
+                  bgcolor: 'action.hover', 
+                  borderRadius: 1,
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.6
+                }}
+              >
+                {formData.description || t('common.noDescription')}
+              </Typography>
+            ) : (
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder={t('tasks.descriptionPlaceholder')}
+                disabled={loading}
+                size="small"
+              />
+            )}
+          </Box>
+        </Box>
+      </DialogContent>
+      
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        {isViewMode ? (
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<Icons.Edit />}
+              onClick={() => onSave(task, 'edit')}
+            >
+              {t('tasks.edit')}
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<Icons.Trash />}
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              {t('tasks.delete')}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="text"
+              onClick={onClose}
+              disabled={loading}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? t('common.saving') : t('common.save')}
+            </Button>
+          </>
+        )}
+      </DialogActions>
+    </Dialog>
   );
 };
 

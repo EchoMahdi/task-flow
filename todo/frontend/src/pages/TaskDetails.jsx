@@ -1,7 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardContent, Chip, Button, Modal, Skeleton, Divider } from '@mui/material';
+import { 
+  Card, 
+  CardContent, 
+  Chip, 
+  Button, 
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Skeleton, 
+  Divider,
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  LinearProgress,
+  IconButton
+} from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 
@@ -69,18 +88,18 @@ const TaskDetails = () => {
   };
 
   const getPriorityBadge = (priority) => {
-    const variants = { high: 'danger', medium: 'warning', low: 'secondary' };
-    return <Chip variant={variants[priority]}>{priority}</Chip>;
+    const colors = { high: 'error', medium: 'warning', low: 'default' };
+    return <Chip color={colors[priority]} label={priority} />;
   };
 
   const getStatusBadge = (status) => {
     const config = {
-      completed: { variant: 'success', label: 'Completed' },
-      in_progress: { variant: 'primary', label: 'In Progress' },
-      pending: { variant: 'secondary', label: 'Pending' },
+      completed: { color: 'success', label: 'Completed' },
+      in_progress: { color: 'primary', label: 'In Progress' },
+      pending: { color: 'default', label: 'Pending' },
     };
-    const { variant, label } = config[status] || config.pending;
-    return <Chip variant={variant}>{label}</Chip>;
+    const { color, label } = config[status] || config.pending;
+    return <Chip color={color} label={label} />;
   };
 
   const formatDate = (dateString) => {
@@ -130,10 +149,10 @@ const TaskDetails = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton variant="title" className="w-64" />
-          <Skeleton variant="card" className="h-96" />
-        </div>
+        <Box sx={{ maxWidth: 1000, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Skeleton variant="text" width="30%" height={40} />
+          <Skeleton variant="rounded" height={400} />
+        </Box>
       </MainLayout>
     );
   }
@@ -141,14 +160,14 @@ const TaskDetails = () => {
   if (!task) {
     return (
       <MainLayout>
-        <div className="max-w-4xl mx-auto text-center py-12">
-          <Icons.ExclamationCircle className="w-16 h-16 text-secondary-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-secondary-900 mb-2">Task not found</h2>
-          <p className="text-secondary-500 mb-6">The task you're looking for doesn't exist or has been deleted.</p>
+        <Box sx={{ maxWidth: 1000, mx: 'auto', textAlign: 'center', py: 6 }}>
+          <Icons.ExclamationCircle sx={{ fontSize: 64, color: 'action.disabled', mx: 'auto', mb: 2 }} />
+          <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>Task not found</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>The task you're looking for doesn't exist or has been deleted.</Typography>
           <Link to="/tasks">
-            <Button>Back to Tasks</Button>
+            <Button variant="contained">Back to Tasks</Button>
           </Link>
-        </div>
+        </Box>
       </MainLayout>
     );
   }
@@ -158,104 +177,108 @@ const TaskDetails = () => {
 
   return (
     <MainLayout>
-      <div className="max-w-4xl mx-auto">
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <PageHeader
           breadcrumbs={[
             { label: 'Tasks', href: '/tasks' },
             { label: task.title },
           ]}
           actions={
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={handleToggleComplete}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button variant="outlined" onClick={handleToggleComplete}>
                 {task.status === 'completed' ? (
                   <>
-                    <Icons.X className="w-4 h-4 mr-2" />
+                    <Icons.X sx={{ mr: 1, fontSize: 16 }} />
                     Mark Incomplete
                   </>
                 ) : (
                   <>
-                    <Icons.Check className="w-4 h-4 mr-2" />
+                    <Icons.Check sx={{ mr: 1, fontSize: 16 }} />
                     Mark Complete
                   </>
                 )}
               </Button>
               <Link to={`/tasks/${id}/edit`}>
-                <Button variant="outline">
-                  <Icons.Pencil className="w-4 h-4 mr-2" />
+                <Button variant="outlined">
+                  <Icons.Pencil sx={{ mr: 1, fontSize: 16 }} />
                   Edit
                 </Button>
               </Link>
-              <Button variant="danger" onClick={() => setDeleteModal(true)}>
-                <Icons.Trash className="w-4 h-4 mr-2" />
+              <Button variant="contained" color="error" onClick={() => setDeleteModal(true)}>
+                <Icons.Trash sx={{ mr: 1, fontSize: 16 }} />
                 Delete
               </Button>
-            </div>
+            </Box>
           }
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 3 }}>
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Task Info */}
             <Card>
               <CardContent>
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    task.status === 'completed' ? 'bg-success-100' : 'bg-primary-100'
-                  }`}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                  <Box sx={{ 
+                    width: 48, 
+                    height: 48, 
+                    borderRadius: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    bgcolor: task.status === 'completed' ? 'success.light' : 'primary.light'
+                  }}>
                     {task.status === 'completed' ? (
-                      <Icons.CheckCircle className="w-6 h-6 text-success-600" />
+                      <Icons.CheckCircle sx={{ fontSize: 24, color: 'success.main' }} />
                     ) : (
-                      <Icons.ClipboardList className="w-6 h-6 text-primary-600" />
+                      <Icons.ClipboardList sx={{ fontSize: 24, color: 'primary.main' }} />
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <h1 className={`text-2xl font-bold ${
-                      task.status === 'completed' ? 'text-secondary-500 line-through' : 'text-secondary-900'
-                    }`}>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 600, color: task.status === 'completed' ? 'text.secondary' : 'text.primary', textDecoration: task.status === 'completed' ? 'line-through' : 'none' }}>
                       {task.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mt: 1 }}>
                       {getStatusBadge(task.status)}
                       {getPriorityBadge(task.priority)}
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Box>
+                </Box>
 
-                <Divider />
+                <Divider sx={{ my: 2 }} />
 
-                <div className="prose prose-secondary max-w-none">
-                  <h3 className="text-sm font-medium text-secondary-500 uppercase tracking-wide mb-2">
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
                     Description
-                  </h3>
-                  <p className="text-secondary-700">{task.description}</p>
-                </div>
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'text.primary' }}>{task.description}</Typography>
+                </Box>
 
                 {task.notes && (
                   <>
-                    <Divider />
-                    <div>
-                      <h3 className="text-sm font-medium text-secondary-500 uppercase tracking-wide mb-2">
+                    <Divider sx={{ my: 2 }} />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
                         Notes
-                      </h3>
-                      <p className="text-secondary-700">{task.notes}</p>
-                    </div>
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: 'text.primary' }}>{task.notes}</Typography>
+                    </Box>
                   </>
                 )}
 
                 {task.tags.length > 0 && (
                   <>
-                    <Divider />
-                    <div>
-                      <h3 className="text-sm font-medium text-secondary-500 uppercase tracking-wide mb-2">
+                    <Divider sx={{ my: 2 }} />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', mb: 1, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
                         Tags
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         {task.tags.map((tag) => (
-                          <Chip key={tag} variant="primary">#{tag}</Chip>
+                          <Chip key={tag} color="primary" label={`#${tag}`} />
                         ))}
-                      </div>
-                    </div>
+                      </Box>
+                    </Box>
                   </>
                 )}
               </CardContent>
@@ -263,166 +286,191 @@ const TaskDetails = () => {
 
             {/* Subtasks */}
             <Card>
-              <div className="card-header flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-secondary-900">
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   Subtasks ({completedSubtasks}/{task.subtasks.length})
-                </h2>
-                <Button variant="ghost" size="sm">
-                  <Icons.Plus className="w-4 h-4 mr-1" />
+                </Typography>
+                <Button variant="text" size="small" startIcon={<Icons.Plus />}>
                   Add
                 </Button>
-              </div>
-              <CardContent className="p-0">
+              </Box>
+              <CardContent sx={{ p: 0 }}>
                 {/* Progress bar */}
-                <div className="px-6 py-3 bg-secondary-50 border-b border-secondary-100">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-secondary-500">Progress</span>
-                    <span className="font-medium text-secondary-700">{Math.round(subtaskProgress)}%</span>
-                  </div>
-                  <div className="h-2 bg-secondary-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary-500 rounded-full transition-all duration-300"
-                      style={{ width: `${subtaskProgress}%` }}
-                    />
-                  </div>
-                </div>
+                <Box sx={{ px: 3, py: 2, bgcolor: 'action.hover', borderBottom: 1, borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Progress</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{Math.round(subtaskProgress)}%</Typography>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={subtaskProgress} 
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4, 
+                      bgcolor: 'action.hover',
+                      '& .MuiLinearProgress-bar': { borderRadius: 4 }
+                    }} 
+                  />
+                </Box>
 
-                <div className="divide-y divide-secondary-100">
+                <List>
                   {task.subtasks.map((subtask) => (
-                    <div
-                      key={subtask.id}
-                      className="flex items-center gap-3 px-6 py-3 hover:bg-secondary-50 transition-colors"
+                    <ListItem 
+                      key={subtask.id} 
+                      sx={{ 
+                        '&:hover': { bgcolor: 'action.hover' },
+                        transition: 'background-color 0.2s'
+                      }}
                     >
-                      <button
-                        onClick={() => handleToggleSubtask(subtask.id)}
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                          subtask.completed
-                            ? 'bg-success-500 border-success-500'
-                            : 'border-secondary-300 hover:border-primary-500'
-                        }`}
-                      >
-                        {subtask.completed && (
-                          <Icons.Check className="w-3 h-3 text-white" />
-                        )}
-                      </button>
-                      <span className={`flex-1 ${subtask.completed ? 'text-secondary-500 line-through' : 'text-secondary-900'}`}>
-                        {subtask.title}
-                      </span>
-                    </div>
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        <IconButton
+                          onClick={() => handleToggleSubtask(subtask.id)}
+                          size="small"
+                          sx={{
+                            width: 20,
+                            height: 20,
+                            border: 2,
+                            borderColor: subtask.completed ? 'success.main' : 'action.disabled',
+                            bgcolor: subtask.completed ? 'success.main' : 'transparent',
+                            '&:hover': { borderColor: 'primary.main' }
+                          }}
+                        >
+                          {subtask.completed && <Icons.Check sx={{ fontSize: 12, color: 'white' }} />}
+                        </IconButton>
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={subtask.title}
+                        sx={{ 
+                          flex: 1,
+                          '& .MuiTypography-root': { 
+                            color: subtask.completed ? 'text.secondary' : 'text.primary',
+                            textDecoration: subtask.completed ? 'line-through' : 'none'
+                          }
+                        }}
+                      />
+                    </ListItem>
                   ))}
-                </div>
+                </List>
               </CardContent>
             </Card>
 
             {/* Activity */}
             <Card>
-              <div className="card-header">
-                <h2 className="text-lg font-semibold text-secondary-900">Activity</h2>
-              </div>
-              <CardContent className="p-0">
-                <div className="divide-y divide-secondary-100">
+              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>Activity</Typography>
+              </Box>
+              <CardContent sx={{ p: 0 }}>
+                <List>
                   {task.activity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 px-6 py-4">
-                      <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center text-secondary-500">
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-secondary-700">{getActivityText(activity)}</p>
-                        <p className="text-xs text-secondary-500 mt-1">{formatDateTime(activity.timestamp)}</p>
-                      </div>
-                    </div>
+                    <ListItem key={activity.id} sx={{ px: 3, py: 2 }}>
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
+                          {getActivityIcon(activity.type)}
+                        </Box>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography variant="body2" sx={{ color: 'text.primary' }}>{getActivityText(activity)}</Typography>
+                        }
+                        secondary={
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{formatDateTime(activity.timestamp)}</Typography>
+                        }
+                      />
+                    </ListItem>
                   ))}
-                </div>
+                </List>
               </CardContent>
             </Card>
-          </div>
+          </Box>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Details */}
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-secondary-500 uppercase tracking-wide mb-4">
+            <Card sx={{ p: 3 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', mb: 2, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
                 Details
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Icons.Calendar className="w-5 h-5 text-secondary-400" />
-                  <div>
-                    <p className="text-xs text-secondary-500">Due Date</p>
-                    <p className="text-sm font-medium text-secondary-900">
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icons.Calendar sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Due Date</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
                       {formatDate(task.dueDate)}
                       {task.dueTime && ` at ${task.dueTime}`}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Icons.Flag className="w-5 h-5 text-secondary-400" />
-                  <div>
-                    <p className="text-xs text-secondary-500">Priority</p>
-                    <p className="text-sm font-medium text-secondary-900 capitalize">{task.priority}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Icons.Clock className="w-5 h-5 text-secondary-400" />
-                  <div>
-                    <p className="text-xs text-secondary-500">Created</p>
-                    <p className="text-sm font-medium text-secondary-900">{formatDate(task.createdAt)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Icons.Pencil className="w-5 h-5 text-secondary-400" />
-                  <div>
-                    <p className="text-xs text-secondary-500">Last Updated</p>
-                    <p className="text-sm font-medium text-secondary-900">{formatDate(task.updatedAt)}</p>
-                  </div>
-                </div>
-              </div>
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icons.Flag sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Priority</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', textTransform: 'capitalize' }}>{task.priority}</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icons.Clock sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Created</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.createdAt)}</Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Icons.Pencil sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Last Updated</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.updatedAt)}</Typography>
+                  </Box>
+                </Box>
+              </Box>
             </Card>
 
             {/* Quick Actions */}
-            <Card className="p-6">
-              <h3 className="text-sm font-medium text-secondary-500 uppercase tracking-wide mb-4">
+            <Card sx={{ p: 3 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', mb: 2, textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: 0.5 }}>
                 Quick Actions
-              </h3>
-              <div className="space-y-2">
-                <Button variant="ghost" fullWidth className="justify-start">
-                  <Icons.Bell className="w-4 h-4 mr-2" />
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                  <Icons.Bell sx={{ mr: 1, fontSize: 16 }} />
                   Set Reminder
                 </Button>
-                <Button variant="ghost" fullWidth className="justify-start">
-                  <Icons.Document className="w-4 h-4 mr-2" />
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                  <Icons.Document sx={{ mr: 1, fontSize: 16 }} />
                   Duplicate Task
                 </Button>
-                <Button variant="ghost" fullWidth className="justify-start">
-                  <Icons.ArrowRight className="w-4 h-4 mr-2" />
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                  <Icons.ArrowRight sx={{ mr: 1, fontSize: 16 }} />
                   Move to Project
                 </Button>
-              </div>
+              </Box>
             </Card>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Delete Modal */}
-        <Modal
-          isOpen={deleteModal}
+        <Dialog
+          open={deleteModal}
           onClose={() => setDeleteModal(false)}
-          title="Delete Task"
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setDeleteModal(false)}>
-                Cancel
-              </Button>
-              <Button variant="danger" onClick={handleDelete}>
-                Delete
-              </Button>
-            </>
-          }
+          maxWidth="sm"
+          fullWidth
         >
-          <p className="text-secondary-600">
-            Are you sure you want to delete "{task.title}"? This action cannot be undone.
-          </p>
-        </Modal>
-      </div>
+          <DialogTitle>Delete Task</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ color: 'text.primary' }}>
+              Are you sure you want to delete "{task.title}"? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" color="error" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </MainLayout>
   );
 };

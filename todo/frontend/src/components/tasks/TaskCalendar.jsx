@@ -3,9 +3,17 @@ import { useTranslation } from '../../context/I18nContext';
 import { useDateFormat } from '../../hooks/useDateFormat';
 import calendarService from '../../services/calendarService';
 import dateService from '../../services/dateService';
-import { Icons } from '../ui/Icons';
 import CalendarTaskItem from './CalendarTaskItem';
 import CalendarFilters from './CalendarFilters';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AddIcon from '@mui/icons-material/Add';
+import Grid from '@mui/material/Grid';
 
 /**
  * TaskCalendar Component
@@ -116,8 +124,6 @@ const TaskCalendar = ({
       
       // Refresh tasks
       fetchTasks();
-      
-      // Show success feedback (could use toast)
     } catch (err) {
       console.error('Failed to update task date:', err);
       setError(t('errors.serverError'));
@@ -131,60 +137,13 @@ const TaskCalendar = ({
     setDropTargetDate(null);
   };
   
-  // Render calendar header
-  const renderHeader = () => {
-    const headerTitle = formatDate(currentDate, 
-      view === 'month' ? 'MMMM YYYY' : view === 'week' ? 'MMMM D, YYYY' : 'MMMM D, YYYY'
-    );
-    
-    return (
-      <div className="calendar-header">
-        <div className="calendar-header-left">
-          <button className="btn-icon" onClick={handlePrevious} title={t('common.previous')}>
-            <Icons.ChevronRight className="w-5 h-5" />
-          </button>
-          <button className="btn-today" onClick={handleToday}>
-            {t('datetime.today')}
-          </button>
-          <button className="btn-icon" onClick={handleNext} title={t('common.next')}>
-            <Icons.ChevronLeft className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div className="calendar-header-center">
-          <h2 className="calendar-title">{headerTitle}</h2>
-        </div>
-        
-        <div className="calendar-header-right">
-          <div className="view-switcher">
-            <button
-              className={`view-btn ${view === 'day' ? 'active' : ''}`}
-              onClick={() => setView('day')}
-            >
-              {t('calendar.day')}
-            </button>
-            <button
-              className={`view-btn ${view === 'week' ? 'active' : ''}`}
-              onClick={() => setView('week')}
-            >
-              {t('calendar.week')}
-            </button>
-            <button
-              className={`view-btn ${view === 'month' ? 'active' : ''}`}
-              onClick={() => setView('month')}
-            >
-              {t('calendar.month')}
-            </button>
-          </div>
-          
-          <button className="btn-primary" onClick={() => onCreateTask && onCreateTask()}>
-            <Icons.Plus className="w-4 h-4 mr-1" />
-            {t('tasks.create')}
-          </button>
-        </div>
-      </div>
-    );
-  };
+  // Format header title
+  const headerTitle = formatDate(currentDate, 
+    view === 'month' ? 'MMMM YYYY' : view === 'week' ? 'MMMM D, YYYY' : 'MMMM D, YYYY'
+  );
+  
+  // Is view active
+  const isViewActive = (viewName) => view === viewName;
   
   // Render calendar grid based on view
   const renderCalendar = () => {
@@ -217,9 +176,19 @@ const TaskCalendar = ({
     // Empty cells before first day
     for (let i = 0; i < startDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="calendar-day-cell empty">
-          <span className="day-number">{''}</span>
-        </div>
+        <Box
+          key={`empty-${i}`}
+          sx={{
+            minHeight: 120,
+            borderRight: '1px solid',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            p: 1,
+            bgcolor: 'grey.50',
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'text.disabled' }}>{''}</Typography>
+        </Box>
       );
     }
     
@@ -233,20 +202,41 @@ const TaskCalendar = ({
       const isDropTarget = dropTargetDate === dateKey;
       
       days.push(
-        <div
+        <Box
           key={day}
-          className={`calendar-day-cell ${isToday ? 'today' : ''} ${!isCurrentMonth ? 'other-month' : ''} ${isDropTarget ? 'drop-target' : ''}`}
+          sx={{
+            minHeight: 120,
+            borderRight: '1px solid',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            p: 1,
+            bgcolor: isToday ? 'primary.50' : isDropTarget ? 'info.50' : 'background.paper',
+            transition: 'background 0.2s',
+            '&:hover': {
+              bgcolor: 'action.hover',
+            },
+          }}
           onDragOver={(e) => handleDragOver(dateKey, e)}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(date, e)}
         >
-          <div className="day-header">
-            <span className="day-number">{day}</span>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                fontWeight: isToday ? 700 : 400,
+                color: isToday ? 'primary.main' : 'text.primary',
+              }}
+            >
+              {day}
+            </Typography>
             {dayTasks.length > 0 && (
-              <span className="task-count">{dayTasks.length}</span>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {dayTasks.length}
+              </Typography>
             )}
-          </div>
-          <div className="day-tasks">
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             {dayTasks.slice(0, 3).map((task) => (
               <CalendarTaskItem
                 key={task.id}
@@ -260,26 +250,45 @@ const TaskCalendar = ({
               />
             ))}
             {dayTasks.length > 3 && (
-              <button className="more-tasks">
+              <Button
+                size="small"
+                sx={{ 
+                  fontSize: 11, 
+                  py: 0,
+                  justifyContent: 'flex-start',
+                  textTransform: 'none',
+                }}
+              >
                 +{dayTasks.length - 3} {t('calendar.more')}
-              </button>
+              </Button>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       );
     }
     
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
     return (
-      <div className="calendar-grid month-view">
-        <div className="calendar-weekdays">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="weekday">{day}</div>
+      <Box>
+        {/* Weekday headers */}
+        <Grid container sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+          {weekDays.map((day) => (
+            <Grid item xs={12/7} key={day}>
+              <Box sx={{ p: 1, textAlign: 'center', bgcolor: 'grey.50' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                  {day}
+                </Typography>
+              </Box>
+            </Grid>
           ))}
-        </div>
-        <div className="calendar-days">
+        </Grid>
+        
+        {/* Calendar days */}
+        <Grid container>
           {days}
-        </div>
-      </div>
+        </Grid>
+      </Box>
     );
   };
   
@@ -291,49 +300,131 @@ const TaskCalendar = ({
     const startOfWeek = new Date(year, month, day - currentDate.getDay());
     const today = new Date();
     
-    const hours = Array.from({ length: 24 }, (_, i) => i);
-    
     const weekDays = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       return date;
     });
     
+    const weekDaysHeader = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
     return (
-      <div className="calendar-grid week-view">
-        <div className="calendar-weekdays week">
-          <div className="time-gutter-header"></div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Weekday headers */}
+        <Grid container sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Grid item sx={{ width: 60, flexShrink: 0 }}>
+            <Box sx={{ p: 1 }} />
+          </Grid>
           {weekDays.map((date, index) => {
             const dateKey = date.toISOString().split('T')[0];
             const dayTasks = tasksByDate[dateKey] || [];
             const isToday = date.toDateString() === today.toDateString();
             
             return (
-              <div key={index} className={`weekday-cell ${isToday ? 'today' : ''}`}>
-                <div className="weekday-header">
-                  <span className="weekday-name">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                  <span className="weekday-date">{formatDate(date, 'D')}</span>
-                </div>
-                <div className="weekday-tasks">
-                  {dayTasks.slice(0, 5).map((task) => (
-                    <CalendarTaskItem
-                      key={task.id}
-                      task={task}
-                      view="week"
-                      compact
-                      onClick={() => onTaskClick && onTaskClick(task)}
-                      onEdit={() => onTaskEdit && onTaskEdit(task)}
-                      draggable
-                      onDragStart={(e) => handleDragStart(task, e)}
-                      onDragEnd={handleDragEnd}
-                    />
-                  ))}
-                </div>
-              </div>
+              <Grid item xs key={index} sx={{ flex: 1 }}>
+                <Box 
+                  sx={{ 
+                    p: 1, 
+                    textAlign: 'center',
+                    bgcolor: isToday ? 'primary.50' : 'grey.50',
+                    borderLeft: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    {weekDaysHeader[index]}
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: isToday ? 700 : 400,
+                      color: isToday ? 'primary.main' : 'text.primary',
+                    }}
+                  >
+                    {date.getDate()}
+                  </Typography>
+                </Box>
+              </Grid>
             );
           })}
-        </div>
-      </div>
+        </Grid>
+        
+        {/* Week tasks */}
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <Grid container sx={{ height: '100%' }}>
+            <Grid item sx={{ width: 60, flexShrink: 0 }}>
+              <Box sx={{ height: '100%' }}>
+                {Array.from({ length: 24 }, (_, i) => (
+                  <Box 
+                    key={i} 
+                    sx={{ 
+                      height: 60, 
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      p: 0.5,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {i === 0 ? '' : `${i.toString().padStart(2, '0')}:00`}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Grid>
+            {weekDays.map((date, index) => {
+              const dateKey = date.toISOString().split('T')[0];
+              const dayTasks = tasksByDate[dateKey] || [];
+              const isToday = date.toDateString() === today.toDateString();
+              
+              return (
+                <Grid item xs key={index} sx={{ flex: 1, borderLeft: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ position: 'relative', height: '100%' }}>
+                    {isToday && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          top: `${(today.getHours() * 60 + today.getMinutes())}px`,
+                          borderTop: '2px solid',
+                          borderColor: 'error.main',
+                          zIndex: 10,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: 'error.main',
+                            transform: 'translateY(-50%)',
+                            ml: -0.5,
+                          }}
+                        />
+                      </Box>
+                    )}
+                    {dayTasks.slice(0, 5).map((task) => (
+                      <Box key={task.id} sx={{ position: 'relative', zIndex: 1 }}>
+                        <CalendarTaskItem
+                          key={task.id}
+                          task={task}
+                          view="week"
+                          compact
+                          onClick={() => onTaskClick && onTaskClick(task)}
+                          onEdit={() => onTaskEdit && onTaskEdit(task)}
+                          draggable
+                          onDragStart={(e) => handleDragStart(task, e)}
+                          onDragEnd={handleDragEnd}
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+      </Box>
     );
   };
   
@@ -350,41 +441,78 @@ const TaskCalendar = ({
     const isToday = currentDate.toDateString() === today.toDateString();
     
     return (
-      <div className="calendar-grid day-view">
-        <div className="day-sidebar">
-          <div className="day-date-header">
-            <span className="day-name">{currentDate.toLocaleDateString('en-US', { weekday: 'long' })}</span>
-            <span className="day-date">{formatDate(currentDate, 'MMMM D, YYYY')}</span>
-          </div>
-          
-          <div className="hour-markers">
-            {hours.map((hour) => (
-              <div key={hour} className="hour-marker">
-                <span className="hour-label">
-                  {hour === 0 ? '' : hour.toString().padStart(2, '0') + ':00'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <Box sx={{ display: 'flex', height: '100%' }}>
+        {/* Time sidebar */}
+        <Box sx={{ width: 60, flexShrink: 0, bgcolor: 'grey.50', borderRight: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ p: 1, textAlign: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+              {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {formatDate(currentDate, 'MMMM D, YYYY')}
+            </Typography>
+          </Box>
+          {hours.map((hour) => (
+            <Box 
+              key={hour} 
+              sx={{ 
+                height: 60, 
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                p: 0.5,
+              }}
+            >
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {hour === 0 ? '' : `${hour.toString().padStart(2, '0')}:00`}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
         
-        <div className="day-content">
+        {/* Day content */}
+        <Box sx={{ flex: 1, position: 'relative', overflow: 'auto' }}>
           {isToday && (
-            <div className="current-time-indicator" style={{ top: `${(today.getHours() * 60 + today.getMinutes()) / 2}px` }}>
-              <div className="time-dot"></div>
-              <div className="time-line"></div>
-            </div>
+            <Box
+              sx={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: `${(today.getHours() * 60 + today.getMinutes())}px`,
+                borderTop: '2px solid',
+                borderColor: 'error.main',
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: 'error.main',
+                  transform: 'translateY(-50%)',
+                  ml: -0.5,
+                }}
+              />
+              <Box sx={{ flex: 1, height: 2, bgcolor: 'error.main', opacity: 0.5 }} />
+            </Box>
           )}
           
           {sortedTasks.map((task) => {
             const taskDate = new Date(task.due_date);
-            const top = (taskDate.getHours() * 60 + taskDate.getMinutes()) / 2;
+            const top = (taskDate.getHours() * 60 + taskDate.getMinutes());
             
             return (
-              <div
+              <Box
                 key={task.id}
-                className="day-task-item"
-                style={{ top: `${top}px` }}
+                sx={{
+                  position: 'absolute',
+                  left: 4,
+                  right: 4,
+                  top: `${top}px`,
+                  zIndex: 5,
+                }}
                 draggable
                 onDragStart={(e) => handleDragStart(task, e)}
                 onDragEnd={handleDragEnd}
@@ -395,437 +523,106 @@ const TaskCalendar = ({
                   onClick={() => onTaskClick && onTaskClick(task)}
                   onEdit={() => onTaskEdit && onTaskEdit(task)}
                 />
-              </div>
+              </Box>
             );
           })}
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   };
   
   // Render loading state
   if (loading && tasks.length === 0) {
     return (
-      <div className="calendar-loading">
-        <div className="loading-spinner"></div>
-        <p>{t('common.loading')}</p>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2, color: 'text.secondary' }}>{t('common.loading')}</Typography>
+      </Box>
     );
   }
   
   // Render error state
   if (error) {
     return (
-      <div className="calendar-error">
-        <Icons.ExclamationCircle className="w-8 h-8" />
-        <p>{error}</p>
-        <button className="btn-retry" onClick={fetchTasks}>
-          {t('errors.tryAgain')}
-        </button>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+        <Button variant="outlined" onClick={fetchTasks}>{t('errors.tryAgain')}</Button>
+      </Box>
     );
   }
   
   return (
-    <div className={`task-calendar ${isJalali ? 'jalali-calendar' : ''}`}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.paper', borderRadius: 2, overflow: 'hidden' }}>
       <CalendarFilters
         filters={filters}
         onChange={setFilters}
         availableFormats={availableFormats}
       />
       
-      {renderHeader()}
+      {/* Calendar Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        p: 2,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton onClick={handlePrevious} size="small">
+            <ChevronRightIcon />
+          </IconButton>
+          <Button variant="outlined" size="small" onClick={handleToday}>
+            {t('datetime.today')}
+          </Button>
+          <IconButton onClick={handleNext} size="small">
+            <ChevronLeftIcon />
+          </IconButton>
+        </Box>
+        
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          {headerTitle}
+        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* View Switcher */}
+          <Box sx={{ display: 'flex', bgcolor: 'grey.100', borderRadius: 1, p: 0.5 }}>
+            {['day', 'week', 'month'].map((viewName) => (
+              <Button
+                key={viewName}
+                size="small"
+                onClick={() => setView(viewName)}
+                variant={isViewActive(viewName) ? 'contained' : 'text'}
+                color={isViewActive(viewName) ? 'primary' : 'inherit'}
+                sx={{ 
+                  minWidth: 'auto',
+                  px: 1.5,
+                  textTransform: 'none',
+                  fontSize: 13,
+                }}
+              >
+                {t(`calendar.${viewName}`)}
+              </Button>
+            ))}
+          </Box>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={() => onCreateTask && onCreateTask()}
+          >
+            {t('tasks.create')}
+          </Button>
+        </Box>
+      </Box>
       
-      <div className="calendar-body">
+      {/* Calendar Body */}
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
         {renderCalendar()}
-      </div>
-      
-      <style>{`
-        .task-calendar {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          background: white;
-          border-radius: 12px;
-          overflow: hidden;
-        }
-        
-        .calendar-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 20px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .calendar-header-left,
-        .calendar-header-right {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .calendar-header-center {
-          flex: 1;
-          text-align: center;
-        }
-        
-        .calendar-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-        }
-        
-        .btn-icon {
-          padding: 8px;
-          background: none;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          color: #6b7280;
-          transition: all 0.2s;
-        }
-        
-        .btn-icon:hover {
-          background: #f3f4f6;
-          color: #1f2937;
-        }
-        
-        .btn-today {
-          padding: 6px 12px;
-          background: none;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .btn-today:hover {
-          background: #f3f4f6;
-        }
-        
-        .btn-primary {
-          display: flex;
-          align-items: center;
-          padding: 8px 16px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .btn-primary:hover {
-          background: #2563eb;
-        }
-        
-        .view-switcher {
-          display: flex;
-          background: #f3f4f6;
-          border-radius: 8px;
-          padding: 4px;
-        }
-        
-        .view-btn {
-          padding: 6px 12px;
-          background: none;
-          border: none;
-          border-radius: 6px;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .view-btn.active {
-          background: white;
-          color: #1f2937;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .calendar-body {
-          flex: 1;
-          overflow: auto;
-        }
-        
-        .calendar-grid {
-          min-height: 100%;
-        }
-        
-        .month-view .calendar-weekdays {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          border-bottom: 1px solid #e5e7eb;
-          position: sticky;
-          top: 0;
-          background: white;
-          z-index: 10;
-        }
-        
-        .weekday {
-          padding: 12px;
-          text-align: center;
-          font-size: 13px;
-          font-weight: 600;
-          color: #6b7280;
-        }
-        
-        .calendar-days {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-        }
-        
-        .calendar-day-cell {
-          min-height: 120px;
-          border-right: 1px solid #e5e7eb;
-          border-bottom: 1px solid #e5e7eb;
-          padding: 8px;
-          transition: background 0.2s;
-        }
-        
-        .calendar-day-cell:hover {
-          background: #f9fafb;
-        }
-        
-        .calendar-day-cell.today {
-          background: #eff6ff;
-        }
-        
-        .calendar-day-cell.drop-target {
-          background: #dbeafe;
-        }
-        
-        .calendar-day-cell.other-month {
-          background: #f9fafb;
-        }
-        
-        .calendar-day-cell.empty {
-          background: #f9fafb;
-        }
-        
-        .day-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 8px;
-        }
-        
-        .day-number {
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-        }
-        
-        .today .day-number {
-          background: #3b82f6;
-          color: white;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .task-count {
-          font-size: 11px;
-          color: #6b7280;
-          background: #f3f4f6;
-          padding: 2px 6px;
-          border-radius: 10px;
-        }
-        
-        .day-tasks {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        
-        .more-tasks {
-          font-size: 12px;
-          color: #6b7280;
-          background: none;
-          border: none;
-          cursor: pointer;
-          text-align: left;
-          padding: 2px 4px;
-        }
-        
-        .more-tasks:hover {
-          color: #3b82f6;
-        }
-        
-        .week-view .calendar-weekdays {
-          display: grid;
-          grid-template-columns: 60px repeat(7, 1fr);
-        }
-        
-        .weekday-cell {
-          border-right: 1px solid #e5e7eb;
-          min-height: 600px;
-        }
-        
-        .weekday-header {
-          padding: 12px 8px;
-          text-align: center;
-          border-bottom: 1px solid #e5e7eb;
-          background: #f9fafb;
-        }
-        
-        .weekday-name {
-          display: block;
-          font-size: 12px;
-          color: #6b7280;
-          text-transform: uppercase;
-        }
-        
-        .weekday-date {
-          display: block;
-          font-size: 18px;
-          font-weight: 600;
-          color: #1f2937;
-          margin-top: 4px;
-        }
-        
-        .today .weekday-date {
-          background: #3b82f6;
-          color: white;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .weekday-tasks {
-          padding: 8px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        
-        .day-view .day-sidebar {
-          width: 80px;
-          border-right: 1px solid #e5e7eb;
-          padding: 16px;
-        }
-        
-        .day-date-header {
-          text-align: center;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #e5e7eb;
-          margin-bottom: 16px;
-        }
-        
-        .day-name {
-          display: block;
-          font-size: 14px;
-          color: #6b7280;
-          text-transform: uppercase;
-        }
-        
-        .day-date {
-          display: block;
-          font-size: 24px;
-          font-weight: 700;
-          color: #1f2937;
-          margin-top: 4px;
-        }
-        
-        .hour-markers {
-          margin-top: 16px;
-        }
-        
-        .hour-marker {
-          height: 60px;
-          border-top: 1px solid #e5e7eb;
-          position: relative;
-        }
-        
-        .hour-label {
-          position: absolute;
-          top: -8px;
-          left: 0;
-          right: 0;
-          text-align: center;
-          font-size: 11px;
-          color: #9ca3af;
-        }
-        
-        .day-content {
-          flex: 1;
-          position: relative;
-          padding: 16px;
-        }
-        
-        .day-task-item {
-          position: absolute;
-          left: 16px;
-          right: 16px;
-        }
-        
-        .current-time-indicator {
-          position: absolute;
-          left: 0;
-          right: 0;
-          z-index: 10;
-        }
-        
-        .time-dot {
-          width: 12px;
-          height: 12px;
-          background: #ef4444;
-          border-radius: 50%;
-          position: absolute;
-          left: -6px;
-        }
-        
-        .time-line {
-          height: 2px;
-          background: #ef4444;
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 5px;
-        }
-        
-        .calendar-loading,
-        .calendar-error {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 400px;
-          gap: 16px;
-        }
-        
-        .btn-retry {
-          padding: 8px 16px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid #e5e7eb;
-          border-top-color: #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardContent, Button, Input,  TextField, Select, Alert, Chip } from '@mui/material';
+import { 
+  Card, 
+  CardContent, 
+  Button, 
+  TextField, 
+  Alert, 
+  Chip, 
+  Box, 
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 import { taskService } from '../services/taskService';
@@ -156,19 +169,19 @@ const TaskForm = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="max-w-3xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-secondary-200 rounded w-48" />
-            <div className="h-64 bg-secondary-200 rounded" />
-          </div>
-        </div>
+        <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Skeleton variant="text" width="30%" height={32} />
+            <Skeleton variant="rounded" height={300} />
+          </Box>
+        </Box>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto">
+      <Box sx={{ maxWidth: 800, mx: 'auto' }}>
         <PageHeader
           title={isEditing ? 'Edit Task' : 'Create New Task'}
           description={isEditing ? 'Update the task details below' : 'Fill in the details to create a new task'}
@@ -179,143 +192,167 @@ const TaskForm = () => {
         />
 
         {error && (
-          <Alert
-            variant="danger"
-            className="mb-6"
-            icon={<Icons.ExclamationCircle className="w-5 h-5" />}
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+            icon={<Icons.ExclamationCircle sx={{ fontSize: 20 }} />}
             onClose={() => setError('')}
           >
             {error}
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit}>
           <Card>
-            <CardContent className="space-y-6">
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Title */}
-              <Input
+              <TextField
                 label="Task Title"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="Enter task title"
-                error={errors.title}
+                error={Boolean(errors.title)}
+                helperText={errors.title}
                 autoFocus
+                fullWidth
               />
 
               {/* Description */}
-              < TextField
-              multiline
+              <TextField
+                multiline
                 label="Description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Describe the task in detail..."
                 rows={4}
-                helper="Provide a clear description of what needs to be done"
+                helperText="Provide a clear description of what needs to be done"
+                fullWidth
               />
 
               {/* Status & Priority */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
-                  label="Status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  options={statusOptions}
-                />
-                <Select
-                  label="Priority"
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleChange}
-                  options={priorityOptions}
-                />
-              </div>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    label="Status"
+                  >
+                    {statusOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>Priority</InputLabel>
+                  <Select
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleChange}
+                    label="Priority"
+                  >
+                    {priorityOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
 
               {/* Due Date & Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
                   label="Due Date"
                   type="date"
                   name="dueDate"
                   value={formData.dueDate}
                   onChange={handleChange}
-                  error={errors.dueDate}
+                  error={Boolean(errors.dueDate)}
+                  helperText={errors.dueDate}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
                 />
-                <Input
+                <TextField
                   label="Due Time (Optional)"
                   type="time"
                   name="dueTime"
                   value={formData.dueTime}
                   onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
                 />
-              </div>
+              </Box>
 
               {/* Tags */}
-              <div>
-                <label className="label">Tags</label>
-                <div className="flex flex-wrap gap-2 mb-2">
+              <Box>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>Tags</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                   {formData.selectedTags.map((tagId) => {
                     const tag = tags.find(t => t.id === tagId);
                     return (
-                      <Chip key={tagId} variant="primary" className="flex items-center gap-1">
-                        #{tag?.name || tagId}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tagId)}
-                          className="ml-1 hover:text-primary-900"
-                        >
-                          <Icons.X className="w-3 h-3" />
-                        </button>
-                      </Chip>
+                      <Chip 
+                        key={tagId} 
+                        color="primary" 
+                        label={`#${tag?.name || tagId}`}
+                        onDelete={() => handleRemoveTag(tagId)}
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      />
                     );
                   })}
-                </div>
-                <Input
+                </Box>
+                <TextField
                   placeholder="Type a tag and press Enter"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleAddTag}
-                  helper="Press Enter to add a tag"
+                  helperText="Press Enter to add a tag"
+                  size="small"
+                  fullWidth
                 />
-              </div>
+              </Box>
 
               {/* Notes */}
-              < TextField
+              <TextField
                 label="Additional Notes (Optional)"
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
                 placeholder="Any additional notes or context..."
                 rows={3}
+                multiline
+                fullWidth
               />
             </CardContent>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-secondary-50 border-t border-secondary-100 flex items-center justify-between">
+            <Box sx={{ px: 3, py: 2, bgcolor: 'action.hover', borderTop: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Button
                 type="button"
-                variant="ghost"
+                variant="text"
                 onClick={() => navigate('/tasks')}
               >
                 Cancel
               </Button>
-              <div className="flex items-center gap-3">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 {isEditing && (
-                  <Button type="button" variant="outline">
-                    <Icons.Eye className="w-4 h-4 mr-2" />
+                  <Button type="button" variant="outlined" startIcon={<Icons.Eye />}>
                     Preview
                   </Button>
                 )}
-                <Button type="submit" loading={saving} disabled={saving}>
+                <Button type="submit" variant="contained" disabled={saving}>
                   {isEditing ? 'Save Changes' : 'Create Task'}
                 </Button>
-              </div>
-            </div>
+              </Box>
+            </Box>
           </Card>
-        </form>
-      </div>
+        </Box>
+      </Box>
     </MainLayout>
   );
 };

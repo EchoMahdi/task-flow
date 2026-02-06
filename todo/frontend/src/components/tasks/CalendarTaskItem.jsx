@@ -1,7 +1,10 @@
 import React from 'react';
 import { useTranslation } from '../../context/I18nContext';
 import { useDateFormat } from '../../hooks/useDateFormat';
-import { Icons } from '../ui/Icons';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 /**
  * CalendarTaskItem Component
@@ -26,24 +29,24 @@ const CalendarTaskItem = ({
   const { t } = useTranslation();
   const { formatDate, formatTime, isJalali } = useDateFormat();
   
-  // Priority colors
+  // Priority colors (MUI palette)
   const priorityColors = {
-    low: '#22c55e',
-    medium: '#f59e0b',
-    high: '#ef4444',
-    urgent: '#dc2626',
+    low: 'success.main',
+    medium: 'warning.main',
+    high: 'error.main',
+    urgent: 'error.dark',
   };
   
   // Status styles
-  const getStatusClass = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'completed':
-        return 'task-completed';
+        return 'success';
       case 'in_progress':
-        return 'task-progress';
+        return 'primary';
       case 'pending':
       default:
-        return 'task-pending';
+        return 'default';
     }
   };
   
@@ -84,35 +87,40 @@ const CalendarTaskItem = ({
     onDragEnd && onDragEnd(e);
   };
   
-  // Priority badge
-  const renderPriorityBadge = () => {
-    const color = priorityColors[task.priority] || priorityColors.medium;
-    
-    return (
-      <span 
-        className="priority-badge"
-        style={{ backgroundColor: color }}
-        title={t(`priority.${task.priority}`)}
-      />
-    );
-  };
+  // Priority badge color
+  const priorityColor = priorityColors[task.priority] || priorityColors.medium;
   
-  // Completed checkmark
-  const renderCompletedCheck = () => {
-    if (task.status !== 'completed') return null;
-    
-    return (
-      <span className="completed-check">
-        <Icons.Check className="w-3 h-3" />
-      </span>
-    );
-  };
+  // Is completed
+  const isCompleted = task.status === 'completed';
   
-  // Main content based on view and compact mode
+  // Compact mode or week view
   if (compact || view === 'week') {
     return (
-      <div
-        className={`calendar-task-item compact ${getStatusClass(task.status)}`}
+      <Box
+        sx={{
+          p: 0.75,
+          borderRadius: 1,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          cursor: 'pointer',
+          outline: 'none',
+          transition: 'all 0.2s ease',
+          opacity: isCompleted ? 0.6 : 1,
+          textDecoration: isCompleted ? 'line-through' : 'none',
+          borderLeft: '3px solid',
+          borderLeftColor: task.status === 'in_progress' ? 'primary.main' : task.status === 'completed' ? 'success.main' : 'grey.500',
+          '&:hover': {
+            boxShadow: 2,
+            transform: 'translateY(-1px)',
+          },
+          '&:focus': {
+            boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}`,
+          },
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+        }}
         onClick={handleClick}
         onDoubleClick={handleEdit}
         draggable={draggable}
@@ -123,16 +131,56 @@ const CalendarTaskItem = ({
         role="button"
         aria-label={`${task.title} - ${t(`status.${task.status}`)}`}
       >
-        {renderPriorityBadge()}
-        <span className="task-title-compact">{task.title}</span>
-        {renderCompletedCheck()}
-      </div>
+        <Box
+          sx={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            bgcolor: priorityColor,
+            flexShrink: 0,
+          }}
+        />
+        <Typography
+          variant="caption"
+          sx={{
+            flex: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            textDecoration: isCompleted ? 'line-through' : 'none',
+          }}
+        >
+          {task.title}
+        </Typography>
+        {isCompleted && (
+          <CheckCircleIcon sx={{ fontSize: 14, color: 'success.main' }} />
+        )}
+      </Box>
     );
   }
   
+  // Full mode (month view)
   return (
-    <div
-      className={`calendar-task-item ${getStatusClass(task.status)}`}
+    <Box
+      sx={{
+        p: 0.75,
+        borderRadius: 1,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        cursor: 'pointer',
+        outline: 'none',
+        transition: 'all 0.2s ease',
+        borderLeft: '3px solid',
+        borderLeftColor: task.status === 'in_progress' ? 'primary.main' : task.status === 'completed' ? 'success.main' : 'grey.500',
+        '&:hover': {
+          boxShadow: 2,
+          transform: 'translateY(-1px)',
+        },
+        '&:focus': {
+          boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}`,
+        },
+      }}
       onClick={handleClick}
       onDoubleClick={handleEdit}
       draggable={draggable}
@@ -142,164 +190,79 @@ const CalendarTaskItem = ({
       role="button"
       aria-label={`${task.title} - ${formatDueDate(task.due_date)}`}
     >
-      <div className="task-header">
-        {renderPriorityBadge()}
-        <span className="task-time">{formatDueDate(task.due_date)}</span>
-        {renderCompletedCheck()}
-      </div>
-      
-      <div className="task-content">
-        <span className="task-title">{task.title}</span>
-        
-        {task.tags && task.tags.length > 0 && (
-          <div className="task-tags">
-            {task.tags.slice(0, 2).map((tag) => (
-              <span 
-                key={tag.id} 
-                className="task-tag"
-                style={{ backgroundColor: tag.color || '#6b7280' }}
-              >
-                {tag.name}
-              </span>
-            ))}
-          </div>
+      {/* Task header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box
+            sx={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              bgcolor: priorityColor,
+              flexShrink: 0,
+            }}
+          />
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+            {formatDueDate(task.due_date)}
+          </Typography>
+        </Box>
+        {isCompleted && (
+          <CheckCircleIcon sx={{ fontSize: 14, color: 'success.main' }} />
         )}
-      </div>
+      </Box>
       
+      {/* Task content */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'text.primary',
+            lineHeight: 1.3,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textDecoration: isCompleted ? 'line-through' : 'none',
+          }}
+        >
+          {task.title}
+        </Typography>
+        
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+            {task.tags.slice(0, 2).map((tag) => (
+              <Chip
+                key={tag.id}
+                label={tag.name}
+                size="small"
+                sx={{
+                  fontSize: 10,
+                  height: 18,
+                  bgcolor: tag.color || 'grey.500',
+                  color: 'white',
+                  maxWidth: 80,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
+      
+      {/* Description */}
       {task.description && (
-        <div className="task-description">
+        <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5, lineHeight: 1.4 }}>
           {task.description.length > 50 
             ? task.description.substring(0, 50) + '...' 
             : task.description}
-        </div>
+        </Typography>
       )}
-      
-      <style>{`
-        .calendar-task-item {
-          padding: 6px 8px;
-          border-radius: 6px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          outline: none;
-        }
-        
-        .calendar-task-item:hover {
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transform: translateY(-1px);
-        }
-        
-        .calendar-task-item:focus {
-          box-shadow: 0 0 0 2px #3b82f6;
-        }
-        
-        .calendar-task-item.compact {
-          padding: 4px 6px;
-          font-size: 12px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        
-        .calendar-task-item.compact .task-title-compact {
-          flex: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        
-        .task-completed {
-          opacity: 0.6;
-          text-decoration: line-through;
-        }
-        
-        .task-completed .task-title,
-        .task-completed .task-title-compact {
-          text-decoration: line-through;
-        }
-        
-        .task-progress {
-          border-left: 3px solid #3b82f6;
-        }
-        
-        .task-pending {
-          border-left: 3px solid #6b7280;
-        }
-        
-        .priority-badge {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        
-        .task-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 8px;
-          margin-bottom: 4px;
-        }
-        
-        .task-time {
-          font-size: 11px;
-          color: #6b7280;
-        }
-        
-        .completed-check {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 16px;
-          height: 16px;
-          background: #22c55e;
-          border-radius: 50%;
-          color: white;
-        }
-        
-        .task-content {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        
-        .task-title {
-          font-size: 13px;
-          font-weight: 500;
-          color: #1f2937;
-          line-height: 1.3;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        
-        .task-tags {
-          display: flex;
-          gap: 4px;
-          flex-wrap: wrap;
-        }
-        
-        .task-tag {
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 4px;
-          color: white;
-          max-width: 80px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        
-        .task-description {
-          font-size: 11px;
-          color: #6b7280;
-          margin-top: 4px;
-          line-height: 1.4;
-        }
-      `}</style>
-    </div>
+    </Box>
   );
 };
 

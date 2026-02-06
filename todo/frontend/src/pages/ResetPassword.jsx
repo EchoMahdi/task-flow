@@ -310,7 +310,6 @@ const ResetPassword = () => {
                 type="submit"
                 variant="contained"
                 fullWidth
-                loading={loading}
                 disabled={loading}
               >
                 Reset password

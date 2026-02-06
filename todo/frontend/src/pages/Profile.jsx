@@ -399,7 +399,7 @@ const Profile = () => {
                     />
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button type="submit" variant="contained" loading={loading}>
+                      <Button type="submit" variant="contained" disabled={loading}>
                         Save Changes
                       </Button>
                     </Box>
@@ -473,7 +473,7 @@ const Profile = () => {
                     />
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button type="submit" variant="contained" loading={loading}>
+                      <Button type="submit" variant="contained" disabled={loading}>
                         Change Password
                       </Button>
                     </Box>
@@ -533,7 +533,7 @@ const Profile = () => {
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button type="submit" variant="contained" loading={loading}>
+                      <Button type="submit" variant="contained" disabled={loading}>
                         Save Timezone
                       </Button>
                     </Box>

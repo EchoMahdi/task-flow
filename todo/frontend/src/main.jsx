@@ -8,7 +8,6 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ToastProvider } from './components/ui/Toast.jsx'
 import theme from './theme.js'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 
 const queryClient = new QueryClient({

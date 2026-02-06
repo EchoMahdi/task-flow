@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../context/I18nContext';
-import { Icons } from '../ui/Icons';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Chip from '@mui/material/Chip';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import FlagIcon from '@mui/icons-material/Flag';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 
 /**
  * CalendarFilters Component
@@ -18,10 +29,9 @@ const CalendarFilters = ({
 }) => {
   const { t } = useTranslation();
   
-  // Local state for dropdown visibility
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
-  const [showDateDropdown, setShowDateDropdown] = useState(false);
+  // Menu state
+  const [statusAnchor, setStatusAnchor] = useState(null);
+  const [priorityAnchor, setPriorityAnchor] = useState(null);
   
   // Status options
   const statusOptions = [
@@ -32,19 +42,29 @@ const CalendarFilters = ({
   
   // Priority options
   const priorityOptions = [
-    { value: 'low', label: t('priority.low') },
-    { value: 'medium', label: t('priority.medium') },
-    { value: 'high', label: t('priority.high') },
-    { value: 'urgent', label: t('priority.urgent') },
+    { value: 'low', label: t('priority.low'), color: 'success' },
+    { value: 'medium', label: t('priority.medium'), color: 'warning' },
+    { value: 'high', label: t('priority.high'), color: 'error' },
+    { value: 'urgent', label: t('priority.urgent'), color: 'error' },
   ];
   
-  // Date range quick filters
-  const dateRangeOptions = [
-    { value: 'today', label: t('datetime.today') },
-    { value: 'this_week', label: t('datetime.thisWeek') },
-    { value: 'this_month', label: t('datetime.thisMonth') },
-    { value: 'overdue', label: t('datetime.overdue') },
-  ];
+  // Close menus when clicking outside
+  const statusButtonRef = useRef(null);
+  const priorityButtonRef = useRef(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (statusButtonRef.current && !statusButtonRef.current.contains(event.target)) {
+        setStatusAnchor(null);
+      }
+      if (priorityButtonRef.current && !priorityButtonRef.current.contains(event.target)) {
+        setPriorityAnchor(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   // Handle status toggle
   const handleStatusToggle = (status) => {
@@ -84,381 +104,233 @@ const CalendarFilters = ({
     filters.priority.length > 0 || 
     filters.include_completed;
   
-  // Get active filter count
-  const activeFilterCount = 
-    filters.status.length + 
-    filters.priority.length + 
-    (filters.include_completed ? 1 : 0);
+  // Get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'default';
+      case 'in_progress': return 'primary';
+      case 'completed': return 'success';
+      default: return 'default';
+    }
+  };
+  
+  // Get priority color for Chip
+  const getPriorityChipColor = (priority) => {
+    switch (priority) {
+      case 'low': return 'success';
+      case 'medium': return 'warning';
+      case 'high': return 'error';
+      case 'urgent': return 'error';
+      default: return 'default';
+    }
+  };
   
   return (
-    <div className="calendar-filters">
-      <div className="filters-row">
+    <Box sx={{ 
+      p: 1.5, 
+      bgcolor: 'grey.100', 
+      borderBottom: '1px solid',
+      borderColor: 'divider'
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
         {/* Status Filter */}
-        <div className="filter-dropdown">
-          <button
-            className={`filter-button ${filters.status.length > 0 ? 'active' : ''}`}
-            onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-            aria-expanded={showStatusDropdown}
-            aria-haspopup="listbox"
-          >
-            <Icons.Filter className="w-4 h-4" />
-            <span>{t('filters.status')}</span>
-            {filters.status.length > 0 && (
-              <span className="filter-count">{filters.status.length}</span>
-            )}
-            <Icons.ChevronDown className="w-4 h-4" />
-          </button>
-          
-          {showStatusDropdown && (
-            <div className="dropdown-menu" role="listbox">
-              {statusOptions.map((option) => {
-                const isSelected = filters.status.includes(option.value);
-                return (
-                  <button
-                    key={option.value}
-                    className={`dropdown-item ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handleStatusToggle(option.value)}
-                    role="option"
-                    aria-selected={isSelected}
-                  >
-                    <span className="checkbox">
-                      {isSelected && <Icons.Check className="w-3 h-3" />}
-                    </span>
-                    <span>{option.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <Button
+          ref={statusButtonRef}
+          variant="outlined"
+          size="small"
+          startIcon={<FilterListIcon />}
+          endIcon={<Chip label={filters.status.length} size="small" color="primary" sx={{ height: 18, fontSize: 11 }} />}
+          onClick={(e) => setStatusAnchor(e.currentTarget)}
+          sx={{ 
+            bgcolor: filters.status.length > 0 ? 'primary.50' : 'background.paper',
+            borderColor: filters.status.length > 0 ? 'primary.main' : 'divider',
+            color: filters.status.length > 0 ? 'primary.main' : 'text.primary',
+            '&:hover': {
+              bgcolor: filters.status.length > 0 ? 'primary.100' : 'action.hover',
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          {t('filters.status')}
+        </Button>
+        <Menu
+          anchorEl={statusAnchor}
+          open={Boolean(statusAnchor)}
+          onClose={() => setStatusAnchor(null)}
+          PaperProps={{
+            sx: { minWidth: 180 }
+          }}
+        >
+          {statusOptions.map((option) => {
+            const isSelected = filters.status.includes(option.value);
+            return (
+              <MenuItem 
+                key={option.value} 
+                onClick={() => handleStatusToggle(option.value)}
+                selected={isSelected}
+                sx={{ 
+                  py: 1,
+                  bgcolor: isSelected ? 'primary.50' : 'background.paper',
+                }}
+              >
+                <Checkbox checked={isSelected} size="small" />
+                <Box sx={{ ml: 1 }}>
+                  <Chip 
+                    label={option.label} 
+                    size="small" 
+                    color={getStatusColor(option.value)}
+                    variant="outlined"
+                    sx={{ fontSize: 12 }}
+                  />
+                </Box>
+              </MenuItem>
+            );
+          })}
+        </Menu>
         
         {/* Priority Filter */}
-        <div className="filter-dropdown">
-          <button
-            className={`filter-button ${filters.priority.length > 0 ? 'active' : ''}`}
-            onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
-            aria-expanded={showPriorityDropdown}
-            aria-haspopup="listbox"
-          >
-            <Icons.Flag className="w-4 h-4" />
-            <span>{t('filters.priority')}</span>
-            {filters.priority.length > 0 && (
-              <span className="filter-count">{filters.priority.length}</span>
-            )}
-            <Icons.ChevronDown className="w-4 h-4" />
-          </button>
-          
-          {showPriorityDropdown && (
-            <div className="dropdown-menu" role="listbox">
-              {priorityOptions.map((option) => {
-                const isSelected = filters.priority.includes(option.value);
-                return (
-                  <button
-                    key={option.value}
-                    className={`dropdown-item ${isSelected ? 'selected' : ''}`}
-                    onClick={() => handlePriorityToggle(option.value)}
-                    role="option"
-                    aria-selected={isSelected}
-                  >
-                    <span className={`priority-indicator ${option.value}`}>
-                      <Icons.Flag className="w-3 h-3" />
-                    </span>
-                    <span>{option.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <Button
+          ref={priorityButtonRef}
+          variant="outlined"
+          size="small"
+          startIcon={<FlagIcon />}
+          endIcon={<Chip label={filters.priority.length} size="small" color="warning" sx={{ height: 18, fontSize: 11 }} />}
+          onClick={(e) => setPriorityAnchor(e.currentTarget)}
+          sx={{ 
+            bgcolor: filters.priority.length > 0 ? 'warning.50' : 'background.paper',
+            borderColor: filters.priority.length > 0 ? 'warning.main' : 'divider',
+            color: filters.priority.length > 0 ? 'warning.main' : 'text.primary',
+            '&:hover': {
+              bgcolor: filters.priority.length > 0 ? 'warning.100' : 'action.hover',
+              borderColor: 'warning.main',
+            },
+          }}
+        >
+          {t('filters.priority')}
+        </Button>
+        <Menu
+          anchorEl={priorityAnchor}
+          open={Boolean(priorityAnchor)}
+          onClose={() => setPriorityAnchor(null)}
+          PaperProps={{
+            sx: { minWidth: 180 }
+          }}
+        >
+          {priorityOptions.map((option) => {
+            const isSelected = filters.priority.includes(option.value);
+            return (
+              <MenuItem 
+                key={option.value} 
+                onClick={() => handlePriorityToggle(option.value)}
+                selected={isSelected}
+                sx={{ 
+                  py: 1,
+                  bgcolor: isSelected ? 'warning.50' : 'background.paper',
+                }}
+              >
+                <Checkbox checked={isSelected} size="small" />
+                <FlagIcon sx={{ mr: 1, color: `${option.color}.main`, fontSize: 18 }} />
+                <Chip 
+                  label={option.label} 
+                  size="small" 
+                  color={option.color}
+                  variant="outlined"
+                  sx={{ fontSize: 12 }}
+                />
+              </MenuItem>
+            );
+          })}
+        </Menu>
         
         {/* Include Completed Toggle */}
-        <button
-          className={`filter-toggle ${filters.include_completed ? 'active' : ''}`}
-          onClick={handleIncludeCompleted}
-        >
-          <Icons.CheckCircle className="w-4 h-4" />
-          <span>{t('filters.includeCompleted')}</span>
-        </button>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filters.include_completed}
+              onChange={handleIncludeCompleted}
+              size="small"
+              color="success"
+            />
+          }
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <CheckCircleIcon fontSize="small" color={filters.include_completed ? 'success' : 'disabled'} />
+              <Typography variant="body2">{t('filters.includeCompleted')}</Typography>
+            </Box>
+          }
+          sx={{ ml: 1 }}
+        />
         
         {/* Clear Filters */}
         {hasActiveFilters && (
-          <button className="clear-filters" onClick={handleReset}>
-            <Icons.X className="w-4 h-4" />
-            <span>{t('filters.clear')}</span>
-          </button>
+          <Button
+            size="small"
+            startIcon={<ClearAllIcon />}
+            onClick={handleReset}
+            sx={{ color: 'text.secondary', ml: 'auto' }}
+          >
+            {t('filters.clear')}
+          </Button>
         )}
-      </div>
+      </Box>
       
       {/* Active Filter Tags */}
       {hasActiveFilters && (
-        <div className="active-filters">
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
           {filters.status.map((status) => (
-            <span key={status} className="filter-tag status">
-              {statusOptions.find((o) => o.value === status)?.label}
-              <button onClick={() => handleStatusToggle(status)}>
-                <Icons.X className="w-3 h-3" />
-              </button>
-            </span>
+            <Chip
+              key={status}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {statusOptions.find((o) => o.value === status)?.label}
+                  <CloseIcon sx={{ fontSize: 14 }} onClick={() => handleStatusToggle(status)} />
+                </Box>
+              }
+              size="small"
+              color={getStatusColor(status)}
+              onDelete={() => handleStatusToggle(status)}
+              sx={{ fontSize: 12 }}
+            />
           ))}
           
           {filters.priority.map((priority) => (
-            <span key={priority} className={`filter-tag priority ${priority}`}>
-              {priorityOptions.find((o) => o.value === priority)?.label}
-              <button onClick={() => handlePriorityToggle(priority)}>
-                <Icons.X className="w-3 h-3" />
-              </button>
-            </span>
+            <Chip
+              key={priority}
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {priorityOptions.find((o) => o.value === priority)?.label}
+                  <CloseIcon sx={{ fontSize: 14 }} onClick={() => handlePriorityToggle(priority)} />
+                </Box>
+              }
+              size="small"
+              color={getPriorityChipColor(priority)}
+              onDelete={() => handlePriorityToggle(priority)}
+              sx={{ fontSize: 12 }}
+            />
           ))}
           
           {filters.include_completed && (
-            <span className="filter-tag completed">
-              {t('filters.completedIncluded')}
-              <button onClick={handleIncludeCompleted}>
-                <Icons.X className="w-3 h-3" />
-              </button>
-            </span>
+            <Chip
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {t('filters.completedIncluded')}
+                  <CloseIcon sx={{ fontSize: 14 }} onClick={handleIncludeCompleted} />
+                </Box>
+              }
+              size="small"
+              color="success"
+              variant="outlined"
+              onDelete={handleIncludeCompleted}
+              sx={{ fontSize: 12 }}
+            />
           )}
-        </div>
+        </Box>
       )}
-      
-      {/* Click outside to close dropdowns */}
-      {(showStatusDropdown || showPriorityDropdown) && (
-        <div
-          className="dropdown-backdrop"
-          onClick={() => {
-            setShowStatusDropdown(false);
-            setShowPriorityDropdown(false);
-          }}
-        />
-      )}
-      
-      <style>{`
-        .calendar-filters {
-          padding: 12px 16px;
-          background: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .filters-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-        
-        .filter-dropdown {
-          position: relative;
-        }
-        
-        .filter-button {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .filter-button:hover {
-          background: #f3f4f6;
-          border-color: #9ca3af;
-        }
-        
-        .filter-button.active {
-          background: #eff6ff;
-          border-color: #3b82f6;
-          color: #1d4ed8;
-        }
-        
-        .filter-count {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 4px;
-          background: #3b82f6;
-          color: white;
-          border-radius: 9px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-        
-        .filter-toggle {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 10px;
-          background: white;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .filter-toggle:hover {
-          background: #f3f4f6;
-        }
-        
-        .filter-toggle.active {
-          background: #ecfdf5;
-          border-color: #10b981;
-          color: #059669;
-        }
-        
-        .clear-filters {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          padding: 6px 10px;
-          background: none;
-          border: none;
-          font-size: 13px;
-          color: #6b7280;
-          cursor: pointer;
-          transition: color 0.2s;
-        }
-        
-        .clear-filters:hover {
-          color: #ef4444;
-        }
-        
-        .dropdown-menu {
-          position: absolute;
-          top: calc(100% + 4px);
-          left: 0;
-          min-width: 180px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          z-index: 50;
-          padding: 4px;
-        }
-        
-        .dropdown-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          width: 100%;
-          padding: 8px 12px;
-          background: none;
-          border: none;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #374151;
-          cursor: pointer;
-          transition: background 0.2s;
-          text-align: left;
-        }
-        
-        .dropdown-item:hover {
-          background: #f3f4f6;
-        }
-        
-        .dropdown-item.selected {
-          background: #eff6ff;
-          color: #1d4ed8;
-        }
-        
-        .dropdown-item .checkbox {
-          width: 16px;
-          height: 16px;
-          border: 1.5px solid #d1d5db;
-          border-radius: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .dropdown-item.selected .checkbox {
-          background: #3b82f6;
-          border-color: #3b82f6;
-          color: white;
-        }
-        
-        .priority-indicator {
-          display: flex;
-          align-items: center;
-        }
-        
-        .priority-indicator.low { color: #22c55e; }
-        .priority-indicator.medium { color: #f59e0b; }
-        .priority-indicator.high { color: #ef4444; }
-        .priority-indicator.urgent { color: #dc2626; }
-        
-        .dropdown-backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 40;
-        }
-        
-        .active-filters {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-top: 12px;
-        }
-        
-        .filter-tag {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 8px;
-          border-radius: 16px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-        
-        .filter-tag.status {
-          background: #eff6ff;
-          color: #1d4ed8;
-        }
-        
-        .filter-tag.priority {
-          background: #fef2f2;
-          color: #dc2626;
-        }
-        
-        .filter-tag.priority.low {
-          background: #ecfdf5;
-          color: #059669;
-        }
-        
-        .filter-tag.completed {
-          background: #ecfdf5;
-          color: #059669;
-        }
-        
-        .filter-tag button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 16px;
-          height: 16px;
-          background: rgba(0, 0, 0, 0.1);
-          border: none;
-          border-radius: 50%;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        
-        .filter-tag button:hover {
-          background: rgba(0, 0, 0, 0.2);
-        }
-      `}</style>
-    </div>
+    </Box>
   );
 };
+
+// Import Typography for the JSX
+import Typography from '@mui/material/Typography';
 
 export default CalendarFilters;

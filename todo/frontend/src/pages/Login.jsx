@@ -249,7 +249,6 @@ const Login = () => {
                 type="submit"
                 variant="contained"
                 fullWidth
-                loading={loading}
                 disabled={loading}
               >
                 {t('common.login')}

@@ -1,24 +1,38 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Stack
+} from '@mui/material';
 
 function TaskForm({ task, tags, onSubmit, onCancel, loading }) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState('medium')
-  const [dueDate, setDueDate] = useState('')
-  const [selectedTags, setSelectedTags] = useState([])
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [dueDate, setDueDate] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
 
   useEffect(() => {
     if (task) {
-      setTitle(task.title)
-      setDescription(task.description || '')
-      setPriority(task.priority)
-      setDueDate(task.due_date ? task.due_date.split('T')[0] : '')
-      setSelectedTags(task.tags?.map(t => t.id) || [])
+      setTitle(task.title);
+      setDescription(task.description || '');
+      setPriority(task.priority);
+      setDueDate(task.due_date ? task.due_date.split('T')[0] : '');
+      setSelectedTags(task.tags?.map(t => t.id) || []);
     }
-  }, [task])
+  }, [task]);
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     
     const data = {
       title,
@@ -26,132 +40,119 @@ function TaskForm({ task, tags, onSubmit, onCancel, loading }) {
       priority,
       due_date: dueDate || null,
       tags: selectedTags,
-    }
+    };
     
-    onSubmit(data)
-  }
+    onSubmit(data);
+  };
 
   const toggleTag = (tagId) => {
     setSelectedTags((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
         : [...prev, tagId]
-    )
-  }
+    );
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-4">
-      <h3 className="text-lg font-bold mb-4">
-        {task ? 'Edit Task' : 'Create New Task'}
-      </h3>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
+    <Card sx={{ mb: 2 }}>
+      <CardContent>
+        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+          {task ? 'Edit Task' : 'Create New Task'}
+        </Typography>
+        
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <TextField
+            label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            fullWidth
+            size="small"
           />
-        </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-            Description
-          </label>
-          <textarea
-            id="description"
+          
+          <TextField
+            label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows="3"
+            multiline
+            rows={3}
+            fullWidth
+            size="small"
           />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="priority">
-              Priority
-            </label>
-            <select
-              id="priority"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
           
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dueDate">
-              Due Date
-            </label>
-            <input
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                label="Priority"
+              >
+                <MenuItem value="low">Low</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <TextField
+              label="Due Date"
               type="date"
-              id="dueDate"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              size="small"
             />
-          </div>
-        </div>
-        
-        {tags.length > 0 && (
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => toggleTag(tag.id)}
-                  className={`px-3 py-1 text-sm rounded-full border ${
-                    selectedTags.includes(tag.id)
-                      ? 'ring-2 ring-blue-500'
-                      : ''
-                  }`}
-                  style={{
-                    backgroundColor: selectedTags.includes(tag.id) ? tag.color : 'white',
-                    color: selectedTags.includes(tag.id) ? 'white' : 'black',
-                    borderColor: tag.color,
-                  }}
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-          >
-            {loading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  )
+          </Box>
+          
+          {tags.length > 0 && (
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: 'text.secondary' }}>
+                Tags
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {tags.map((tag) => (
+                  <Chip
+                    key={tag.id}
+                    label={tag.name}
+                    onClick={() => toggleTag(tag.id)}
+                    color={selectedTags.includes(tag.id) ? 'primary' : 'default'}
+                    variant={selectedTags.includes(tag.id) ? 'filled' : 'outlined'}
+                    sx={{
+                      borderColor: tag.color,
+                      ...(selectedTags.includes(tag.id) && {
+                        bgcolor: tag.color,
+                        '&:hover': {
+                          bgcolor: tag.color,
+                          filter: 'brightness(0.9)'
+                        }
+                      })
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          )}
+          
+          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+            </Button>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
 }
 
-export default TaskForm
+export default TaskForm;

@@ -1,127 +1,136 @@
-import { useState } from 'react'
+import React, { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Typography,
+  Box
+} from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 
 function TaskFilters({ tags, filters, onFilterChange }) {
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState('');
 
   const handleSearchChange = (e) => {
-    const value = e.target.value
-    setSearch(value)
-    onFilterChange({ ...filters, search: value || undefined })
-  }
+    const value = e.target.value;
+    setSearch(value);
+    onFilterChange({ ...filters, search: value || undefined });
+  };
 
   const handlePriorityChange = (e) => {
-    const value = e.target.value
-    onFilterChange({ ...filters, priority: value || undefined })
-  }
+    const value = e.target.value;
+    onFilterChange({ ...filters, priority: value || undefined });
+  };
 
   const handleStatusChange = (e) => {
-    const value = e.target.value
+    const value = e.target.value;
     if (value === '') {
-      const { is_completed, ...rest } = filters
-      onFilterChange(rest)
+      const { is_completed, ...rest } = filters;
+      onFilterChange(rest);
     } else {
-      onFilterChange({ ...filters, is_completed: value === 'true' })
+      onFilterChange({ ...filters, is_completed: value === 'true' });
     }
-  }
+  };
 
   const handleTagChange = (e) => {
-    const value = e.target.value
-    onFilterChange({ ...filters, tag_id: value || undefined })
-  }
+    const value = e.target.value;
+    onFilterChange({ ...filters, tag_id: value || undefined });
+  };
 
   const clearFilters = () => {
-    setSearch('')
-    onFilterChange({})
-  }
+    setSearch('');
+    onFilterChange({});
+  };
 
-  const hasFilters = search || filters.priority || filters.is_completed !== undefined || filters.tag_id
+  const hasFilters = search || filters.priority || filters.is_completed !== undefined || filters.tag_id;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-bold mb-4">Filters</h3>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Search
-          </label>
-          <input
-            type="text"
+    <Card>
+      <CardContent>
+        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+          Filters
+        </Typography>
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <TextField
+            label="Search"
             value={search}
             onChange={handleSearchChange}
             placeholder="Search tasks..."
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            fullWidth
+            size="small"
           />
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Priority
-          </label>
-          <select
-            value={filters.priority || ''}
-            onChange={handlePriorityChange}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Priorities</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Status
-          </label>
-          <select
-            value={
-              filters.is_completed === undefined
-                ? ''
-                : filters.is_completed
-                ? 'true'
-                : 'false'
-            }
-            onChange={handleStatusChange}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Tasks</option>
-            <option value="false">Incomplete</option>
-            <option value="true">Completed</option>
-          </select>
-        </div>
-        
-        {tags.length > 0 && (
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Tag
-            </label>
-            <select
-              value={filters.tag_id || ''}
-              onChange={handleTagChange}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          
+          <FormControl fullWidth size="small">
+            <InputLabel>Priority</InputLabel>
+            <Select
+              value={filters.priority || ''}
+              onChange={handlePriorityChange}
+              label="Priority"
             >
-              <option value="">All Tags</option>
-              {tags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        
-        {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Clear Filters
-          </button>
-        )}
-      </div>
-    </div>
-  )
+              <MenuItem value="">All Priorities</MenuItem>
+              <MenuItem value="low">Low</MenuItem>
+              <MenuItem value="medium">Medium</MenuItem>
+              <MenuItem value="high">High</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <FormControl fullWidth size="small">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={
+                filters.is_completed === undefined
+                  ? ''
+                  : filters.is_completed
+                  ? 'true'
+                  : 'false'
+              }
+              onChange={handleStatusChange}
+              label="Status"
+            >
+              <MenuItem value="">All Tasks</MenuItem>
+              <MenuItem value="false">Incomplete</MenuItem>
+              <MenuItem value="true">Completed</MenuItem>
+            </Select>
+          </FormControl>
+          
+          {tags.length > 0 && (
+            <FormControl fullWidth size="small">
+              <InputLabel>Tag</InputLabel>
+              <Select
+                value={filters.tag_id || ''}
+                onChange={handleTagChange}
+                label="Tag"
+              >
+                <MenuItem value="">All Tags</MenuItem>
+                {tags.map((tag) => (
+                  <MenuItem key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+          
+          {hasFilters && (
+            <Button
+              variant="outlined"
+              onClick={clearFilters}
+              startIcon={<ClearIcon />}
+              fullWidth
+            >
+              Clear Filters
+            </Button>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
 }
 
-export default TaskFilters
+export default TaskFilters;

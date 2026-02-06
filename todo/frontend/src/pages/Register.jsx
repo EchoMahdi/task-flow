@@ -291,7 +291,6 @@ const Register = () => {
                 type="submit"
                 variant="contained"
                 fullWidth
-                loading={loading}
                 disabled={loading}
               >
                 Create account

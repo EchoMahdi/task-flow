@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
 import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
-import { Icons } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { taskService } from '../services/taskService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -13,6 +12,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -236,6 +236,7 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} lg={3}>
             <StatCard
+              icon={AccessTimeIcon}
               label="Pending"
               value={stats.pendingTasks}
               bgcolor="warning.main"

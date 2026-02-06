@@ -1,7 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardContent, Chip, Button, Skeleton, Box } from '@mui/material';
+import { 
+  Card, 
+  CardContent, 
+  Chip, 
+  Button, 
+  Skeleton, 
+  Box, 
+  Typography,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TextField,
+  FormControl,
+  Select,
+  MenuItem
+} from '@mui/material';
 import { Icons } from '../components/ui/Icons';
 import { taskService } from '../services/taskService';
 
@@ -105,24 +122,24 @@ const TaskList = () => {
   };
 
   const getPriorityBadge = (priority) => {
-    const variants = {
-      high: 'danger',
+    const colors = {
+      high: 'error',
       medium: 'warning',
       low: 'success',
     };
-    return <Chip variant={variants[priority] || 'secondary'}>{priority}</Chip>;
+    return <Chip color={colors[priority] || 'default'} label={priority} />;
   };
 
   const getStatusBadge = (isCompleted) => {
     return isCompleted ? (
-      <Chip variant="success">Completed</Chip>
+      <Chip color="success" label="Completed" />
     ) : (
-      <Chip variant="secondary">Pending</Chip>
+      <Chip color="default" label="Pending" />
     );
   };
 
   const getDueDateInfo = (dueDate, isCompleted) => {
-    if (!dueDate) return { text: 'No date', className: 'text-secondary-400 text-sm' };
+    if (!dueDate) return { text: 'No date', sx: { color: 'text.secondary', fontSize: '0.875rem' } };
     
     const due = new Date(dueDate);
     const today = new Date();
@@ -131,21 +148,21 @@ const TaskList = () => {
     if (isOverdue) {
       return { 
         text: due.toLocaleDateString(), 
-        className: 'badge-danger text-xs' 
+        sx: { color: 'error.main', fontSize: '0.75rem' } 
       };
     }
     
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (due.toDateString() === tomorrow.toDateString()) {
-      return { text: 'Tomorrow', className: 'badge-warning text-xs' };
+      return { text: 'Tomorrow', sx: { color: 'warning.main', fontSize: '0.75rem' } };
     }
     
     if (due.toDateString() === today.toDateString()) {
-      return { text: 'Today', className: 'badge-primary text-xs' };
+      return { text: 'Today', sx: { color: 'primary.main', fontSize: '0.75rem' } };
     }
     
-    return { text: due.toLocaleDateString(), className: 'text-secondary-600 text-sm' };
+    return { text: due.toLocaleDateString(), sx: { color: 'text.secondary', fontSize: '0.875rem' } };
   };
 
   // Filter options
@@ -180,256 +197,286 @@ const TaskList = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-secondary-900">Tasks</h1>
-            <p className="text-secondary-500 mt-1">{pagination.total} tasks total</p>
-          </div>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>Tasks</Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{pagination.total} tasks total</Typography>
+          </Box>
           <Link to="/tasks/new">
-            <Button icon={<Icons.Plus className="w-4 h-4" />}>
+            <Button variant="contained" startIcon={<Icons.Plus />}>
               New Task
             </Button>
           </Link>
-        </div>
+        </Box>
 
         {/* Filters */}
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-4">
+        <Card sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {/* Search */}
-            <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
-              <div className="search-input">
-                <Icons.Search className="search-icon" />
-                <input
+            <Box component="form" onSubmit={handleSearch} sx={{ flex: 1, minWidth: 200, position: 'relative' }}>
+              <Box sx={{ position: 'relative' }}>
+                <Icons.Search sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary' }} />
+                <TextField
                   type="text"
                   placeholder="Search tasks..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="w-full"
+                  sx={{ width: '100%', '& .MuiOutlinedInput-root': { pl: 5 } }}
+                  size="small"
+                  variant="outlined"
                 />
-              </div>
-            </form>
+              </Box>
+            </Box>
 
             {/* Status Filter */}
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="filter-select"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                displayEmpty
+              >
+                {statusOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             {/* Priority Filter */}
-            <select
-              value={filters.priority}
-              onChange={(e) => handleFilterChange('priority', e.target.value)}
-              className="filter-select"
-            >
-              {priorityOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <Select
+                value={filters.priority}
+                onChange={(e) => handleFilterChange('priority', e.target.value)}
+                displayEmpty
+              >
+                {priorityOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             {/* Sort */}
-            <select
-              value={`${filters.sort_by}-${filters.sort_order}`}
-              onChange={(e) => {
-                const [sort_by, sort_order] = e.target.value.split('-');
-                handleFilterChange('sort_by', sort_by);
-                handleFilterChange('sort_order', sort_order);
-              }}
-              className="filter-select"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select
+                value={`${filters.sort_by}-${filters.sort_order}`}
+                onChange={(e) => {
+                  const [sort_by, sort_order] = e.target.value.split('-');
+                  handleFilterChange('sort_by', sort_by);
+                  handleFilterChange('sort_order', sort_order);
+                }}
+                displayEmpty
+              >
+                {sortOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             {/* Per Page */}
-            <select
-              value={filters.per_page}
-              onChange={(e) => handleFilterChange('per_page', e.target.value)}
-              className="filter-select"
-            >
-              {perPageOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+            <FormControl size="small" sx={{ minWidth: 100 }}>
+              <Select
+                value={filters.per_page}
+                onChange={(e) => handleFilterChange('per_page', e.target.value)}
+                displayEmpty
+              >
+                {perPageOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Card>
 
         {/* Task List */}
         <Card>
-          <CardContent className="p-0">
+          <CardContent sx={{ p: 0 }}>
             {loading ? (
-              <div className="p-6 space-y-4">
+              <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4">
-                    <Skeleton variant="card" className="w-5 h-5 rounded" />
-                    <div className="flex-1">
-                      <Skeleton variant="text" className="w-48 h-5 mb-2" />
-                      <Skeleton variant="text" className="w-64 h-4" />
-                    </div>
-                    <Skeleton variant="card" className="w-20 h-6 rounded-full" />
-                    <Skeleton variant="card" className="w-16 h-6 rounded-full" />
-                  </div>
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
+                    <Skeleton variant="circular" width={20} height={20} />
+                    <Box sx={{ flex: 1 }}>
+                      <Skeleton variant="text" width="30%" />
+                      <Skeleton variant="text" width="40%" />
+                    </Box>
+                    <Skeleton variant="rounded" width={80} height={24} />
+                    <Skeleton variant="rounded" width={64} height={24} />
+                  </Box>
                 ))}
-              </div>
+              </Box>
             ) : tasks.length === 0 ? (
               <Box
-                icon={<Icons.ClipboardList className="w-12 h-12" />}
+                icon={<Icons.ClipboardList sx={{ fontSize: 48 }} />}
                 title="No tasks found"
                 description="Get started by creating your first task."
                 action={
                   <Link to="/tasks/new">
-                    <Button icon={<Icons.Plus className="w-4 h-4" />}>
+                    <Button variant="contained" startIcon={<Icons.Plus />}>
                       Create Task
                     </Button>
                   </Link>
                 }
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-secondary-50 border-y border-secondary-100">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider w-12">
+              <Box sx={{ overflowX: 'auto' }}>
+                <Table sx={{ width: '100%' }}>
+                  <TableHead sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         <input
                           type="checkbox"
-                          className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                          style={{ borderRadius: 4, cursor: 'pointer' }}
                           aria-label="Select all tasks"
                         />
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      </TableCell>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         Task
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      </TableCell>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      </TableCell>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         Priority
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-secondary-500 uppercase tracking-wider">
+                      </TableCell>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         Due Date
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold text-secondary-500 uppercase tracking-wider w-24">
+                      </TableCell>
+                      <TableCell sx={{ px: 3, py: 2, textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', width: 100 }}>
                         Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-secondary-100">
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody sx={{ '& .MuiTableRow-root': { borderBottom: 1, borderColor: 'divider' } }}>
                     {tasks.map((task, index) => {
                       const dueDateInfo = getDueDateInfo(task.due_date, task.is_completed);
                       return (
-                        <tr 
+                        <TableRow 
                           key={task.id} 
-                          className="hover:bg-secondary-50/50 transition-colors duration-150 animate-fade-in"
-                          style={{ animationDelay: `${index * 30}ms` }}
+                          sx={{ 
+                            '&:hover': { bgcolor: 'action.hover' },
+                            transition: 'background-color 0.15s ease-in-out',
+                            animation: `fadeIn 0.3s ease-in-out ${index * 30}ms`
+                          }}
                         >
-                          <td className="px-6 py-4">
+                          <TableCell sx={{ px: 3, py: 2 }}>
                             <input
                               type="checkbox"
                               checked={task.is_completed}
                               onChange={() => handleStatusToggle(task)}
-                              className="rounded border-secondary-300 text-primary-600 focus:ring-primary-500 cursor-pointer transition-all duration-150"
+                              style={{ borderRadius: 4, cursor: 'pointer', transition: 'all 0.15s ease-in-out' }}
                               aria-label={`Mark task "${task.title}" as ${task.is_completed ? 'incomplete' : 'completed'}`}
                             />
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell sx={{ px: 3, py: 2 }}>
                             <Link
                               to={`/tasks/${task.id}`}
-                              className={`block transition-colors duration-150 ${task.is_completed ? 'text-secondary-500 line-through' : 'text-secondary-900 hover:text-primary-600'}`}
+                              style={{ 
+                                display: 'block',
+                                transition: 'color 0.15s ease-in-out',
+                                color: task.is_completed ? 'text.secondary' : 'text.primary',
+                                textDecoration: task.is_completed ? 'line-through' : 'none'
+                              }}
                             >
-                              <span className="font-medium">{task.title}</span>
+                              <Typography sx={{ fontWeight: 500 }}>{task.title}</Typography>
                             </Link>
                             {task.description && (
-                              <p className="text-sm text-secondary-500 truncate max-w-md mt-1">
+                              <Typography variant="body2" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 300, mt: 0.5 }}>
                                 {task.description}
-                              </p>
+                              </Typography>
                             )}
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell sx={{ px: 3, py: 2 }}>
                             {getStatusBadge(task.is_completed)}
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell sx={{ px: 3, py: 2 }}>
                             {getPriorityBadge(task.priority)}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={dueDateInfo.className}>
+                          </TableCell>
+                          <TableCell sx={{ px: 3, py: 2 }}>
+                            <Typography sx={dueDateInfo.sx}>
                               {dueDateInfo.text}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            </Typography>
+                          </TableCell>
+                          <TableCell sx={{ px: 3, py: 2, textAlign: 'right' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                               <Link
                                 to={`/tasks/${task.id}/edit`}
-                                className="p-2 text-secondary-400 hover:text-secondary-600 hover:bg-secondary-100 rounded-lg transition-all duration-150"
+                                style={{
+                                  padding: 8,
+                                  color: 'text.secondary',
+                                  transition: 'all 0.15s ease-in-out',
+                                  borderRadius: 8
+                                }}
                                 aria-label={`Edit task "${task.title}"`}
                               >
-                                <Icons.Pencil className="w-4 h-4" />
+                                <Icons.Pencil sx={{ fontSize: 16 }} />
                               </Link>
                               <button
                                 onClick={() => handleDelete(task.id)}
-                                className="p-2 text-secondary-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-150"
+                                style={{
+                                  padding: 8,
+                                  color: 'text.secondary',
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s ease-in-out',
+                                  borderRadius: 8
+                                }}
                                 aria-label={`Delete task "${task.title}"`}
                               >
-                                <Icons.Trash className="w-4 h-4" />
+                                <Icons.Trash sx={{ fontSize: 16, color: 'error.main' }} />
                               </button>
-                            </div>
-                          </td>
-                        </tr>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </Box>
             )}
           </CardContent>
         </Card>
 
         {/* Pagination */}
         {pagination.last_page > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-secondary-500">
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to{' '}
               {Math.min(pagination.current_page * pagination.per_page, pagination.total)} of{' '}
               {pagination.total} results
-            </p>
-            <div className="flex gap-2">
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
-                variant="secondary"
-                size="sm"
+                variant="outlined"
+                size="small"
                 disabled={pagination.current_page === 1}
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page - 1 }))}
-                icon={<Icons.ChevronLeft className="w-4 h-4 mr-1" />}
-                iconPosition="left"
+                startIcon={<Icons.ChevronLeft />}
               >
                 Previous
               </Button>
               <Button
-                variant="secondary"
-                size="sm"
+                variant="outlined"
+                size="small"
                 disabled={pagination.current_page === pagination.last_page}
                 onClick={() => setPagination(prev => ({ ...prev, current_page: prev.current_page + 1 }))}
+                endIcon={<Icons.ChevronRight />}
               >
                 Next
-                <Icons.ChevronRight className="w-4 h-4 ml-1" />
               </Button>
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
     </MainLayout>
   );
 };

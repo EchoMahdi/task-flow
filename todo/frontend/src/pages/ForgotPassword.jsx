@@ -165,7 +165,6 @@ const ForgotPassword = () => {
                 type="submit"
                 variant="contained"
                 fullWidth
-                loading={loading}
                 disabled={loading}
               >
                 Send reset link

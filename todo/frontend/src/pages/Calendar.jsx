@@ -3,6 +3,8 @@ import { useTranslation } from '../context/I18nContext';
 import { TaskCalendar, CalendarTaskItem } from '../components/tasks';
 import TaskModal from '../components/tasks/TaskModal';
 import toastService from '../services/toastService';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 /**
  * Calendar Page
@@ -69,22 +71,31 @@ const CalendarPage = () => {
   }, []);
   
   return (
-    <div className="calendar-page">
-      <div className="page-header">
-        <div className="page-title-section">
-          <h1 className="page-title">{t('navigation.calendar')}</h1>
-          <p className="page-subtitle">{t('calendar.subtitle')}</p>
-        </div>
-      </div>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%', 
+      p: 3 
+    }}>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 700, color: 'text.primary', m: 0 }}>
+            {t('navigation.calendar')}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', m: 0 }}>
+            {t('calendar.subtitle')}
+          </Typography>
+        </Box>
+      </Box>
       
-      <div className="page-content">
+      <Box sx={{ flex: 1, minHeight: 0 }}>
         <TaskCalendar
           onTaskClick={handleTaskClick}
           onTaskEdit={handleTaskEdit}
           onCreateTask={handleCreateTask}
           defaultView="month"
         />
-      </div>
+      </Box>
       
       {/* Task Modal */}
       {modalOpen && (
@@ -96,44 +107,7 @@ const CalendarPage = () => {
           onDelete={handleTaskDelete}
         />
       )}
-      
-      <style>{`
-        .calendar-page {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          padding: 20px;
-        }
-        
-        .page-header {
-          margin-bottom: 20px;
-        }
-        
-        .page-title-section {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        
-        .page-title {
-          font-size: 24px;
-          font-weight: 700;
-          color: #1f2937;
-          margin: 0;
-        }
-        
-        .page-subtitle {
-          font-size: 14px;
-          color: #6b7280;
-          margin: 0;
-        }
-        
-        .page-content {
-          flex: 1;
-          min-height: 0;
-        }
-      `}</style>
-    </div>
+    </Box>
   );
 };
 

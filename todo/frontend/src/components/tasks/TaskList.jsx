@@ -1,108 +1,140 @@
-import { format } from 'date-fns'
+import React from 'react';
+import { format } from 'date-fns';
+import {
+  Box,
+  Card,
+  CardContent,
+  Checkbox,
+  Typography,
+  Chip,
+  IconButton,
+  Stack
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function TaskList({ tasks, onToggleComplete, onEdit, onDelete, loading }) {
-  const priorityColors = {
-    high: 'bg-red-100 text-red-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    low: 'bg-green-100 text-green-800',
-  }
+  const getPriorityColor = (priority) => {
+    const colors = {
+      high: 'error',
+      medium: 'warning',
+      low: 'success',
+    };
+    return colors[priority] || 'default';
+  };
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        No tasks found. Create a new task to get started!
-      </div>
-    )
+      <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+        <Typography variant="body1">
+          No tasks found. Create a new task to get started!
+        </Typography>
+      </Box>
+    );
   }
 
   return (
-    <div className="space-y-4">
+    <Stack spacing={2}>
       {tasks.map((task) => (
-        <div
+        <Card
           key={task.id}
-          className={`bg-white rounded-lg shadow p-4 ${
-            task.is_completed ? 'opacity-60' : ''
-          }`}
+          sx={{
+            opacity: task.is_completed ? 0.6 : 1,
+            transition: 'opacity 0.2s'
+          }}
         >
-          <div className="flex items-start gap-4">
-            <input
-              type="checkbox"
-              checked={task.is_completed}
-              onChange={() => onToggleComplete(task)}
-              disabled={loading}
-              className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3
-                  className={`text-lg font-medium ${
-                    task.is_completed ? 'line-through text-gray-500' : ''
-                  }`}
-                >
-                  {task.title}
-                </h3>
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    priorityColors[task.priority]
-                  }`}
-                >
-                  {task.priority}
-                </span>
-              </div>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+              <Checkbox
+                checked={task.is_completed}
+                onChange={() => onToggleComplete(task)}
+                disabled={loading}
+                sx={{ mt: 0.5 }}
+              />
               
-              {task.description && (
-                <p
-                  className={`text-gray-600 mb-2 ${
-                    task.is_completed ? 'line-through' : ''
-                  }`}
-                >
-                  {task.description}
-                </p>
-              )}
-              
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                {task.due_date && (
-                  <span>Due: {format(new Date(task.due_date), 'MMM d, yyyy')}</span>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      textDecoration: task.is_completed ? 'line-through' : 'none',
+                      color: task.is_completed ? 'text.secondary' : 'text.primary'
+                    }}
+                  >
+                    {task.title}
+                  </Typography>
+                  <Chip
+                    label={task.priority}
+                    color={getPriorityColor(task.priority)}
+                    size="small"
+                  />
+                </Box>
+                
+                {task.description && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 1,
+                      textDecoration: task.is_completed ? 'line-through' : 'none'
+                    }}
+                  >
+                    {task.description}
+                  </Typography>
                 )}
                 
-                {task.tags && task.tags.length > 0 && (
-                  <div className="flex gap-1">
-                    {task.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="px-2 py-1 text-xs rounded-full bg-gray-100"
-                        style={{ borderLeft: `3px solid ${tag.color}` }}
-                      >
-                        {tag.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => onEdit(task)}
-                disabled={loading}
-                className="text-blue-500 hover:text-blue-600 disabled:opacity-50"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => onDelete(task.id)}
-                disabled={loading}
-                className="text-red-500 hover:text-red-600 disabled:opacity-50"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  {task.due_date && (
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Due: {format(new Date(task.due_date), 'MMM d, yyyy')}
+                    </Typography>
+                  )}
+                  
+                  {task.tags && task.tags.length > 0 && (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      {task.tags.map((tag) => (
+                        <Chip
+                          key={tag.id}
+                          label={tag.name}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            borderLeft: `3px solid ${tag.color}`,
+                            borderRadius: 1
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+              
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton
+                  onClick={() => onEdit(task)}
+                  disabled={loading}
+                  color="primary"
+                  size="small"
+                  aria-label="edit task"
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  onClick={() => onDelete(task.id)}
+                  disabled={loading}
+                  color="error"
+                  size="small"
+                  aria-label="delete task"
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
       ))}
-    </div>
-  )
+    </Stack>
+  );
 }
 
-export default TaskList
+export default TaskList;
