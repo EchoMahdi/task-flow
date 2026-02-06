@@ -5,10 +5,19 @@
  * ============================================================================
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { NavigationRail } from './NavigationRail';
+import NavigationRail from '../NavigationRail/NavigationRail';
 import './AppLayout.css';
+
+/**
+ * Navigation types mapping to backend filter parameters
+ */
+const FILTER_MAPPING = {
+  inbox: { filter: 'inbox' },
+  all: { filter: 'all' },
+  completed: { filter: 'completed' },
+};
 
 /**
  * AppLayout Component
@@ -18,40 +27,61 @@ import './AppLayout.css';
  * @param {Object} props
  * @param {React.ReactNode} props.children - Page content to render
  * @param {boolean} props.collapsed - Initial collapsed state for NavigationRail
+ * @param {Function} props.fetchTasks - Function to fetch tasks with filters
  */
 export const AppLayout = ({
   children,
   collapsed = false,
+  fetchTasks,
 }) => {
   const [navCollapsed, setNavCollapsed] = useState(collapsed);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Handle navigation from NavigationRail
-  const handleNavigate = (itemId) => {
-    // Map navigation items to routes
-    const routes = {
-      inbox: '/tasks',
-      overdue: '/tasks?filter=overdue',
-      today: '/tasks?filter=today',
-      upcoming: '/tasks?filter=upcoming',
-      'sl1': '/tasks?view=all',
-      'sl2': '/tasks?filter=today',
-      'sl3': '/tasks?filter=completed',
-      'p1': '/tasks?project=personal',
-      'p2': '/tasks?project=work',
-      'p3': '/tasks?project=shopping',
-      't1': '/tasks?tag=urgent',
-      't2': '/tasks?tag=review',
-      't3': '/tasks?tag=ideas',
-      settings: '/settings',
-    };
+  const handleNavigate = useCallback((navigation) => {
+    // navigation = { type: 'project|filter|tag|saved-view', id, params }
+    const { type, id, params } = navigation;
 
-    const route = routes[itemId];
-    if (route) {
-      navigate(route);
+    switch (type) {
+      case 'project':
+        // Navigate to project tasks
+        if (fetchTasks) {
+          fetchTasks({ project_id: params.project_id });
+        }
+        navigate(`/tasks?project_id=${params.project_id}`);
+        break;
+
+      case 'filter':
+        // Navigate to filtered tasks
+        const filterParams = FILTER_MAPPING[params.filter] || params;
+        if (fetchTasks) {
+          fetchTasks(filterParams);
+        }
+        navigate(`/tasks?filter=${params.filter}`);
+        break;
+
+      case 'tag':
+        // Navigate to tag filtered tasks
+        if (fetchTasks) {
+          fetchTasks({ tag_id: params.tag_id });
+        }
+        navigate(`/tasks?tag_id=${params.tag_id}`);
+        break;
+
+      case 'saved-view':
+        // Navigate to saved view
+        if (fetchTasks) {
+          fetchTasks(params);
+        }
+        navigate(`/saved-views/${id.replace('saved-view-', '')}`);
+        break;
+
+      default:
+        // Default navigation to tasks
+        navigate('/tasks');
     }
-  };
+  }, [navigate, fetchTasks]);
 
   // Toggle NavigationRail collapsed state
   const toggleNavCollapse = () => {

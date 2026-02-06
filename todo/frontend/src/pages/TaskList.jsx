@@ -28,6 +28,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { taskService } from '../services/taskService';
+import { taskEventEmitter } from '../utils/eventBus';
 
 const TaskList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,27 +47,51 @@ const TaskList = () => {
     sort_by: searchParams.get('sort_by') || 'created_at',
     sort_order: searchParams.get('sort_order') || 'desc',
     per_page: searchParams.get('per_page') || '10',
+    project_id: searchParams.get('project_id') || null,
+    tag_id: searchParams.get('tag_id') || null,
+    filter: searchParams.get('filter') || null,
   });
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async (navigationFilters = {}) => {
     try {
       setLoading(true);
+      
+      // Merge navigation filters with existing filters
+      const mergedFilters = { ...filters, ...navigationFilters };
+      
       const params = {
         page: pagination.current_page,
-        per_page: filters.per_page,
-        sort_by: filters.sort_by,
-        sort_order: filters.sort_order,
+        per_page: mergedFilters.per_page,
+        sort_by: mergedFilters.sort_by,
+        sort_order: mergedFilters.sort_order,
       };
       
-      if (filters.status !== 'all') {
-        if (filters.status === 'completed') {
+      // Add navigation-specific filters
+      if (mergedFilters.project_id) {
+        params.project_id = mergedFilters.project_id;
+      }
+      if (mergedFilters.tag_id) {
+        params.tag_id = mergedFilters.tag_id;
+      }
+      if (mergedFilters.filter) {
+        if (mergedFilters.filter === 'completed') {
           params.is_completed = true;
-        } else if (filters.status === 'pending') {
+        } else if (mergedFilters.filter === 'inbox') {
+          params.project_id = null;
+          params.tag_id = null;
+        }
+      }
+      
+      // Add status/priority filters
+      if (mergedFilters.status !== 'all') {
+        if (mergedFilters.status === 'completed') {
+          params.is_completed = true;
+        } else if (mergedFilters.status === 'pending') {
           params.is_completed = false;
         }
       }
-      if (filters.priority !== 'all') params.priority = filters.priority;
-      if (filters.search) params.search = filters.search;
+      if (mergedFilters.priority !== 'all') params.priority = mergedFilters.priority;
+      if (mergedFilters.search) params.search = mergedFilters.search;
 
       const data = await taskService.getTasks(params);
       setTasks(data.data || []);
@@ -77,6 +102,9 @@ const TaskList = () => {
         total: data.total || 0,
         per_page: data.per_page || 10,
       }));
+      
+      // Update local filters state
+      setFilters(prev => ({ ...prev, ...navigationFilters }));
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
     } finally {
@@ -94,7 +122,7 @@ const TaskList = () => {
     
     // Update URL params
     const newParams = new URLSearchParams(searchParams);
-    if (value === 'all' || value === 'desc' || value === '10') {
+    if (value === 'all' || value === 'desc' || value === '10' || value === null) {
       newParams.delete(key);
     } else {
       newParams.set(key, value);
@@ -107,11 +135,23 @@ const TaskList = () => {
     fetchTasks();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (taskId) => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
     
+    // Find task data before deleting
+    const taskToDelete = tasks.find(t => t.id === taskId);
+    
     try {
-      await taskService.deleteTask(id);
+      await taskService.deleteTask(taskId);
+      // Emit event for navigation sections
+      if (taskToDelete) {
+        taskEventEmitter.emitTaskDeleted({
+          taskId: taskToDelete.id,
+          project_id: taskToDelete.project_id,
+          tag_ids: taskToDelete.tag_ids,
+          is_completed: taskToDelete.is_completed,
+        });
+      }
       fetchTasks();
     } catch (error) {
       console.error('Failed to delete task:', error);
@@ -122,6 +162,20 @@ const TaskList = () => {
     try {
       const newStatus = !task.is_completed;
       await taskService.updateTask(task.id, { is_completed: newStatus });
+      // Emit event for navigation sections
+      if (newStatus) {
+        taskEventEmitter.emitTaskCompleted({
+          taskId: task.id,
+          project_id: task.project_id,
+          tag_ids: task.tag_ids,
+        });
+      } else {
+        taskEventEmitter.emitTaskUncompleted({
+          taskId: task.id,
+          project_id: task.project_id,
+          tag_ids: task.tag_ids,
+        });
+      }
       fetchTasks();
     } catch (error) {
       console.error('Failed to update task status:', error);
@@ -202,14 +256,27 @@ const TaskList = () => {
     { value: '100', label: '100 per page' },
   ];
 
+  // Get current filter label for header
+  const getFilterLabel = () => {
+    if (filters.filter === 'inbox') return 'Inbox';
+    if (filters.filter === 'completed') return 'Completed';
+    if (filters.project_id) return 'Project Tasks';
+    if (filters.tag_id) return 'Tagged Tasks';
+    return 'All Tasks';
+  };
+
   return (
-    <AppLayout>
+    <AppLayout fetchTasks={fetchTasks}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>Tasks</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>{pagination.total} tasks total</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {getFilterLabel()}
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              {pagination.total} tasks total
+            </Typography>
           </Box>
           <Link to="/tasks/new">
             <Button variant="contained" startIcon={<AddIcon />}>
@@ -335,18 +402,20 @@ const TaskList = () => {
                 ))}
               </Box>
             ) : tasks.length === 0 ? (
-              <Box
-                icon={<FormatListBulletedIcon sx={{ fontSize: 48 }} />}
-                title="No tasks found"
-                description="Get started by creating your first task."
-                action={
-                  <Link to="/tasks/new">
-                    <Button variant="contained" startIcon={<AddIcon />}>
-                      Create Task
-                    </Button>
-                  </Link>
-                }
-              />
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <FormatListBulletedIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No tasks found
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Get started by creating your first task.
+                </Typography>
+                <Link to="/tasks/new">
+                  <Button variant="contained" startIcon={<AddIcon />}>
+                    Create Task
+                  </Button>
+                </Link>
+              </Box>
             ) : (
               <Box sx={{ overflowX: 'auto' }}>
                 <Table sx={{ width: '100%' }}>

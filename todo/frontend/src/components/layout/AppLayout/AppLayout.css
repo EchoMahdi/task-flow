@@ -74,7 +74,7 @@
   }
 }
 
-/* Responsive adjustments */
+/* Tablet adjustments */
 @media (max-width: 1024px) {
   .app-layout__main {
     margin-left: 72px;
@@ -93,14 +93,26 @@
   }
 }
 
-@media (max-width: 768px) {
-  .app-layout__content {
-    padding: 16px;
-    padding-top: 56px;
+/* Mobile hide NavigationRail (<768px) */
+@media (max-width: 767px) {
+  .app-layout__main {
+    margin-left: 0;
+  }
+
+  .app-layout__main--expanded {
+    margin-left: 0;
   }
 
   .app-layout__toggle {
-    top: 12px;
-    left: calc(72px + 12px);
+    left: 16px;
+  }
+
+  .app-layout__main--expanded .app-layout__toggle {
+    left: 16px;
+  }
+
+  .app-layout__content {
+    padding: 16px;
+    padding-top: 56px;
   }
 }

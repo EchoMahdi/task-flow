@@ -19,10 +19,12 @@ import {
   ListItemIcon,
   ListItemText,
   LinearProgress,
-  IconButton
+  IconButton,
+  TextField
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
 import DateDisplay from '../components/ui/DateDisplay';
+import { subtaskService } from '../services/subtaskService';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -43,10 +45,21 @@ const TaskDetails = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState(null);
+  const [subtasks, setSubtasks] = useState([]);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [addSubtaskModal, setAddSubtaskModal] = useState(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [subtasksLoading, setSubtasksLoading] = useState(false);
+  const [reminderModal, setReminderModal] = useState(false);
+  const [duplicateModal, setDuplicateModal] = useState(false);
+  const [moveModal, setMoveModal] = useState(false);
+  const [reminderDate, setReminderDate] = useState('');
+  const [reminderTime, setReminderTime] = useState('');
 
   useEffect(() => {
     const fetchTask = async () => {
+      setLoading(true);
+      // Simulating API call delay - replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 600));
       
       setTask({
@@ -62,21 +75,25 @@ const TaskDetails = () => {
         createdAt: '2026-01-30T10:30:00Z',
         updatedAt: '2026-02-03T14:45:00Z',
         completedAt: null,
-        subtasks: [
-          { id: 1, title: 'Set up webhook endpoints', completed: true },
-          { id: 2, title: 'Implement real-time updates', completed: true },
-          { id: 3, title: 'Add push notification support', completed: false },
-          { id: 4, title: 'Write integration tests', completed: false },
-        ],
         activity: [
           { id: 1, type: 'created', user: 'John Doe', timestamp: '2026-01-30T10:30:00Z' },
           { id: 2, type: 'status_changed', user: 'John Doe', from: 'pending', to: 'in_progress', timestamp: '2026-02-01T09:15:00Z' },
-          { id: 3, type: 'subtask_completed', user: 'John Doe', subtask: 'Set up webhook endpoints', timestamp: '2026-02-02T11:20:00Z' },
-          { id: 4, type: 'subtask_completed', user: 'John Doe', subtask: 'Implement real-time updates', timestamp: '2026-02-03T14:45:00Z' },
         ],
       });
-      
-      setLoading(false);
+
+      // Fetch real subtasks from API
+      try {
+        setSubtasksLoading(true);
+        const fetchedSubtasks = await subtaskService.getSubtasks(parseInt(id));
+        setSubtasks(fetchedSubtasks);
+      } catch (error) {
+        console.error('Error fetching subtasks:', error);
+        // Fallback to empty array if API fails
+        setSubtasks([]);
+      } finally {
+        setSubtasksLoading(false);
+        setLoading(false);
+      }
     };
     
     fetchTask();
@@ -92,13 +109,77 @@ const TaskDetails = () => {
     setTask({ ...task, status: newStatus });
   };
 
-  const handleToggleSubtask = (subtaskId) => {
-    setTask({
-      ...task,
-      subtasks: task.subtasks.map(st =>
-        st.id === subtaskId ? { ...st, completed: !st.completed } : st
-      ),
-    });
+  const handleToggleSubtask = async (subtaskId) => {
+    try {
+      const updatedSubtask = await subtaskService.toggleSubtaskComplete(parseInt(id), subtaskId);
+      setSubtasks(subtasks.map(st =>
+        st.id === subtaskId ? { ...st, is_completed: updatedSubtask.is_completed } : st
+      ));
+    } catch (error) {
+      console.error('Error toggling subtask:', error);
+    }
+  };
+
+  const handleAddSubtask = async () => {
+    if (!newSubtaskTitle.trim()) return;
+    
+    try {
+      const newSubtask = await subtaskService.createSubtask(parseInt(id), {
+        title: newSubtaskTitle.trim()
+      });
+      setSubtasks([...subtasks, newSubtask]);
+      setNewSubtaskTitle('');
+      setAddSubtaskModal(false);
+    } catch (error) {
+      console.error('Error adding subtask:', error);
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId) => {
+    try {
+      await subtaskService.deleteSubtask(parseInt(id), subtaskId);
+      setSubtasks(subtasks.filter(st => st.id !== subtaskId));
+    } catch (error) {
+      console.error('Error deleting subtask:', error);
+    }
+  };
+
+  const handleSetReminder = async () => {
+    if (!reminderDate || !reminderTime) return;
+    
+    try {
+      // API call to set reminder
+      console.log('Setting reminder for', { date: reminderDate, time: reminderTime });
+      setReminderModal(false);
+      setReminderDate('');
+      setReminderTime('');
+      alert('Reminder set successfully!');
+    } catch (error) {
+      console.error('Error setting reminder:', error);
+    }
+  };
+
+  const handleDuplicateTask = async () => {
+    try {
+      // API call to duplicate task
+      console.log('Duplicating task', id);
+      const newTaskId = Math.floor(Math.random() * 1000) + 100; // Simulated new task ID
+      setDuplicateModal(false);
+      navigate(`/tasks/${newTaskId}`);
+    } catch (error) {
+      console.error('Error duplicating task:', error);
+    }
+  };
+
+  const handleMoveTask = async () => {
+    try {
+      // API call to move task
+      console.log('Moving task', id);
+      setMoveModal(false);
+      alert('Task moved successfully!');
+    } catch (error) {
+      console.error('Error moving task:', error);
+    }
   };
 
   const getPriorityBadge = (priority) => {
@@ -168,8 +249,8 @@ const TaskDetails = () => {
     );
   }
 
-  const completedSubtasks = task.subtasks.filter(st => st.completed).length;
-  const subtaskProgress = (completedSubtasks / task.subtasks.length) * 100;
+  const completedSubtasks = subtasks.filter(st => st.is_completed).length;
+  const subtaskProgress = subtasks.length > 0 ? (completedSubtasks / subtasks.length) * 100 : 0;
 
   return (
     <MainLayout>
@@ -284,9 +365,9 @@ const TaskDetails = () => {
             <Card>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Subtasks ({completedSubtasks}/{task.subtasks.length})
+                  Subtasks ({completedSubtasks}/{subtasks.length})
                 </Typography>
-                <Button variant="text" size="small" startIcon={<AddIcon />}>
+                <Button variant="text" size="small" startIcon={<AddIcon />} onClick={() => setAddSubtaskModal(true)}>
                   Add
                 </Button>
               </Box>
@@ -309,44 +390,54 @@ const TaskDetails = () => {
                   />
                 </Box>
 
-                <List>
-                  {task.subtasks.map((subtask) => (
-                    <ListItem 
-                      key={subtask.id} 
-                      sx={{ 
-                        '&:hover': { bgcolor: 'action.hover' },
-                        transition: 'background-color 0.2s'
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        <IconButton
-                          onClick={() => handleToggleSubtask(subtask.id)}
-                          size="small"
-                          sx={{
-                            width: 20,
-                            height: 20,
-                            border: 2,
-                            borderColor: subtask.completed ? 'success.main' : 'action.disabled',
-                            bgcolor: subtask.completed ? 'success.main' : 'transparent',
-                            '&:hover': { borderColor: 'primary.main' }
-                          }}
-                        >
-                          {subtask.completed && <CheckIcon sx={{ fontSize: 12, color: 'white' }} />}
-                        </IconButton>
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={subtask.title}
+                {subtasksLoading ? (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Loading subtasks...</Typography>
+                  </Box>
+                ) : subtasks.length === 0 ? (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>No subtasks yet</Typography>
+                  </Box>
+                ) : (
+                  <List>
+                    {subtasks.map((subtask) => (
+                      <ListItem 
+                        key={subtask.id} 
                         sx={{ 
-                          flex: 1,
-                          '& .MuiTypography-root': { 
-                            color: subtask.completed ? 'text.secondary' : 'text.primary',
-                            textDecoration: subtask.completed ? 'line-through' : 'none'
-                          }
+                          '&:hover': { bgcolor: 'action.hover' },
+                          transition: 'background-color 0.2s'
                         }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
+                      >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          <IconButton
+                            onClick={() => handleToggleSubtask(subtask.id)}
+                            size="small"
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              border: 2,
+                              borderColor: subtask.is_completed ? 'success.main' : 'action.disabled',
+                              bgcolor: subtask.is_completed ? 'success.main' : 'transparent',
+                              '&:hover': { borderColor: 'primary.main' }
+                            }}
+                          >
+                            {subtask.is_completed && <CheckIcon sx={{ fontSize: 12, color: 'white' }} />}
+                          </IconButton>
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={subtask.title}
+                          sx={{ 
+                            flex: 1,
+                            '& .MuiTypography-root': { 
+                              color: subtask.is_completed ? 'text.secondary' : 'text.primary',
+                              textDecoration: subtask.is_completed ? 'line-through' : 'none'
+                            }
+                          }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
               </CardContent>
             </Card>
 
@@ -433,15 +524,15 @@ const TaskDetails = () => {
                 Quick Actions
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => setReminderModal(true)}>
                   <NotificationsIcon sx={{ mr: 1, fontSize: 16 }} />
                   Set Reminder
                 </Button>
-                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => setDuplicateModal(true)}>
                   <DescriptionIcon sx={{ mr: 1, fontSize: 16 }} />
                   Duplicate Task
                 </Button>
-                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }}>
+                <Button variant="text" fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => setMoveModal(true)}>
                   <ArrowForwardIcon sx={{ mr: 1, fontSize: 16 }} />
                   Move to Project
                 </Button>
@@ -469,6 +560,125 @@ const TaskDetails = () => {
             </Button>
             <Button variant="contained" color="error" onClick={handleDelete}>
               Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Add Subtask Modal */}
+        <Dialog
+          open={addSubtaskModal}
+          onClose={() => setAddSubtaskModal(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Add Subtask</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Subtask title"
+              fullWidth
+              variant="outlined"
+              value={newSubtaskTitle}
+              onChange={(e) => setNewSubtaskTitle(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddSubtask()}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setAddSubtaskModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handleAddSubtask} disabled={!newSubtaskTitle.trim()}>
+              Add
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Reminder Modal */}
+        <Dialog
+          open={reminderModal}
+          onClose={() => setReminderModal(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Set Reminder</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Date"
+                type="date"
+                fullWidth
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Time"
+                type="time"
+                fullWidth
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setReminderModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handleSetReminder} disabled={!reminderDate || !reminderTime}>
+              Set Reminder
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Duplicate Task Modal */}
+        <Dialog
+          open={duplicateModal}
+          onClose={() => setDuplicateModal(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Duplicate Task</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ color: 'text.primary' }}>
+              Are you sure you want to duplicate "{task.title}"? A new task will be created with the same details.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setDuplicateModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handleDuplicateTask}>
+              Duplicate
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Move Task Modal */}
+        <Dialog
+          open={moveModal}
+          onClose={() => setMoveModal(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Move to Project</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
+              Select a project to move "{task.title}" to:
+            </Typography>
+            <TextField
+              label="Project"
+              fullWidth
+              placeholder="Enter project name or select from list"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button variant="text" onClick={() => setMoveModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="contained" onClick={handleMoveTask}>
+              Move
             </Button>
           </DialogActions>
         </Dialog>

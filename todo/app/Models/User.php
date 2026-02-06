@@ -205,11 +205,27 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user's projects.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    /**
      * Get user's tags.
      */
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);
+    }
+
+    /**
+     * Get user's saved views.
+     */
+    public function savedViews(): HasMany
+    {
+        return $this->hasMany(SavedView::class);
     }
 
     /**

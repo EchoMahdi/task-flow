@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,7 +50,28 @@ Route::prefix('auth')->middleware(['auth:sanctum'])->group(function () {
     // Session management
     Route::get('/sessions', [AuthController::class, 'sessions']);
     Route::delete('/sessions/{sessionId}', [AuthController::class, 'revokeSession']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
+});
+
+// Simple user endpoints (shortcut routes)
+Route::middleware(['auth:sanctum'])->group(function () {
+    // GET /api/user - Get current user (simplified)
+    Route::get('/user', function (Request $request) {
+        $user = $request->user();
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar_url' => $user->avatar_url,
+        ]);
+    });
+
+    // POST /api/logout - Logout user (simplified)
+    Route::post('/logout', function (Request $request) {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out successfully',
+        ]);
+    });
 });
