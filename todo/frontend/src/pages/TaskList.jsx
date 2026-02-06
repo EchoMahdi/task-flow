@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Badge, Button, Skeleton, EmptyState } from '../components/ui/index';
+import { Card, CardContent, Chip, Button, Skeleton, Box } from '@mui/material';
 import { Icons } from '../components/ui/Icons';
 import { taskService } from '../services/taskService';
 
@@ -110,14 +110,14 @@ const TaskList = () => {
       medium: 'warning',
       low: 'success',
     };
-    return <Badge variant={variants[priority] || 'secondary'}>{priority}</Badge>;
+    return <Chip variant={variants[priority] || 'secondary'}>{priority}</Chip>;
   };
 
   const getStatusBadge = (isCompleted) => {
     return isCompleted ? (
-      <Badge variant="success">Completed</Badge>
+      <Chip variant="success">Completed</Chip>
     ) : (
-      <Badge variant="secondary">Pending</Badge>
+      <Chip variant="secondary">Pending</Chip>
     );
   };
 
@@ -271,7 +271,7 @@ const TaskList = () => {
 
         {/* Task List */}
         <Card>
-          <CardBody className="p-0">
+          <CardContent className="p-0">
             {loading ? (
               <div className="p-6 space-y-4">
                 {[...Array(5)].map((_, i) => (
@@ -287,7 +287,7 @@ const TaskList = () => {
                 ))}
               </div>
             ) : tasks.length === 0 ? (
-              <EmptyState
+              <Box
                 icon={<Icons.ClipboardList className="w-12 h-12" />}
                 title="No tasks found"
                 description="Get started by creating your first task."
@@ -395,7 +395,7 @@ const TaskList = () => {
                 </table>
               </div>
             )}
-          </CardBody>
+          </CardContent>
         </Card>
 
         {/* Pagination */}

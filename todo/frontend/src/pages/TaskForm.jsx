@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Button, Input, Textarea, Select, Alert, PageHeader, Badge } from '../components/ui/index';
+import { Card, CardContent, Button, Input,  TextField, Select, Alert, Chip } from '@mui/material';
+import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 import { taskService } from '../services/taskService';
 import { tagService } from '../services/tagService';
@@ -190,7 +191,7 @@ const TaskForm = () => {
 
         <form onSubmit={handleSubmit}>
           <Card>
-            <CardBody className="space-y-6">
+            <CardContent className="space-y-6">
               {/* Title */}
               <Input
                 label="Task Title"
@@ -203,7 +204,8 @@ const TaskForm = () => {
               />
 
               {/* Description */}
-              <Textarea
+              < TextField
+              multiline
                 label="Description"
                 name="description"
                 value={formData.description}
@@ -257,7 +259,7 @@ const TaskForm = () => {
                   {formData.selectedTags.map((tagId) => {
                     const tag = tags.find(t => t.id === tagId);
                     return (
-                      <Badge key={tagId} variant="primary" className="flex items-center gap-1">
+                      <Chip key={tagId} variant="primary" className="flex items-center gap-1">
                         #{tag?.name || tagId}
                         <button
                           type="button"
@@ -266,7 +268,7 @@ const TaskForm = () => {
                         >
                           <Icons.X className="w-3 h-3" />
                         </button>
-                      </Badge>
+                      </Chip>
                     );
                   })}
                 </div>
@@ -280,7 +282,7 @@ const TaskForm = () => {
               </div>
 
               {/* Notes */}
-              <Textarea
+              < TextField
                 label="Additional Notes (Optional)"
                 name="notes"
                 value={formData.notes}
@@ -288,7 +290,7 @@ const TaskForm = () => {
                 placeholder="Any additional notes or context..."
                 rows={3}
               />
-            </CardBody>
+            </CardContent>
 
             {/* Footer */}
             <div className="px-6 py-4 bg-secondary-50 border-t border-secondary-100 flex items-center justify-between">

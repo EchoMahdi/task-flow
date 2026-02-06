@@ -154,7 +154,7 @@ const ThemeProvider = ({ children }) => {
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleDarkMode }}>
       {initialized ? children : (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
           <LoadingPage message="Loading..." />
         </div>
       )}

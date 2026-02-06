@@ -101,7 +101,7 @@ src/components/
 │   │   ├── index.jsx
 │   │   └── Card.jsx
 │   ├── Divider/
-│   ├── Badge/
+│   ├── Chip/
 │   ├── Tooltip/
 │   ├── Modal/
 │   └── Drawer/
@@ -518,9 +518,9 @@ export const TaskRow = ({ task, onToggle, onEdit, onOpenDetail }) => {
           </span>
         )}
         {task.tags?.map((tag) => (
-          <Badge key={tag.id} variant="tag">
+          <Chip key={tag.id} variant="tag">
             {tag.name}
-          </Badge>
+          </Chip>
         ))}
       </div>
 

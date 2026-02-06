@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Badge, Button, Skeleton, PageHeader } from '../components/ui/index';
+import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
 import { Icons } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { taskService } from '../services/taskService';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
+import AddIcon from '@mui/icons-material/Add';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import SettingsIcon from '@mui/icons-material/Settings';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -71,96 +79,103 @@ const Dashboard = () => {
     return 'Good evening';
   };
 
-  const getPriorityBadge = (priority) => {
-    const variants = {
-      high: 'danger',
+  const getPriorityColor = (priority) => {
+    const colors = {
+      high: 'error',
       medium: 'warning',
       low: 'success',
     };
-    return <Badge variant={variants[priority] || 'secondary'}>{priority}</Badge>;
-  };
-
-  const getStatusBadge = (isCompleted) => {
-    return isCompleted ? (
-      <Badge variant="success">Completed</Badge>
-    ) : (
-      <Badge variant="secondary">Pending</Badge>
-    );
+    return colors[priority] || 'default';
   };
 
   const getDueDateInfo = (dueDate, isCompleted) => {
-    if (!dueDate) return { text: 'No date', className: 'text-secondary-400' };
+    if (!dueDate) return { text: 'No date', color: 'text.disabled' };
     
     const due = new Date(dueDate);
     const today = new Date();
     const isOverdue = due < today && !isCompleted;
     
     if (isOverdue) {
-      return { text: due.toLocaleDateString(), className: 'text-danger-600' };
+      return { text: due.toLocaleDateString(), color: 'error.main' };
     }
     
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     if (due.toDateString() === tomorrow.toDateString()) {
-      return { text: 'Tomorrow', className: 'text-warning-600' };
+      return { text: 'Tomorrow', color: 'warning.main' };
     }
     
     if (due.toDateString() === today.toDateString()) {
-      return { text: 'Today', className: 'text-primary-600' };
+      return { text: 'Today', color: 'primary.main' };
     }
     
-    return { text: due.toLocaleDateString(), className: 'text-secondary-600' };
+    return { text: due.toLocaleDateString(), color: 'text.secondary' };
   };
 
   // Stat Card Component
-  const StatCard = ({ icon: Icon, label, value, change, changeType, color, bgColor }) => (
-    <Card hover className="stat-card animate-fade-in">
-      <div className={`${bgColor} stat-icon`}>
-        <Icon className="w-6 h-6 text-white" />
-      </div>
-      <div className="flex-1">
-        <p className="stat-label">{label}</p>
-        <p className="stat-value">{value}</p>
-        {change && (
-          <p className={`text-xs mt-1 ${changeType === 'positive' ? 'text-success-600' : 'text-danger-600'}`}>
-            {changeType === 'positive' ? '↑' : '↓'} {change} from last week
-          </p>
-        )}
-      </div>
+  const StatCard = ({ icon: Icon, label, value, color, bgcolor }) => (
+    <Card sx={{ cursor: 'pointer', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 4 } }}>
+      <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{
+            width: 48,
+            height: 48,
+            borderRadius: 2,
+            bgcolor: bgcolor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon sx={{ fontSize: 24, color: 'white' }} />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
+            {value}
+          </Typography>
+        </Box>
+      </CardContent>
     </Card>
   );
 
   // Loading skeleton for stats
   const StatsSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <Grid container spacing={3}>
       {[...Array(4)].map((_, i) => (
-        <Card key={i} className="p-6">
-          <div className="flex items-center gap-4">
-            <Skeleton variant="card" className="w-12 h-12 rounded-xl" />
-            <div className="flex-1">
-              <Skeleton variant="text" className="w-20 h-4 mb-2" />
-              <Skeleton variant="text" className="w-12 h-8" />
-            </div>
-          </div>
-        </Card>
+        <Grid item xs={12} sm={6} lg={3} key={i}>
+          <Card>
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Skeleton variant="rectangular" width={48} height={48} sx={{ borderRadius: 2 }} />
+              <Box sx={{ flex: 1 }}>
+                <Skeleton variant="text" width={80} />
+                <Skeleton variant="text" width={48} height={32} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       ))}
-    </div>
+    </Grid>
   );
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="space-y-6 animate-fade-in">
-          <Skeleton variant="title" className="w-64" />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Skeleton variant="text" width={200} height={40} />
           <StatsSkeleton />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Skeleton variant="card" className="lg:col-span-2 h-80" />
-            <div className="space-y-6">
-              <Skeleton variant="card" className="h-64" />
-              <Skeleton variant="card" className="h-48" />
-            </div>
-          </div>
-        </div>
+          <Grid container spacing={3}>
+            <Grid item xs={12} lg={8}>
+              <Skeleton variant="rectangular" height={320} sx={{ borderRadius: 2 }} />
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <Skeleton variant="rectangular" height={256} sx={{ borderRadius: 2, mb: 3 }} />
+              <Skeleton variant="rectangular" height={192} sx={{ borderRadius: 2 }} />
+            </Grid>
+          </Grid>
+        </Box>
       </MainLayout>
     );
   }
@@ -168,264 +183,467 @@ const Dashboard = () => {
   if (error) {
     return (
       <MainLayout>
-        <div className="space-y-6 animate-fade-in">
-          <div className="error-state">
-            <div className="error-state-icon">
-              <Icons.ExclamationCircle className="w-16 h-16" />
-            </div>
-            <h2 className="error-state-title">Error Loading Dashboard</h2>
-            <p className="error-state-description">{error}</p>
-            <Button onClick={() => window.location.reload()}>
-              <Icons.ArrowRight className="w-4 h-4 mr-2 rotate-[225deg]" />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>Error Loading Dashboard</Typography>
+            <Typography color="text.secondary" sx={{ mb: 3 }}>{error}</Typography>
+            <Button variant="contained" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
               Try Again
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-secondary-900">
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
               {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
-            </h1>
-            <p className="text-secondary-500 mt-1">
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
               Here's what's happening with your tasks today.
-            </p>
-          </div>
+            </Typography>
+          </Box>
           <Link to="/tasks/new">
-            <Button icon={<Icons.Plus className="w-4 h-4" />}>
+            <Button variant="contained" startIcon={<AddIcon />}>
               New Task
             </Button>
           </Link>
-        </div>
+        </Box>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            icon={Icons.ClipboardList}
-            label="Total Tasks"
-            value={stats.totalTasks}
-            bgColor="bg-primary-500"
-          />
-          <StatCard
-            icon={Icons.CheckCircle}
-            label="Completed"
-            value={stats.completedTasks}
-            bgColor="bg-success-500"
-          />
-          <StatCard
-            icon={Icons.Clock}
-            label="Pending"
-            value={stats.pendingTasks}
-            bgColor="bg-warning-500"
-          />
-          <StatCard
-            icon={Icons.ExclamationCircle}
-            label="Overdue"
-            value={stats.overdueTasks}
-            bgColor="bg-danger-500"
-          />
-        </div>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} lg={3}>
+            <StatCard
+              icon={AssignmentIcon}
+              label="Total Tasks"
+              value={stats.totalTasks}
+              bgcolor="primary.main"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} lg={3}>
+            <StatCard
+              icon={CheckCircleIcon}
+              label="Completed"
+              value={stats.completedTasks}
+              bgcolor="success.main"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} lg={3}>
+            <StatCard
+              label="Pending"
+              value={stats.pendingTasks}
+              bgcolor="warning.main"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} lg={3}>
+            <StatCard
+              icon={WarningIcon}
+              label="Overdue"
+              value={stats.overdueTasks}
+              bgcolor="error.main"
+            />
+          </Grid>
+        </Grid>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Grid container spacing={3}>
           {/* Recent Tasks */}
-          <Card className="lg:col-span-2 animate-slide-up">
-            <div className="card-header flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-secondary-900">Recent Tasks</h2>
-              <Link to="/tasks" className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
-                View all
-              </Link>
-            </div>
-            <CardBody className="p-0">
-              {recentTasks.length === 0 ? (
-                <div className="p-8 text-center">
-                  <div className="empty-state-icon mx-auto">
-                    <Icons.ClipboardList className="w-12 h-12" />
-                  </div>
-                  <h3 className="empty-state-title">No tasks yet</h3>
-                  <p className="empty-state-description">Get started by creating your first task.</p>
-                  <Link to="/tasks/new" className="mt-4 inline-block">
-                    <Button icon={<Icons.Plus className="w-4 h-4 mr-1" />} size="sm">
-                      Create your first task
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="divide-y divide-secondary-100">
-                  {recentTasks.map((task, index) => {
-                    const dueDateInfo = getDueDateInfo(task.due_date, task.is_completed);
-                    return (
-                      <Link
-                        key={task.id}
-                        to={`/tasks/${task.id}`}
-                        className="flex items-center justify-between p-4 hover:bg-secondary-50/50 transition-all duration-150 task-row animate-fade-in"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-150 ${
-                            task.is_completed ? 'bg-success-100' : 'bg-secondary-100'
-                          }`}>
-                            {task.is_completed ? (
-                              <Icons.CheckCircle className="w-5 h-5 text-success-600" />
-                            ) : (
-                              <Icons.ClipboardList className="w-5 h-5 text-secondary-500" />
-                            )}
-                          </div>
-                          <div>
-                            <p className={`font-medium ${task.is_completed ? 'text-secondary-500 line-through' : 'text-secondary-900'}`}>
-                              {task.title}
-                            </p>
-                            <p className={`text-sm ${dueDateInfo.className}`}>
-                              {dueDateInfo.text}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {getPriorityBadge(task.priority)}
-                          {getStatusBadge(task.is_completed)}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </CardBody>
-          </Card>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Progress Card */}
-            <Card className="p-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-              <h3 className="text-lg font-semibold text-secondary-900 mb-4">Weekly Progress</h3>
-              <div className="text-center mb-4">
-                <div className="relative inline-flex items-center justify-center">
-                  <svg className="w-32 h-32 transform -rotate-90">
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="12"
-                      fill="none"
-                      className="text-secondary-100"
-                    />
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray={`${stats.completionRate * 3.52} 352`}
-                      className="text-primary-500 progress-ring-indicator"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute">
-                    <p className="text-3xl font-bold text-secondary-900">{stats.completionRate}%</p>
-                    <p className="text-xs text-secondary-500">Complete</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-secondary-500">{stats.completedTasks} completed</span>
-                <span className="text-secondary-500">{stats.totalTasks} total</span>
-              </div>
-            </Card>
-
-            {/* Upcoming Tasks */}
-            <Card className="animate-slide-up" style={{ animationDelay: '200ms' }}>
-              <div className="card-header">
-                <h3 className="text-lg font-semibold text-secondary-900">Upcoming</h3>
-              </div>
-              <CardBody className="p-0">
-                {upcomingTasks.length === 0 ? (
-                  <div className="p-4 text-center">
-                    <p className="text-sm text-secondary-500">No upcoming tasks</p>
-                  </div>
+          <Grid item xs={12} lg={8}>
+            <Card sx={{ animation: 'slideUp 0.3s ease-out', animationDelay: '100ms' }}>
+              <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
+                  Recent Tasks
+                </Typography>
+                <Link to="/tasks" style={{ fontSize: '0.875rem', color: '#1976d2', textDecoration: 'none' }}>
+                  View all
+                </Link>
+              </Box>
+              <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                {recentTasks.length === 0 ? (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Box sx={{ 
+                      width: 64, 
+                      height: 64, 
+                      borderRadius: '50%', 
+                      bgcolor: 'grey.100', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2
+                    }}>
+                      <AssignmentIcon sx={{ fontSize: 32, color: 'grey.400' }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ mb: 1 }}>No tasks yet</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Get started by creating your first task.
+                    </Typography>
+                    <Link to="/tasks/new">
+                      <Button variant="contained" size="small" startIcon={<AddIcon />}>
+                        Create your first task
+                      </Button>
+                    </Link>
+                  </Box>
                 ) : (
-                  <div className="divide-y divide-secondary-100">
-                    {upcomingTasks.map((task) => {
+                  <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                    {recentTasks.map((task, index) => {
                       const dueDateInfo = getDueDateInfo(task.due_date, task.is_completed);
                       return (
                         <Link
                           key={task.id}
                           to={`/tasks/${task.id}`}
-                          className="flex items-center gap-3 p-4 hover:bg-secondary-50/50 transition-all duration-150 task-row"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 2,
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            transition: 'background-color 0.15s',
+                            '&:hover': {
+                              bgcolor: 'action.hover',
+                            },
+                            animation: 'fadeIn 0.3s ease-in-out',
+                            animationDelay: `${index * 50}ms`,
+                          }}
                         >
-                          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center transition-transform duration-150 hover:scale-105">
-                            <Icons.Calendar className="w-5 h-5 text-primary-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-secondary-900 truncate">{task.title}</p>
-                            <p className={`text-sm ${dueDateInfo.className}`}>
-                              {dueDateInfo.text}
-                            </p>
-                          </div>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: task.is_completed ? 'success.light' : 'grey.100',
+                              }}
+                            >
+                              {task.is_completed ? (
+                                <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main' }} />
+                              ) : (
+                                <AssignmentIcon sx={{ fontSize: 20, color: 'grey.500' }} />
+                              )}
+                            </Box>
+                            <Box>
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 500,
+                                  textDecoration: task.is_completed ? 'line-through' : 'none',
+                                  color: task.is_completed ? 'text.secondary' : 'text.primary',
+                                }}
+                              >
+                                {task.title}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: dueDateInfo.color }}>
+                                {dueDateInfo.text}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip 
+                              label={task.priority} 
+                              size="small" 
+                              color={getPriorityColor(task.priority)}
+                            />
+                            <Chip 
+                              label={task.is_completed ? 'Completed' : 'Pending'} 
+                              size="small" 
+                              variant="outlined"
+                            />
+                          </Box>
                         </Link>
                       );
                     })}
-                  </div>
+                  </Box>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
-          </div>
-        </div>
+          </Grid>
+
+          {/* Sidebar */}
+          <Grid item xs={12} lg={4}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Progress Card */}
+              <Card sx={{ p: 3, animation: 'slideUp 0.3s ease-out', animationDelay: '100ms' }}>
+                <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 2 }}>
+                  Weekly Progress
+                </Typography>
+                <Box sx={{ textAlign: 'center', mb: 2, position: 'relative', display: 'inline-flex', mx: 'auto' }}>
+                  <CircularProgress
+                    variant="determinate"
+                    value={stats.completionRate}
+                    size={128}
+                    thickness={4}
+                    sx={{ color: 'primary.main', transform: 'rotate(-90deg)' }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Typography variant="h4" component="p" sx={{ fontWeight: 700 }}>
+                      {stats.completionRate}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Complete
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                  <Typography color="text.secondary">{stats.completedTasks} completed</Typography>
+                  <Typography color="text.secondary">{stats.totalTasks} total</Typography>
+                </Box>
+              </Card>
+
+              {/* Upcoming Tasks */}
+              <Card sx={{ animation: 'slideUp 0.3s ease-out', animationDelay: '200ms' }}>
+                <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="h6" component="h3" sx={{ fontWeight: 600 }}>
+                    Upcoming
+                  </Typography>
+                </Box>
+                <CardContent sx={{ p: 0, '&:last-child': { pb: 2 } }}>
+                  {upcomingTasks.length === 0 ? (
+                    <Box sx={{ p: 2, textAlign: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No upcoming tasks
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
+                      {upcomingTasks.map((task) => {
+                        const dueDateInfo = getDueDateInfo(task.due_date, task.is_completed);
+                        return (
+                          <Link
+                            key={task.id}
+                            to={`/tasks/${task.id}`}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              p: 2,
+                              textDecoration: 'none',
+                              color: 'inherit',
+                              transition: 'transform 0.15s',
+                              '&:hover': {
+                                bgcolor: 'action.hover',
+                                transform: 'scale(1.02)',
+                              },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1,
+                                bgcolor: 'primary.light',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <CalendarTodayIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+                            </Box>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography
+                                variant="body1"
+                                sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                              >
+                                {task.title}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: dueDateInfo.color }}>
+                                {dueDateInfo.text}
+                              </Typography>
+                            </Box>
+                          </Link>
+                        );
+                      })}
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Box>
+          </Grid>
+        </Grid>
 
         {/* Quick Actions */}
-        <Card className="p-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
-          <h3 className="text-lg font-semibold text-secondary-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link 
-              to="/tasks/new" 
-              className="quick-action animate-fade-in"
-              style={{ animationDelay: '350ms' }}
-            >
-              <div className="quick-action-icon bg-primary-100">
-                <Icons.Plus className="w-6 h-6 text-primary-600" />
-              </div>
-              <span className="text-sm font-medium text-secondary-700">New Task</span>
-            </Link>
-            <Link 
-              to="/tasks" 
-              className="quick-action animate-fade-in"
-              style={{ animationDelay: '400ms' }}
-            >
-              <div className="quick-action-icon bg-success-100">
-                <Icons.ClipboardList className="w-6 h-6 text-success-600" />
-              </div>
-              <span className="text-sm font-medium text-secondary-700">View Tasks</span>
-            </Link>
-            <Link 
-              to="/notifications" 
-              className="quick-action animate-fade-in"
-              style={{ animationDelay: '450ms' }}
-            >
-              <div className="quick-action-icon bg-warning-100">
-                <Icons.Bell className="w-6 h-6 text-warning-600" />
-              </div>
-              <span className="text-sm font-medium text-secondary-700">System</span>
-            </Link>
-            <Link 
-              to="/settings" 
-              className="quick-action animate-fade-in"
-              style={{ animationDelay: '500ms' }}
-            >
-              <div className="quick-action-icon bg-secondary-200">
-                <Icons.Cog className="w-6 h-6 text-secondary-600" />
-              </div>
-              <span className="text-sm font-medium text-secondary-700">Settings</span>
-            </Link>
-          </div>
+        <Card sx={{ p: 3, animation: 'slideUp 0.3s ease-out', animationDelay: '300ms' }}>
+          <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 2 }}>
+            Quick Actions
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={6} md={3}>
+              <Link
+                to="/tasks/new"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  p: 2,
+                  borderRadius: 2,
+                  textDecoration: 'none',
+                  color: 'text.secondary',
+                  transition: 'all 0.2s',
+                  animation: 'fadeIn 0.3s ease-in-out',
+                  animationDelay: '350ms',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                    color: 'primary.main',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    bgcolor: 'primary.light',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: 24, color: 'primary.main' }} />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  New Task
+                </Typography>
+              </Link>
+            </Grid>
+            <Grid item xs={6} md={3}>
+              <Link
+                to="/tasks"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  p: 2,
+                  borderRadius: 2,
+                  textDecoration: 'none',
+                  color: 'text.secondary',
+                  transition: 'all 0.2s',
+                  animation: 'fadeIn 0.3s ease-in-out',
+                  animationDelay: '400ms',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                    color: 'success.main',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    bgcolor: 'success.light',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AssignmentIcon sx={{ fontSize: 24, color: 'success.main' }} />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  View Tasks
+                </Typography>
+              </Link>
+            </Grid>
+            <Grid item xs={6} md={3}>
+              <Link
+                to="/notifications"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  p: 2,
+                  borderRadius: 2,
+                  textDecoration: 'none',
+                  color: 'text.secondary',
+                  transition: 'all 0.2s',
+                  animation: 'fadeIn 0.3s ease-in-out',
+                  animationDelay: '450ms',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                    color: 'warning.main',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    bgcolor: 'warning.light',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <NotificationsIcon sx={{ fontSize: 24, color: 'warning.main' }} />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  System
+                </Typography>
+              </Link>
+            </Grid>
+            <Grid item xs={6} md={3}>
+              <Link
+                to="/settings"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  p: 2,
+                  borderRadius: 2,
+                  textDecoration: 'none',
+                  color: 'text.secondary',
+                  transition: 'all 0.2s',
+                  animation: 'fadeIn 0.3s ease-in-out',
+                  animationDelay: '500ms',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                    color: 'text.primary',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    bgcolor: 'grey.200',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <SettingsIcon sx={{ fontSize: 24, color: 'grey.600' }} />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  Settings
+                </Typography>
+              </Link>
+            </Grid>
+          </Grid>
         </Card>
-      </div>
+      </Box>
     </MainLayout>
   );
 };

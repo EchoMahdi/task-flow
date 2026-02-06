@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Icons } from '../ui/Icons';
-import { Avatar, Dropdown, DropdownItem, Badge } from '../ui/index';
+import { Avatar, Menu , MenuItem  } from '@mui/material';
 
 // Header Component for authenticated pages
 export const Header = ({ onMenuClick, sidebarOpen }) => {
@@ -44,7 +44,7 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
           </button>
 
           {/* Notifications */}
-          <Dropdown
+          <Menu 
             trigger={
               <button className="relative p-2 text-secondary-500 hover:text-secondary-700 hover:bg-secondary-100 rounded-lg transition-colors">
                 <Icons.Bell className="w-5 h-5" />
@@ -59,28 +59,28 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
               <p className="text-xs text-secondary-500">{notificationCount} unread</p>
             </div>
             <div className="max-h-64 overflow-y-auto">
-              <DropdownItem>
+              <MenuItem >
                 <div className="flex-1">
                   <p className="text-sm text-secondary-900">Task "Design Review" is due soon</p>
                   <p className="text-xs text-secondary-500">2 hours ago</p>
                 </div>
-              </DropdownItem>
-              <DropdownItem>
+              </MenuItem >
+              <MenuItem >
                 <div className="flex-1">
                   <p className="text-sm text-secondary-900">You completed 5 tasks today!</p>
                   <p className="text-xs text-secondary-500">5 hours ago</p>
                 </div>
-              </DropdownItem>
+              </MenuItem >
             </div>
             <div className="px-4 py-3 border-t border-secondary-100">
               <Link to="/notifications" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                 View all notifications
               </Link>
             </div>
-          </Dropdown>
+          </Menu >
 
           {/* User menu */}
-          <Dropdown
+          <Menu 
             trigger={
               <button className="flex items-center gap-3 p-1.5 hover:bg-secondary-100 rounded-lg transition-colors">
                 <Avatar name={user?.name || 'User'} size="sm" />
@@ -96,20 +96,20 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
               <p className="text-sm font-semibold text-secondary-900">{user?.name || 'User'}</p>
               <p className="text-xs text-secondary-500">{user?.email || 'user@example.com'}</p>
             </div>
-            <DropdownItem onClick={() => navigate('/profile')}>
+            <MenuItem  onClick={() => navigate('/profile')}>
               <Icons.User className="w-4 h-4" />
               <span>Profile</span>
-            </DropdownItem>
-            <DropdownItem onClick={() => navigate('/settings')}>
+            </MenuItem >
+            <MenuItem  onClick={() => navigate('/settings')}>
               <Icons.Cog className="w-4 h-4" />
               <span>Settings</span>
-            </DropdownItem>
+            </MenuItem >
             <div className="border-t border-secondary-100 my-1" />
-            <DropdownItem danger onClick={() => { logout(); navigate('/login'); }}>
+            <MenuItem  danger onClick={() => { logout(); navigate('/login'); }}>
               <Icons.Logout className="w-4 h-4" />
               <span>Sign out</span>
-            </DropdownItem>
-          </Dropdown>
+            </MenuItem >
+          </Menu >
         </div>
       </div>
     </header>
@@ -180,23 +180,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           })}
         </nav>
 
-        {/* Bottom section */}
-        <div className="p-4 border-t border-secondary-200">
-          <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-primary-500 rounded-lg">
-                <Icons.Rocket className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-primary-900">Pro Plan</p>
-                <p className="text-xs text-primary-600">Upgrade for more</p>
-              </div>
-            </div>
-            <button className="w-full btn-primary btn-sm">
-              Upgrade Now
-            </button>
-          </div>
-        </div>
+       
       </aside>
     </>
   );

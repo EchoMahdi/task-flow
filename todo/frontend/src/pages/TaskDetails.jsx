@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Badge, Button, Modal, Skeleton, PageHeader, Divider } from '../components/ui/index';
+import { Card, CardContent, Chip, Button, Modal, Skeleton, Divider } from '@mui/material';
+import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 
 const TaskDetails = () => {
@@ -69,7 +70,7 @@ const TaskDetails = () => {
 
   const getPriorityBadge = (priority) => {
     const variants = { high: 'danger', medium: 'warning', low: 'secondary' };
-    return <Badge variant={variants[priority]}>{priority}</Badge>;
+    return <Chip variant={variants[priority]}>{priority}</Chip>;
   };
 
   const getStatusBadge = (status) => {
@@ -79,7 +80,7 @@ const TaskDetails = () => {
       pending: { variant: 'secondary', label: 'Pending' },
     };
     const { variant, label } = config[status] || config.pending;
-    return <Badge variant={variant}>{label}</Badge>;
+    return <Chip variant={variant}>{label}</Chip>;
   };
 
   const formatDate = (dateString) => {
@@ -197,7 +198,7 @@ const TaskDetails = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Task Info */}
             <Card>
-              <CardBody>
+              <CardContent>
                 <div className="flex items-start gap-4 mb-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                     task.status === 'completed' ? 'bg-success-100' : 'bg-primary-100'
@@ -251,13 +252,13 @@ const TaskDetails = () => {
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {task.tags.map((tag) => (
-                          <Badge key={tag} variant="primary">#{tag}</Badge>
+                          <Chip key={tag} variant="primary">#{tag}</Chip>
                         ))}
                       </div>
                     </div>
                   </>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
 
             {/* Subtasks */}
@@ -271,7 +272,7 @@ const TaskDetails = () => {
                   Add
                 </Button>
               </div>
-              <CardBody className="p-0">
+              <CardContent className="p-0">
                 {/* Progress bar */}
                 <div className="px-6 py-3 bg-secondary-50 border-b border-secondary-100">
                   <div className="flex items-center justify-between text-sm mb-2">
@@ -310,7 +311,7 @@ const TaskDetails = () => {
                     </div>
                   ))}
                 </div>
-              </CardBody>
+              </CardContent>
             </Card>
 
             {/* Activity */}
@@ -318,7 +319,7 @@ const TaskDetails = () => {
               <div className="card-header">
                 <h2 className="text-lg font-semibold text-secondary-900">Activity</h2>
               </div>
-              <CardBody className="p-0">
+              <CardContent className="p-0">
                 <div className="divide-y divide-secondary-100">
                   {task.activity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3 px-6 py-4">
@@ -332,7 +333,7 @@ const TaskDetails = () => {
                     </div>
                   ))}
                 </div>
-              </CardBody>
+              </CardContent>
             </Card>
           </div>
 

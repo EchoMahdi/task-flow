@@ -1,181 +1,340 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/index';
-import { Icons } from '../components/ui/Icons';
+import { Button, Box, Typography, Container } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SearchIcon from '@mui/icons-material/Search';
+import ShieldIcon from '@mui/icons-material/Shield';
+import WarningIcon from '@mui/icons-material/Warning';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SettingsIcon from '@mui/icons-material/Settings';
+import CloudOffIcon from '@mui/icons-material/CloudOff';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import LogoutIcon from '@mui/icons-material/Logout';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 // 404 Not Found Page
 export const NotFound = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center max-w-lg animate-fade-in">
-        {/* Illustration */}
-        <div className="relative mb-8">
-          <div className="text-[180px] font-bold text-secondary-100 leading-none select-none">
-            404
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-primary-100 rounded-full flex items-center justify-center">
-              <Icons.Search className="w-16 h-16 text-primary-500" />
-            </div>
-          </div>
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #ffffff 50%, #f3f4f6 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+          {/* Illustration */}
+          <Box sx={{ position: 'relative', mb: 4 }}>
+            <Typography
+              sx={{
+                fontSize: 180,
+                fontWeight: 700,
+                color: '#f3f4f6',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}
+            >
+              404
+            </Typography>
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 128,
+                  height: 128,
+                  borderRadius: '50%',
+                  bgcolor: 'primary.light',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <SearchIcon sx={{ fontSize: 64, color: 'primary.main' }} />
+              </Box>
+            </Box>
+          </Box>
 
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">
-          Page Not Found
-        </h1>
-        <p className="text-secondary-600 mb-8">
-          Oops! The page you're looking for doesn't exist or has been moved.
-          Let's get you back on track.
-        </p>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
+            Page Not Found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Oops! The page you're looking for doesn't exist or has been moved.
+            Let's get you back on track.
+          </Typography>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link to="/">
-            <Button>
-              <Icons.Home className="w-4 h-4 mr-2" />
-              Go Home
+          <Box sx={{ display: 'flex', flexDirection: 'column', sm: 'row', gap: 2, justifyContent: 'center' }}>
+            <Link to="/">
+              <Button variant="contained" startIcon={<HomeIcon />}>
+                Go Home
+              </Button>
+            </Link>
+            <Button variant="outlined" onClick={() => window.history.back()} startIcon={<ArrowBackIcon />}>
+              Go Back
             </Button>
-          </Link>
-          <Button variant="outline" onClick={() => window.history.back()}>
-            <Icons.ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
-        </div>
+          </Box>
 
-        <p className="mt-8 text-sm text-secondary-500">
-          Need help?{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-            Contact Support
-          </a>
-        </p>
-      </div>
-    </div>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
+            Need help?{' '}
+            <Typography component="a" href="#" variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+              Contact Support
+            </Typography>
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
 // 403 Unauthorized Page
 export const Unauthorized = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-danger-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center max-w-lg animate-fade-in">
-        {/* Illustration */}
-        <div className="relative mb-8">
-          <div className="text-[180px] font-bold text-secondary-100 leading-none select-none">
-            403
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-danger-100 rounded-full flex items-center justify-center">
-              <Icons.Shield className="w-16 h-16 text-danger-500" />
-            </div>
-          </div>
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fef2f2 0%, #ffffff 50%, #f3f4f6 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+          {/* Illustration */}
+          <Box sx={{ position: 'relative', mb: 4 }}>
+            <Typography
+              sx={{
+                fontSize: 180,
+                fontWeight: 700,
+                color: '#f3f4f6',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}
+            >
+              403
+            </Typography>
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 128,
+                  height: 128,
+                  borderRadius: '50%',
+                  bgcolor: 'error.light',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ShieldIcon sx={{ fontSize: 64, color: 'error.main' }} />
+              </Box>
+            </Box>
+          </Box>
 
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">
-          Access Denied
-        </h1>
-        <p className="text-secondary-600 mb-8">
-          Sorry, you don't have permission to access this page.
-          Please contact your administrator if you believe this is a mistake.
-        </p>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
+            Access Denied
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Sorry, you don't have permission to access this page.
+            Please contact your administrator if you believe this is a mistake.
+          </Typography>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link to="/dashboard">
-            <Button>
-              <Icons.Squares className="w-4 h-4 mr-2" />
-              Go to Dashboard
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="outline">
-              <Icons.Logout className="w-4 h-4 mr-2" />
-              Sign In Again
-            </Button>
-          </Link>
-        </div>
+          <Box sx={{ display: 'flex', flexDirection: 'column', sm: 'row', gap: 2, justifyContent: 'center' }}>
+            <Link to="/dashboard">
+              <Button variant="contained" startIcon={<DashboardIcon />}>
+                Go to Dashboard
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button variant="outlined" startIcon={<LogoutIcon />}>
+                Sign In Again
+              </Button>
+            </Link>
+          </Box>
 
-        <p className="mt-8 text-sm text-secondary-500">
-          Need access?{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-            Request Permission
-          </a>
-        </p>
-      </div>
-    </div>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
+            Need access?{' '}
+            <Typography component="a" href="#" variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+              Request Permission
+            </Typography>
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
 // 500 Server Error Page
 export const ServerError = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-warning-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center max-w-lg animate-fade-in">
-        {/* Illustration */}
-        <div className="relative mb-8">
-          <div className="text-[180px] font-bold text-secondary-100 leading-none select-none">
-            500
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-warning-100 rounded-full flex items-center justify-center">
-              <Icons.ExclamationTriangle className="w-16 h-16 text-warning-500" />
-            </div>
-          </div>
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #f3f4f6 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+          {/* Illustration */}
+          <Box sx={{ position: 'relative', mb: 4 }}>
+            <Typography
+              sx={{
+                fontSize: 180,
+                fontWeight: 700,
+                color: '#f3f4f6',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}
+            >
+              500
+            </Typography>
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 128,
+                  height: 128,
+                  borderRadius: '50%',
+                  bgcolor: 'warning.light',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <WarningIcon sx={{ fontSize: 64, color: 'warning.main' }} />
+              </Box>
+            </Box>
+          </Box>
 
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">
-          Something Went Wrong
-        </h1>
-        <p className="text-secondary-600 mb-8">
-          We're experiencing some technical difficulties. Our team has been notified
-          and is working on fixing the issue.
-        </p>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
+            Something Went Wrong
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            We're experiencing some technical difficulties. Our team has been notified
+            and is working on fixing the issue.
+          </Typography>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button onClick={() => window.location.reload()}>
-            <Icons.ArrowRight className="w-4 h-4 mr-2 rotate-[225deg]" />
-            Try Again
-          </Button>
-          <Link to="/">
-            <Button variant="outline">
-              <Icons.Home className="w-4 h-4 mr-2" />
-              Go Home
+          <Box sx={{ display: 'flex', flexDirection: 'column', sm: 'row', gap: 2, justifyContent: 'center' }}>
+            <Button variant="contained" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
+              Try Again
             </Button>
-          </Link>
-        </div>
+            <Link to="/">
+              <Button variant="outlined" startIcon={<HomeIcon />}>
+                Go Home
+              </Button>
+            </Link>
+          </Box>
 
-        <p className="mt-8 text-sm text-secondary-500">
-          Problem persists?{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-            Report Issue
-          </a>
-        </p>
-      </div>
-    </div>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
+            Problem persists?{' '}
+            <Typography component="a" href="#" variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+              Report Issue
+            </Typography>
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
 // Loading Page
 export const LoadingPage = ({ message = 'Loading...' }) => {
   return (
-    <div className="min-h-screen bg-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center animate-fade-in">
-        <div className="relative mb-6">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'grey.50',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+        <Box sx={{ position: 'relative', mb: 3 }}>
           {/* Animated logo */}
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center animate-pulse">
-            <Icons.CheckCircle className="w-8 h-8 text-white" />
-          </div>
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              mx: 'auto',
+              borderRadius: 3,
+              bgcolor: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ErrorOutlineIcon sx={{ fontSize: 32, color: 'white' }} />
+          </Box>
           {/* Spinner ring */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 border-4 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
-          </div>
-        </div>
-        <p className="text-secondary-600 font-medium">{message}</p>
-      </div>
-    </div>
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                border: 4,
+                borderColor: 'primary.200',
+                borderTopColor: 'primary.main',
+                animation: 'spin 1s linear infinite',
+                '@keyframes spin': {
+                  '0%': { transform: 'rotate(0deg)' },
+                  '100%': { transform: 'rotate(360deg)' },
+                },
+              }}
+            />
+          </Box>
+        </Box>
+        <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+          {message}
+        </Typography>
+      </Box>
+    </Box>
   );
 };
 
 // Empty State Component
 export const EmptyStatePage = ({
-  icon: Icon = Icons.Document,
+  icon: Icon = ErrorOutlineIcon,
   title = 'No Data',
   description = 'There is nothing to display here yet.',
   actionLabel,
@@ -183,88 +342,171 @@ export const EmptyStatePage = ({
   onAction,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-24 h-24 bg-secondary-100 rounded-full flex items-center justify-center mb-6">
-        <Icon className="w-12 h-12 text-secondary-400" />
-      </div>
-      <h2 className="text-xl font-semibold text-secondary-900 mb-2">{title}</h2>
-      <p className="text-secondary-500 max-w-md mb-6">{description}</p>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 8,
+        px: 2,
+        textAlign: 'center',
+      }}
+    >
+      <Box
+        sx={{
+          width: 96,
+          height: 96,
+          borderRadius: '50%',
+          bgcolor: 'grey.100',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 3,
+        }}
+      >
+        <Icon sx={{ fontSize: 48, color: 'grey.400' }} />
+      </Box>
+      <Typography variant="h6" component="h2" sx={{ fontWeight: 600, mb: 1 }}>
+        {title}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320, mb: 3 }}>
+        {description}
+      </Typography>
       {(actionLabel && (actionHref || onAction)) && (
         actionHref ? (
           <Link to={actionHref}>
-            <Button>
-              <Icons.Plus className="w-4 h-4 mr-2" />
+            <Button variant="contained" startIcon={<ErrorOutlineIcon />}>
               {actionLabel}
             </Button>
           </Link>
         ) : (
-          <Button onClick={onAction}>
-            <Icons.Plus className="w-4 h-4 mr-2" />
+          <Button variant="contained" onClick={onAction}>
             {actionLabel}
           </Button>
         )
       )}
-    </div>
+    </Box>
   );
 };
 
 // Maintenance Page
 export const Maintenance = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center max-w-lg animate-fade-in">
-        <div className="w-24 h-24 mx-auto bg-primary-100 rounded-full flex items-center justify-center mb-8">
-          <Icons.Cog className="w-12 h-12 text-primary-600 animate-spin-slow" />
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #e0f2fe 0%, #ffffff 50%, #f3f4f6 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Box
+            sx={{
+              width: 96,
+              height: 96,
+              mx: 'auto',
+              borderRadius: '50%',
+              bgcolor: 'primary.light',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 4,
+            }}
+          >
+            <SettingsIcon sx={{ fontSize: 48, color: 'primary.main', animation: 'spin 3s linear infinite', '@keyframes spin': {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' },
+            }}} />
+          </Box>
 
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">
-          Under Maintenance
-        </h1>
-        <p className="text-secondary-600 mb-8">
-          We're currently performing scheduled maintenance to improve your experience.
-          We'll be back shortly!
-        </p>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
+            Under Maintenance
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            We're currently performing scheduled maintenance to improve your experience.
+            We'll be back shortly!
+          </Typography>
 
-        <div className="bg-white rounded-xl p-6 shadow-card mb-8">
-          <p className="text-sm text-secondary-500 mb-2">Estimated downtime</p>
-          <p className="text-2xl font-bold text-secondary-900">~30 minutes</p>
-        </div>
+          <Box
+            sx={{
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              p: 3,
+              boxShadow: 1,
+              mb: 4,
+            }}
+          >
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Estimated downtime
+            </Typography>
+            <Typography variant="h5" component="p" sx={{ fontWeight: 700 }}>
+              ~30 minutes
+            </Typography>
+          </Box>
 
-        <p className="text-sm text-secondary-500">
-          Follow us on{' '}
-          <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-            Twitter
-          </a>{' '}
-          for updates
-        </p>
-      </div>
-    </div>
+          <Typography variant="body2" color="text.secondary">
+            Follow us on{' '}
+            <Typography component="a" href="#" variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+              Twitter
+            </Typography>{' '}
+            for updates
+          </Typography>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
 // Offline Page
 export const Offline = () => {
   return (
-    <div className="min-h-screen bg-secondary-50 flex items-center justify-center p-4">
-      <div className="text-center max-w-lg animate-fade-in">
-        <div className="w-24 h-24 mx-auto bg-secondary-200 rounded-full flex items-center justify-center mb-8">
-          <Icons.Globe className="w-12 h-12 text-secondary-500" />
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'grey.50',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Box
+            sx={{
+              width: 96,
+              height: 96,
+              mx: 'auto',
+              borderRadius: '50%',
+              bgcolor: 'grey.200',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 4,
+            }}
+          >
+            <CloudOffIcon sx={{ fontSize: 48, color: 'grey.500' }} />
+          </Box>
 
-        <h1 className="text-3xl font-bold text-secondary-900 mb-4">
-          You're Offline
-        </h1>
-        <p className="text-secondary-600 mb-8">
-          It looks like you've lost your internet connection.
-          Please check your network and try again.
-        </p>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
+            You're Offline
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            It looks like you've lost your internet connection.
+            Please check your network and try again.
+          </Typography>
 
-        <Button onClick={() => window.location.reload()}>
-          <Icons.ArrowRight className="w-4 h-4 mr-2 rotate-[225deg]" />
-          Try Again
-        </Button>
-      </div>
-    </div>
+          <Button variant="contained" onClick={() => window.location.reload()} startIcon={<RefreshIcon />}>
+            Try Again
+          </Button>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

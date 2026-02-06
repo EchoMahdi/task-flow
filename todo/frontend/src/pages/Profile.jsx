@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Button, Input, Textarea, Select, Alert, Avatar, Tabs, PageHeader, Divider } from '../components/ui/index';
+import { 
+  Card, CardContent, Button, TextField, Alert, Avatar, 
+  Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem 
+} from '@mui/material';
+import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 import { useAuth } from '../context/AuthContext';
 import { preferenceService } from '../services/preferenceService';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import MapIcon from '@mui/icons-material/Map';
+import LanguageIcon from '@mui/icons-material/Language';
+import InfoIcon from '@mui/icons-material/Info';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const Profile = () => {
   const { user, refreshUser } = useAuth();
@@ -62,9 +71,9 @@ const Profile = () => {
   const [passwordErrors, setPasswordErrors] = useState({});
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: <Icons.User className="w-4 h-4" /> },
-    { id: 'password', label: 'Password', icon: <Icons.Lock className="w-4 h-4" /> },
-    { id: 'timezone', label: 'Timezone', icon: <Icons.Globe className="w-4 h-4" /> },
+    { id: 'profile', label: 'Profile' },
+    { id: 'password', label: 'Password' },
+    { id: 'timezone', label: 'Timezone' },
   ];
 
   const timezones = [
@@ -83,7 +92,7 @@ const Profile = () => {
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
-    setSuccess(''); // Clear previous success messages
+    setSuccess('');
   };
 
   const handlePasswordChange = (e) => {
@@ -102,7 +111,6 @@ const Profile = () => {
     setSuccess('');
 
     try {
-      // Update profile on backend - send profile fields directly (not double-wrapped)
       await preferenceService.updateProfile({
         bio: profileData.bio,
         phone: profileData.phone,
@@ -110,7 +118,6 @@ const Profile = () => {
         website: profileData.website,
       });
       
-      // Refresh user data to get updated profile
       await refreshUser();
       
       setSuccess('Profile updated successfully!');
@@ -149,7 +156,6 @@ const Profile = () => {
     setSuccess('');
 
     try {
-      // Make real API call to change password
       await preferenceService.changePassword(passwordData.currentPassword, passwordData.newPassword);
       
       setSuccess('Password changed successfully! You may need to log in again.');
@@ -170,12 +176,10 @@ const Profile = () => {
     setSuccess('');
 
     try {
-      // Update user timezone on backend
       await preferenceService.updateProfile({
         timezone: profileData.timezone,
       });
       
-      // Refresh user data
       await refreshUser();
       
       setSuccess('Timezone updated successfully!');
@@ -190,32 +194,30 @@ const Profile = () => {
   if (!dataLoaded) {
     return (
       <MainLayout>
-        <div className="max-w-4xl mx-auto">
+        <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
           <PageHeader
             title="Profile"
             description="Manage your account settings and preferences"
           />
-          <div className="animate-pulse space-y-6">
-            <Card>
-              <CardBody>
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-secondary-200 rounded-full"></div>
-                  <div className="space-y-2">
-                    <div className="h-6 bg-secondary-200 rounded w-32"></div>
-                    <div className="h-4 bg-secondary-200 rounded w-48"></div>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-        </div>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'grey.300' }} />
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ height: 24, width: 128, bgcolor: 'grey.300', borderRadius: 1, mb: 1 }} />
+                  <Box sx={{ height: 20, width: 192, bgcolor: 'grey.300', borderRadius: 1 }} />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="max-w-4xl mx-auto">
+      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <PageHeader
           title="Profile"
           description="Manage your account settings and preferences"
@@ -223,118 +225,172 @@ const Profile = () => {
 
         {/* Success/Error Alerts */}
         {success && (
-          <Alert
-            variant="success"
-            className="mb-6"
-            icon={<Icons.CheckCircle className="w-5 h-5" />}
+          <Alert 
+            severity="success" 
+            sx={{ mb: 3 }}
             onClose={() => setSuccess('')}
           >
             {success}
           </Alert>
         )}
         {error && (
-          <Alert
-            variant="danger"
-            className="mb-6"
-            icon={<Icons.ExclamationCircle className="w-5 h-5" />}
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
             onClose={() => setError('')}
           >
             {error}
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Grid container spacing={3}>
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="p-6 text-center">
-              <div className="relative inline-block mb-4">
-                <Avatar name={profileData.name} size="xl" />
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
-                  <Icons.Photo className="w-4 h-4" />
-                </button>
-              </div>
-              <h3 className="font-semibold text-secondary-900">{profileData.name}</h3>
-              <p className="text-sm text-secondary-500">{profileData.email}</p>
-              <Divider />
-              <div className="text-left space-y-3">
+          <Grid item xs={12} md={3}>
+            <Card sx={{ p: 3, textAlign: 'center' }}>
+              <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+                <Avatar 
+                  name={profileData.name} 
+                  sx={{ width: 80, height: 80, fontSize: '2rem' }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    '&:hover': { bgcolor: 'primary.dark' },
+                  }}
+                >
+                  <PhotoCameraIcon sx={{ fontSize: 16 }} />
+                </Box>
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                {profileData.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {profileData.email}
+              </Typography>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ textAlign: 'left' }}>
                 {profileData.location && (
-                  <div className="flex items-center gap-2 text-sm text-secondary-600">
-                    <Icons.Map className="w-4 h-4 text-secondary-400" />
-                    {profileData.location}
-                  </div>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                    <MapIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography variant="body2" color="text.secondary">
+                      {profileData.location}
+                    </Typography>
+                  </Box>
                 )}
                 {profileData.website && (
-                  <div className="flex items-center gap-2 text-sm text-secondary-600">
-                    <Icons.Globe className="w-4 h-4 text-secondary-400" />
-                    <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline truncate">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LanguageIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography 
+                      component="a"
+                      href={profileData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="body2"
+                      color="primary"
+                      sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                    >
                       {profileData.website.replace('https://', '')}
-                    </a>
-                  </div>
+                    </Typography>
+                  </Box>
                 )}
-              </div>
+              </Box>
             </Card>
-          </div>
+          </Grid>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <Grid item xs={12} md={9}>
             <Card>
-              <div className="border-b border-secondary-200">
-                <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="px-6" />
-              </div>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs 
+                  value={activeTab} 
+                  onChange={(_, value) => setActiveTab(value)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ px: 3 }}
+                >
+                  {tabs.map((tab) => (
+                    <Tab key={tab.id} label={tab.label} value={tab.id} />
+                  ))}
+                </Tabs>
+              </Box>
 
-              <CardBody>
+              <CardContent>
                 {/* Profile Tab */}
                 {activeTab === 'profile' && (
-                  <form onSubmit={handleProfileSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Full Name"
-                        name="name"
-                        value={profileData.name}
-                        onChange={handleProfileChange}
-                        placeholder="Your full name"
-                        disabled
-                        helper="Contact support to change your name"
-                      />
-                      <Input
-                        label="Email Address"
-                        name="email"
-                        type="email"
-                        value={profileData.email}
-                        onChange={handleProfileChange}
-                        placeholder="your@email.com"
-                        disabled
-                        helper="Contact support to change your email"
-                      />
-                    </div>
+                  <form onSubmit={handleProfileSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Full Name"
+                          name="name"
+                          value={profileData.name}
+                          onChange={handleProfileChange}
+                          disabled
+                          helperText="Contact support to change your name"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Email Address"
+                          name="email"
+                          type="email"
+                          value={profileData.email}
+                          onChange={handleProfileChange}
+                          disabled
+                          helperText="Contact support to change your email"
+                        />
+                      </Grid>
+                    </Grid>
 
-                    <Textarea
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
                       label="Bio"
                       name="bio"
                       value={profileData.bio}
                       onChange={handleProfileChange}
                       placeholder="Tell us about yourself..."
-                      rows={3}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Phone Number"
-                        name="phone"
-                        value={profileData.phone}
-                        onChange={handleProfileChange}
-                        placeholder="+1 (555) 000-0000"
-                      />
-                      <Input
-                        label="Location"
-                        name="location"
-                        value={profileData.location}
-                        onChange={handleProfileChange}
-                        placeholder="City, Country"
-                      />
-                    </div>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Phone Number"
+                          name="phone"
+                          value={profileData.phone}
+                          onChange={handleProfileChange}
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Location"
+                          name="location"
+                          value={profileData.location}
+                          onChange={handleProfileChange}
+                          placeholder="City, Country"
+                        />
+                      </Grid>
+                    </Grid>
 
-                    <Input
+                    <TextField
+                      fullWidth
                       label="Website"
                       name="website"
                       value={profileData.website}
@@ -342,112 +398,152 @@ const Profile = () => {
                       placeholder="https://yourwebsite.com"
                     />
 
-                    <div className="flex justify-end">
-                      <Button type="submit" loading={loading}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button type="submit" variant="contained" loading={loading}>
                         Save Changes
                       </Button>
-                    </div>
+                    </Box>
                   </form>
                 )}
 
                 {/* Password Tab */}
                 {activeTab === 'password' && (
-                  <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                    <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
-                      <div className="flex items-start gap-3">
-                        <Icons.ExclamationTriangle className="w-5 h-5 text-warning-600 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-warning-800">Password Requirements</h4>
-                          <ul className="text-sm text-warning-700 mt-1 list-disc list-inside">
+                  <form onSubmit={handlePasswordSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box 
+                      sx={{ 
+                        p: 3, 
+                        bgcolor: 'warning.light', 
+                        borderRadius: 2,
+                        border: 1,
+                        borderColor: 'warning.light',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 2
+                      }}
+                    >
+                      <WarningAmberIcon sx={{ color: 'warning.main', mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.dark' }}>
+                          Password Requirements
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'warning.dark', mt: 0.5 }}>
+                          <ul style={{ margin: '4px 0 0 0', paddingLeft: 20 }}>
                             <li>At least 8 characters long</li>
                             <li>Include uppercase and lowercase letters</li>
                             <li>Include at least one number</li>
                           </ul>
-                        </div>
-                      </div>
-                    </div>
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                    <Input
+                    <TextField
+                      fullWidth
                       label="Current Password"
                       name="currentPassword"
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
                       placeholder="Enter your current password"
-                      error={passwordErrors.currentPassword}
+                      error={!!passwordErrors.currentPassword}
+                      helperText={passwordErrors.currentPassword}
                     />
 
-                    <Input
+                    <TextField
+                      fullWidth
                       label="New Password"
                       name="newPassword"
                       type="password"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
                       placeholder="Enter your new password"
-                      error={passwordErrors.newPassword}
+                      error={!!passwordErrors.newPassword}
+                      helperText={passwordErrors.newPassword}
                     />
 
-                    <Input
+                    <TextField
+                      fullWidth
                       label="Confirm New Password"
                       name="confirmPassword"
                       type="password"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
                       placeholder="Confirm your new password"
-                      error={passwordErrors.confirmPassword}
+                      error={!!passwordErrors.confirmPassword}
+                      helperText={passwordErrors.confirmPassword}
                     />
 
-                    <div className="flex justify-end">
-                      <Button type="submit" loading={loading}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button type="submit" variant="contained" loading={loading}>
                         Change Password
                       </Button>
-                    </div>
+                    </Box>
                   </form>
                 )}
 
                 {/* Timezone Tab */}
                 {activeTab === 'timezone' && (
-                  <form onSubmit={handleTimezoneSubmit} className="space-y-6">
-                    <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
-                      <div className="flex items-start gap-3">
-                        <Icons.InformationCircle className="w-5 h-5 text-primary-600 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium text-primary-800">About Timezone Settings</h4>
-                          <p className="text-sm text-primary-700 mt-1">
-                            Your timezone affects how due dates and reminders are displayed. 
-                            Make sure to select the correct timezone for accurate notifications.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  <form onSubmit={handleTimezoneSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box 
+                      sx={{ 
+                        p: 3, 
+                        bgcolor: 'primary.light', 
+                        borderRadius: 2,
+                        border: 1,
+                        borderColor: 'primary.light',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 2
+                      }}
+                    >
+                      <InfoIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.dark' }}>
+                          About Timezone Settings
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'primary.dark', mt: 0.5 }}>
+                          Your timezone affects how due dates and reminders are displayed. 
+                          Make sure to select the correct timezone for accurate notifications.
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                    <Select
-                      label="Timezone"
-                      name="timezone"
-                      value={profileData.timezone}
-                      onChange={handleProfileChange}
-                      options={timezones}
-                    />
+                    <FormControl fullWidth>
+                      <InputLabel>Timezone</InputLabel>
+                      <Select
+                        name="timezone"
+                        value={profileData.timezone}
+                        onChange={handleProfileChange}
+                        label="Timezone"
+                      >
+                        {timezones.map((tz) => (
+                          <MenuItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
 
-                    <div className="p-4 bg-secondary-50 rounded-lg">
-                      <p className="text-sm text-secondary-600">
-                        <span className="font-medium">Current local time:</span>{' '}
+                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <Typography component="span" variant="body2" sx={{ fontWeight: 500 }}>
+                          Current local time:
+                        </Typography>{' '}
                         {new Date().toLocaleString('en-US', { timeZone: profileData.timezone })}
-                      </p>
-                    </div>
+                      </Typography>
+                    </Box>
 
-                    <div className="flex justify-end">
-                      <Button type="submit" loading={loading}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button type="submit" variant="contained" loading={loading}>
                         Save Timezone
                       </Button>
-                    </div>
+                    </Box>
                   </form>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
-          </div>
-        </div>
-      </div>
+          </Grid>
+        </Grid>
+      </Box>
     </MainLayout>
   );
 };

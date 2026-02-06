@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Badge, Button, Tabs, EmptyState, Skeleton, PageHeader } from '../components/ui/index';
-import { Icons } from '../components/ui/Icons';
+import { Card, CardContent, Chip, Button, Tabs, Box, Skeleton, Typography, IconButton, Divider } from '@mui/material';
+import PageHeader from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/authService';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import M_Notifications   from '@mui/icons-material/Notifications';
+import StarIcon from '@mui/icons-material/Star';
+import InfoIcon from '@mui/icons-material/Info';
+import CheckIcon from '@mui/icons-material/Check';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -21,7 +29,6 @@ const Notifications = () => {
         setUnreadCount(response.data.data?.filter(n => !n.read).length || 0);
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
-        // If API fails, show empty state (no mock data)
         setNotifications([]);
       } finally {
         setLoading(false);
@@ -32,10 +39,10 @@ const Notifications = () => {
   }, []);
 
   const tabs = [
-    { id: 'all', label: 'All', icon: <Icons.Bell className="w-4 h-4" /> },
-    { id: 'unread', label: 'Unread', icon: <Icons.BellAlert className="w-4 h-4" /> },
-    { id: 'tasks', label: 'Tasks', icon: <Icons.ClipboardList className="w-4 h-4" /> },
-    { id: 'system', label: 'System', icon: <Icons.Cog className="w-4 h-4" /> },
+    { id: 'all', label: 'All' },
+    { id: 'unread', label: 'Unread' },
+    { id: 'tasks', label: 'Tasks' },
+    { id: 'system', label: 'System' },
   ];
 
   const filteredNotifications = notifications.filter(notification => {
@@ -56,7 +63,6 @@ const Notifications = () => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark as read:', error);
-      // Fallback to local update for UX
       setNotifications(notifications.map(n =>
         n.id === id ? { ...n, read: true } : n
       ));
@@ -72,7 +78,6 @@ const Notifications = () => {
       setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all as read:', error);
-      // Fallback to local update for UX
       setNotifications(notifications.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
     }
@@ -88,7 +93,6 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error('Failed to delete notification:', error);
-      // Fallback to local update for UX
       const wasUnread = notifications.find(n => n.id === id && !n.read);
       setNotifications(notifications.filter(n => n.id !== id));
       if (wasUnread) {
@@ -100,19 +104,19 @@ const Notifications = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'task_due':
-        return { icon: Icons.Clock, color: 'bg-warning-100 text-warning-600' };
+        return { icon: M_Notifications , color: '#fef3c7', textColor: '#d97706' };
       case 'task_completed':
-        return { icon: Icons.CheckCircle, color: 'bg-success-100 text-success-600' };
+        return { icon: CheckCircleIcon, color: '#dcfce7', textColor: '#16a34a' };
       case 'task_overdue':
-        return { icon: Icons.ExclamationCircle, color: 'bg-danger-100 text-danger-600' };
+        return { icon: ErrorIcon, color: '#fee2e2', textColor: '#dc2626' };
       case 'reminder':
-        return { icon: Icons.Bell, color: 'bg-primary-100 text-primary-600' };
+        return { icon: M_Notifications , color: '#dbeafe', textColor: '#2563eb' };
       case 'achievement':
-        return { icon: Icons.Star, color: 'bg-warning-100 text-warning-600' };
+        return { icon: StarIcon, color: '#fef3c7', textColor: '#d97706' };
       case 'system':
-        return { icon: Icons.InformationCircle, color: 'bg-secondary-100 text-secondary-600' };
+        return { icon: InfoIcon, color: '#f3f4f6', textColor: '#6b7280' };
       default:
-        return { icon: Icons.Bell, color: 'bg-secondary-100 text-secondary-600' };
+        return { icon: M_Notifications , color: '#f3f4f6', textColor: '#6b7280' };
     }
   };
 
@@ -133,28 +137,27 @@ const Notifications = () => {
   if (loading) {
     return (
       <MainLayout>
-        <div className="space-y-6">
-          <Skeleton variant="title" className="w-48" />
-          <div className="space-y-4">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Skeleton variant="text" width={200} height={40} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} variant="card" className="h-20" />
+              <Skeleton key={i} variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <PageHeader
           title="Notifications"
           description={unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
           actions={
             unreadCount > 0 && (
-              <Button variant="outline" onClick={handleMarkAllAsRead}>
-                <Icons.Check className="w-4 h-4 mr-2" />
+              <Button variant="outlined" onClick={handleMarkAllAsRead} startIcon={<CheckIcon />}>
                 Mark all as read
               </Button>
             )
@@ -162,81 +165,147 @@ const Notifications = () => {
         />
 
         {/* Tabs */}
-        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={(_, value) => setActiveTab(value)}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            {tabs.map((tab) => (
+              <Tab key={tab.id} label={tab.label} value={tab.id} />
+            ))}
+          </Tabs>
+        </Box>
 
         {/* Notifications List */}
         {filteredNotifications.length === 0 ? (
-          <EmptyState
-            icon={<Icons.Bell className="w-16 h-16" />}
-            title="No notifications"
-            description={activeTab === 'unread' ? "You're all caught up!" : "No notifications to show"}
-          />
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: 'grey.100',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              <M_Notifications  sx={{ fontSize: 32, color: 'grey.400' }} />
+            </Box>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              No notifications
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {activeTab === 'unread' ? "You're all caught up!" : "No notifications to show"}
+            </Typography>
+          </Box>
         ) : (
-          <div className="space-y-3">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {filteredNotifications.map((notification) => {
-              const { icon: Icon, color } = getNotificationIcon(notification.type);
+              const { icon: Icon, color, textColor } = getNotificationIcon(notification.type);
               
               return (
                 <Card
                   key={notification.id}
-                  className={`p-4 transition-all ${!notification.read ? 'border-l-4 border-l-primary-500 bg-primary-50/30' : ''}`}
+                  sx={{
+                    p: 2,
+                    transition: 'all 0.15s',
+                    borderLeft: !notification.read ? 4 : 0,
+                    borderColor: 'primary.main',
+                    bgcolor: !notification.read ? 'rgba(25, 118, 210, 0.04)' : 'background.paper',
+                  }}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 1,
+                        bgcolor: color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 20, color: textColor }} />
+                    </Box>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className={`font-medium ${!notification.read ? 'text-secondary-900' : 'text-secondary-700'}`}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+                        <Box>
+                          <Typography 
+                            variant="body1" 
+                            sx={{ 
+                              fontWeight: !notification.read ? 600 : 400,
+                              color: 'text.primary',
+                            }}
+                          >
                             {notification.title}
-                          </h3>
-                          <p className="text-sm text-secondary-500 mt-1">
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                             {notification.message}
-                          </p>
-                          <p className="text-xs text-secondary-400 mt-2">
+                          </Typography>
+                          <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
                             {formatTimestamp(notification.created_at || notification.timestamp)}
-                          </p>
-                        </div>
+                          </Typography>
+                        </Box>
                         
-                        <div className="flex items-center gap-2">
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           {!notification.read && (
-                            <button
+                            <IconButton
                               onClick={() => handleMarkAsRead(notification.id)}
-                              className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                              size="small"
+                              sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', bgcolor: 'primary.light' } }}
                               title="Mark as read"
                             >
-                              <Icons.Check className="w-4 h-4" />
-                            </button>
+                              <CheckIcon fontSize="small" />
+                            </IconButton>
                           )}
-                          <button
+                          <IconButton
                             onClick={() => handleDelete(notification.id)}
-                            className="p-1.5 text-secondary-400 hover:text-danger-600 hover:bg-danger-50 rounded transition-colors"
+                            size="small"
+                            sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: 'error.light' } }}
                             title="Delete"
                           >
-                            <Icons.Trash className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
                       
                       {notification.action_url && (
-                        <a
+                        <Box
+                          component="a"
                           href={notification.action_url}
-                          className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium mt-3"
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            fontSize: '0.875rem',
+                            color: 'primary.main',
+                            fontWeight: 500,
+                            mt: 1.5,
+                            textDecoration: 'none',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                            },
+                          }}
                         >
                           View details
-                          <Icons.ChevronRight className="w-4 h-4" />
-                        </a>
+                          <ChevronRightIcon fontSize="small" />
+                        </Box>
                       )}
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
                 </Card>
               );
             })}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </MainLayout>
   );
 };

@@ -18,7 +18,7 @@ import './QuickAddBar.css';
  * @param {string} props.placeholder - Placeholder text
  * @param {boolean} props.autoFocus - Auto-focus the input
  */
-export const QuickAddBar = ({
+ const QuickAddBar = ({
   onAddTask,
   placeholder = 'Add a new task...',
   autoFocus = true,

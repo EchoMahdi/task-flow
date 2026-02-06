@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PublicLayout } from '../components/layout/index';
-import { Button, Card, Badge } from '../components/ui/index';
+import { Button, Card, CardContent, Chip, Box, Typography, Container, Grid } from '@mui/material';
 import { Icons } from '../components/ui/Icons';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import StarIcon from '@mui/icons-material/Star';
 
 const Landing = () => {
   const features = [
@@ -62,55 +64,6 @@ const Landing = () => {
     },
   ];
 
-  const pricingPlans = [
-    {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for individuals getting started',
-      features: [
-        'Up to 50 tasks',
-        'Basic notifications',
-        'Mobile app access',
-        'Email support',
-      ],
-      cta: 'Get Started',
-      popular: false,
-    },
-    {
-      name: 'Pro',
-      price: '$9',
-      period: 'per month',
-      description: 'For professionals who need more',
-      features: [
-        'Unlimited tasks',
-        'Advanced notifications',
-        'Priority support',
-        'Custom tags & filters',
-        'Analytics dashboard',
-        'API access',
-      ],
-      cta: 'Start Free Trial',
-      popular: true,
-    },
-    {
-      name: 'Team',
-      price: '$29',
-      period: 'per month',
-      description: 'For teams and organizations',
-      features: [
-        'Everything in Pro',
-        'Up to 10 team members',
-        'Team collaboration',
-        'Admin controls',
-        'SSO integration',
-        'Dedicated support',
-      ],
-      cta: 'Contact Sales',
-      popular: false,
-    },
-  ];
-
   const stats = [
     { value: '50K+', label: 'Active Users' },
     { value: '2M+', label: 'Tasks Completed' },
@@ -121,263 +74,261 @@ const Landing = () => {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <Box
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          py: { xs: 5, lg: 8 },
+        }}
+      >
         {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-100 rounded-full blur-3xl opacity-50" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary-100 rounded-full blur-3xl opacity-50" />
-        </div>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: -1,
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: '25%',
+              width: '100%',
+              height: '100%',
+              bgcolor: 'primary.light',
+              borderRadius: '50%',
+              filter: 'blur(3rem)',
+              opacity: 0.5,
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: '25%',
+              width: '100%',
+              height: '100%',
+              bgcolor: 'grey.100',
+              borderRadius: '50%',
+              filter: 'blur(3rem)',
+              opacity: 0.5,
+            }}
+          />
+        </Box>
 
-        <div className="container-app py-20 lg:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="primary" className="mb-6">
-              <Icons.Sparkles className="w-3 h-3 mr-1" />
-              New: AI-powered task suggestions
-            </Badge>
+        <Container maxWidth="lg">
+          <Box sx={{ mx: 'auto', textAlign: 'center', maxWidth: 800 }}>
+            <Chip
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Icons.Sparkles sx={{ fontSize: 12 }} />
+                  New: AI-powered task suggestions
+                </Box>
+              }
+              sx={{ mb: 3 }}
+            />
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-secondary-900 mb-6 text-balance">
+            <Typography variant="h2" component="h1" sx={{ fontWeight: 700, mb: 2, fontSize: { xs: '2rem', md: '2.5rem' } }}>
               Manage your tasks with{' '}
-              <span className="gradient-text">clarity and focus</span>
-            </h1>
+              <Typography component="span" variant="inherit" sx={{ 
+                background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                fontWeight: 700,
+              }}>
+                clarity and focus
+              </Typography>
+            </Typography>
             
-            <p className="text-lg sm:text-xl text-secondary-600 mb-8 max-w-2xl mx-auto">
+            <Typography variant="h6" component="p" color="text.secondary" sx={{ mx: 'auto', mb: 3, maxWidth: 600 }}>
               TaskFlow helps you organize your work, track progress, and achieve your goals. 
               Simple, powerful, and designed for the way you work.
-            </p>
+            </Typography>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center' }}>
               <Link to="/register">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />}>
                   Get Started Free
-                  <Icons.ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <a href="#features">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Learn More
-                </Button>
-              </a>
-            </div>
+              <Button variant="outlined" size="large" href="#features">
+                Learn More
+              </Button>
+            </Box>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-secondary-200">
+            <Grid container spacing={3} sx={{ mt: 4, pt: 4, borderTop: 1, borderColor: 'divider' }}>
               {stats.map((stat) => (
-                <div key={stat.label}>
-                  <p className="text-3xl font-bold text-secondary-900">{stat.value}</p>
-                  <p className="text-sm text-secondary-500">{stat.label}</p>
-                </div>
+                <Grid item xs={6} md={3} key={stat.label}>
+                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    {stat.value}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stat.label}
+                  </Typography>
+                </Grid>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
+            </Grid>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Features Section */}
-      <section id="features" className="py-20 lg:py-32 bg-secondary-50">
-        <div className="container-app">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Features</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-900 mb-4">
+      <Box id="features" sx={{ py: { xs: 5, lg: 8 }, bgcolor: 'grey.50' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
+            <Chip label="Features" sx={{ mb: 2 }} />
+            <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 2 }}>
               Everything you need to stay productive
-            </h2>
-            <p className="text-lg text-secondary-600 max-w-2xl mx-auto">
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mx: 'auto', maxWidth: 600 }}>
               Powerful features designed to help you manage tasks efficiently and achieve more every day.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Grid container spacing={3}>
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
-                <Card key={feature.title} hover className="p-6">
-                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-4">
-                    <Icon className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-secondary-900 mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-secondary-600">
-                    {feature.description}
-                  </p>
-                </Card>
+                <Grid item xs={12} sm={6} md={4} key={feature.title}>
+                  <Card 
+                    sx={{ 
+                      height: '100%',
+                      cursor: 'pointer',
+                      transition: 'box-shadow 0.2s',
+                      '&:hover': { boxShadow: 4 },
+                    }}
+                  >
+                    <CardContent>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          bgcolor: 'primary.light',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                        }}
+                      >
+                        <Icon sx={{ fontSize: 24, color: 'primary.main' }} />
+                      </Box>
+                      <Typography variant="h6" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                        {feature.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {feature.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-20 lg:py-32">
-        <div className="container-app">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">How It Works</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-900 mb-4">
-              Get started in minutes
-            </h2>
-            <p className="text-lg text-secondary-600 max-w-2xl mx-auto">
-              Three simple steps to transform your productivity.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-            {[
-              {
-                step: '01',
-                title: 'Create an Account',
-                description: 'Sign up for free in seconds. No credit card required.',
-                icon: Icons.User,
-              },
-              {
-                step: '02',
-                title: 'Add Your Tasks',
-                description: 'Create tasks, set priorities, and organize with tags.',
-                icon: Icons.Plus,
-              },
-              {
-                step: '03',
-                title: 'Track & Complete',
-                description: 'Monitor progress, get reminders, and celebrate wins.',
-                icon: Icons.CheckCircle,
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.step} className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-2xl mb-6">
-                    <Icon className="w-8 h-8 text-primary-600" />
-                    <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary-600 text-white text-sm font-bold rounded-full flex items-center justify-center">
-                      {item.step}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-secondary-600">
-                    {item.description}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+          </Grid>
+        </Container>
+      </Box>
 
       {/* Testimonials Section */}
-      <section className="py-20 lg:py-32 bg-secondary-50">
-        <div className="container-app">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Testimonials</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-900 mb-4">
+      <Box sx={{ py: { xs: 5, lg: 8 }, bgcolor: 'grey.50' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 5 }}>
+            <Chip label="Testimonials" sx={{ mb: 2 }} />
+            <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 2 }}>
               Loved by thousands of users
-            </h2>
-            <p className="text-lg text-secondary-600 max-w-2xl mx-auto">
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mx: 'auto', maxWidth: 600 }}>
               See what our users have to say about their experience with TaskFlow.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <Grid container spacing={3}>
             {testimonials.map((testimonial) => (
-              <Card key={testimonial.name} className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Icons.Star key={i} className="w-5 h-5 text-warning-400 fill-warning-400" />
-                  ))}
-                </div>
-                <p className="text-secondary-700 mb-6">
-                  "{testimonial.content}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-semibold">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-secondary-900">{testimonial.name}</p>
-                    <p className="text-sm text-secondary-500">{testimonial.role} at {testimonial.company}</p>
-                  </div>
-                </div>
-              </Card>
+              <Grid item xs={12} md={4} key={testimonial.name}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon key={i} sx={{ fontSize: 20, color: '#fbbf24', fill: '#fbbf24' }} />
+                      ))}
+                    </Box>
+                    <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+                      "{testimonial.content}"
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.light',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'primary.main',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {testimonial.avatar}
+                      </Box>
+                      <Box>
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {testimonial.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {testimonial.role} at {testimonial.company}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 lg:py-32">
-        <div className="container-app">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4">Pricing</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-secondary-900 mb-4">
-              Simple, transparent pricing
-            </h2>
-            <p className="text-lg text-secondary-600 max-w-2xl mx-auto">
-              Choose the plan that fits your needs. All plans include a 14-day free trial.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pricingPlans.map((plan) => (
-              <Card
-                key={plan.name}
-                className={`p-6 relative ${plan.popular ? 'border-2 border-primary-500 shadow-elevated' : ''}`}
-              >
-                {plan.popular && (
-                  <Badge variant="primary" className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    Most Popular
-                  </Badge>
-                )}
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-secondary-900">{plan.price}</span>
-                    <span className="text-secondary-500">/{plan.period}</span>
-                  </div>
-                  <p className="text-sm text-secondary-500 mt-2">{plan.description}</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-3">
-                      <Icons.Check className="w-5 h-5 text-success-500 flex-shrink-0" />
-                      <span className="text-secondary-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant={plan.popular ? 'primary' : 'outline'}
-                  fullWidth
-                >
-                  {plan.cta}
-                </Button>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+          </Grid>
+        </Container>
+      </Box>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-32 bg-gradient-to-br from-primary-600 to-primary-800">
-        <div className="container-app text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to boost your productivity?
-          </h2>
-          <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who have transformed their workflow with TaskFlow.
-            Start your free trial today.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/register">
-              <Button variant="secondary" size="lg" className="bg-white text-primary-700 hover:bg-primary-50">
-                Get Started Free
-                <Icons.ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <a href="#features">
-              <Button variant="ghost" size="lg" className="text-white hover:bg-primary-700">
+      <Box
+        sx={{
+          py: { xs: 5, lg: 8 },
+          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+        }}
+      >
+        <Container maxWidth="md">
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 2, color: 'white' }}>
+              Ready to boost your productivity?
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 4, color: 'rgba(255,255,255,0.8)', mx: 'auto', maxWidth: 500 }}>
+              Join thousands of users who have transformed their workflow with TaskFlow.
+              Start your free trial today.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center' }}>
+              <Link to="/register">
+                <Button 
+                  variant="contained" 
+                  size="large"
+                  sx={{ bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: 'grey.100' } }}
+                  endIcon={<ArrowForwardIcon />}
+                >
+                  Get Started Free
+                </Button>
+              </Link>
+              <Button 
+                variant="outlined" 
+                size="large"
+                sx={{ color: 'white', borderColor: 'white', '&:hover': { borderColor: 'rgba(255,255,255,0.8)', bgcolor: 'rgba(255,255,255,0.1)' } }}
+                href="#features"
+              >
                 Learn More
               </Button>
-            </a>
-          </div>
-        </div>
-      </section>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
     </PublicLayout>
   );
 };

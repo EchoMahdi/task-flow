@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/index';
-import { Button, Input, Alert, Card, CardBody } from '../components/ui/index';
+import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment } from '@mui/material';
 import { Icons } from '../components/ui/Icons';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import KeyIcon from '@mui/icons-material/Key';
+import EmailIcon from '@mui/icons-material/Email';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -44,65 +48,88 @@ const ForgotPassword = () => {
   if (success) {
     return (
       <AuthLayout>
-        <div className="w-full max-w-md animate-fade-in">
-          <Card className="shadow-elevated">
-            <CardBody className="p-8 text-center">
-              <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icons.Mail className="w-8 h-8 text-success-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary-900 mb-2">
+        <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Card sx={{ boxShadow: 4 }}>
+            <CardContent sx={{ p: 4, textAlign: 'center' }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: '50%', 
+                bgcolor: 'success.light', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}>
+                <CheckCircleIcon sx={{ fontSize: 32, color: 'success.main' }} />
+              </Box>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
                 Check your email
-              </h1>
-              <p className="text-secondary-500 mb-6">
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 We've sent a password reset link to{' '}
-                <span className="font-medium text-secondary-700">{email}</span>
-              </p>
-              <p className="text-sm text-secondary-500 mb-6">
+                <Typography component="span" variant="body2" sx={{ fontWeight: 500 }}>
+                  {email}
+                </Typography>
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Didn't receive the email? Check your spam folder or{' '}
-                <button
+                <Typography 
+                  component="span" 
+                  variant="body2" 
+                  color="primary" 
+                  sx={{ cursor: 'pointer', fontWeight: 500 }}
                   onClick={() => setSuccess(false)}
-                  className="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   try again
-                </button>
-              </p>
+                </Typography>
+              </Typography>
               <Link to="/login">
-                <Button variant="outline" fullWidth>
-                  <Icons.ArrowLeft className="w-4 h-4 mr-2" />
+                <Button variant="outlined" fullWidth startIcon={<ArrowBackIcon />}>
                   Back to sign in
                 </Button>
               </Link>
-            </CardBody>
+            </CardContent>
           </Card>
-        </div>
+        </Box>
       </AuthLayout>
     );
   }
 
   return (
     <AuthLayout>
-      <div className="w-full max-w-md animate-fade-in">
-        <Card className="shadow-elevated">
-          <CardBody className="p-8">
+      <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+        <Card sx={{ boxShadow: 4 }}>
+          <CardContent sx={{ p: 4 }}>
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icons.Key className="w-8 h-8 text-primary-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary-900 mb-2">
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: '50%', 
+                bgcolor: 'primary.light', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}>
+                <KeyIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+              </Box>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
                 Forgot your password?
-              </h1>
-              <p className="text-secondary-500">
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 No worries, we'll send you reset instructions.
-              </p>
-            </div>
+              </Typography>
+            </Box>
 
             {/* Error Alert */}
             {error && (
-              <Alert
-                variant="danger"
-                className="mb-6"
-                icon={<Icons.ExclamationCircle className="w-5 h-5" />}
+              <Alert 
+                severity="error" 
+                sx={{ mb: 3 }}
                 onClose={() => setError('')}
               >
                 {error}
@@ -110,8 +137,8 @@ const ForgotPassword = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <Input
+            <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <TextField
                 label="Email address"
                 type="email"
                 value={email}
@@ -120,14 +147,23 @@ const ForgotPassword = () => {
                   setError('');
                 }}
                 placeholder="you@example.com"
-                error={error}
-                icon={<Icons.Mail className="w-5 h-5" />}
+                error={!!error}
+                helperText={error}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
                 autoComplete="email"
                 autoFocus
+                fullWidth
               />
 
               <Button
                 type="submit"
+                variant="contained"
                 fullWidth
                 loading={loading}
                 disabled={loading}
@@ -137,18 +173,24 @@ const ForgotPassword = () => {
             </form>
 
             {/* Back to login */}
-            <div className="mt-8 text-center">
+            <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Link
                 to="/login"
-                className="inline-flex items-center text-sm text-secondary-500 hover:text-secondary-700"
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  fontSize: '0.875rem', 
+                  color: '#65676b', 
+                  textDecoration: 'none' 
+                }}
               >
-                <Icons.ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowBackIcon sx={{ fontSize: 16, mr: 0.5 }} />
                 Back to sign in
               </Link>
-            </div>
-          </CardBody>
+            </Box>
+          </CardContent>
         </Card>
-      </div>
+      </Box>
     </AuthLayout>
   );
 };

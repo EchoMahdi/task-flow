@@ -235,7 +235,7 @@ export const TaskRow = ({
           </span>
         )}
 
-        {/* Priority Badge */}
+        {/* Priority Chip */}
         {task.priority && task.priority !== 'none' && (
           <span
             className={[

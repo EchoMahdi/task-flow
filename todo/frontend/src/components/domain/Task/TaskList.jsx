@@ -62,7 +62,7 @@ const sortTasks = (tasks, sortBy, sortOrder) => {
  * @param {string} props.sortBy - Sort field
  * @param {string} props.sortOrder - Sort order
  */
-export const TaskList = ({
+ const TaskList = ({
   tasks = [],
   onToggleTask,
   onUpdateTask,
@@ -218,11 +218,12 @@ export const TaskList = ({
               <h3 className="task-list__group-title">
                 {groupDate === 'no-date' ? 'No due date' : groupDate}
               </h3>
-              <div className="task-list__group-items">
-                {groupTasks.map((task) => (
+              <div className="task-list__group-items stagger-children">
+                {groupTasks.map((task, index) => (
                   <TaskRow
                     key={task.id}
                     task={task}
+                    index={index}
                     onToggle={handleToggleTask}
                     onEdit={handleUpdateTask}
                     onOpenDetail={handleOpenDetail}
@@ -233,15 +234,18 @@ export const TaskList = ({
           ))
         ) : (
           // Flat view
-          filteredTasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              onToggle={handleToggleTask}
-              onEdit={handleUpdateTask}
-              onOpenDetail={handleOpenDetail}
-            />
-          ))
+          <div className="task-list__items-list stagger-children">
+            {filteredTasks.map((task, index) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                index={index}
+                onToggle={handleToggleTask}
+                onEdit={handleUpdateTask}
+                onOpenDetail={handleOpenDetail}
+              />
+            ))}
+          </div>
         )}
       </div>
       

@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { MainLayout } from '../components/layout/index';
-import { Card, CardBody, Button, Toggle, Select, Alert, PageHeader, Divider } from '../components/ui/index';
+import { 
+  Card, CardContent, Button, Switch, Alert, 
+  Box, Typography, FormControl, InputLabel, Select, MenuItem, 
+  Divider, Container
+} from '@mui/material';
+import PageHeader from '../components/ui/PageHeader';
 import { Icons } from '../components/ui/Icons';
 import { preferenceService } from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
@@ -9,10 +13,9 @@ import { useI18n } from '../context/I18nContext';
 import { useTheme } from '../App';
 
 const Settings = () => {
-  const { user, refreshUser, logout } = useAuth();
-  const { t, changeLanguage, direction } = useI18n();
+  const { user, refreshUser } = useAuth();
+  const { t, changeLanguage } = useI18n();
   const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -35,9 +38,9 @@ const Settings = () => {
     theme: 'light',
     language: 'en',
     calendarType: 'gregorian',
-    dateFormat: 'm/d/Y',  // PHP format
-    timeFormat: 'h:i A',  // PHP format
-    startOfWeek: 1,  // monday = 1
+    dateFormat: 'm/d/Y',
+    timeFormat: 'h:i A',
+    startOfWeek: 1,
     defaultTaskView: 'list',
     showWeekNumbers: false,
   });
@@ -92,7 +95,6 @@ const Settings = () => {
         const prefs = await preferenceService.getPreferences();
         
         if (prefs) {
-          // Map backend snake_case to frontend camelCase
           setNotifications({
             emailNotifications: prefs.email_notifications ?? true,
             pushNotifications: prefs.push_notifications ?? true,
@@ -130,9 +132,8 @@ const Settings = () => {
   const handleNotificationChange = async (key) => {
     const newValue = !notifications[key];
     setNotifications((prev) => ({ ...prev, [key]: newValue }));
-    setSuccess(''); // Clear previous success messages
+    setSuccess('');
     
-    // Auto-save notification settings
     try {
       setSaving(true);
       const data = {
@@ -152,7 +153,6 @@ const Settings = () => {
       setSuccess('Setting saved!');
     } catch (err) {
       console.error('Failed to save notification setting:', err);
-      // Revert the change on error
       setNotifications((prev) => ({ ...prev, [key]: !newValue }));
       setError('Failed to save setting. Please try again.');
     } finally {
@@ -160,44 +160,27 @@ const Settings = () => {
     }
   };
 
-  // Sync preferences with theme context on mount
-  useEffect(() => {
-    if (theme) {
-      setPreferences(prev => ({ ...prev, theme }))
-    }
-  }, [theme])
-
   const handlePreferenceChange = (e) => {
     const { name, value } = e.target;
     setPreferences((prev) => ({ ...prev, [name]: value }));
-    setSuccess(''); // Clear previous success messages
+    setSuccess('');
     
-    // Apply theme change immediately
     if (name === 'theme') {
       setTheme(value);
     }
     
-    // Apply language change immediately
     if (name === 'language') {
       changeLanguage(value);
     }
   };
 
-  // Handle dark mode toggle directly
-  const handleDarkModeToggle = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    setPreferences(prev => ({ ...prev, theme: newTheme }));
-  };
-
-  // REAL API call to save settings - no more mock behavior
+  // REAL API call to save settings
   const handleSave = async () => {
     setSaving(true);
     setError('');
     setSuccess('');
 
     try {
-      // Convert frontend format to backend format
       const backendDateFormat = getBackendDateFormat(preferences.dateFormat);
       const backendTimeFormat = getBackendTimeFormat(preferences.timeFormat);
       const startOfWeekMap = {
@@ -206,7 +189,6 @@ const Settings = () => {
         'saturday': 6,
       };
 
-      // Combine notifications and preferences into one object
       const data = {
         ...notifications,
         theme: preferences.theme,
@@ -219,10 +201,7 @@ const Settings = () => {
         show_week_numbers: preferences.showWeekNumbers,
       };
       
-      // Make real API call to backend
       await preferenceService.updatePreferences(data);
-      
-      // Refresh user data to get updated preferences
       await refreshUser();
       
       setSuccess('Settings saved successfully!');
@@ -234,7 +213,7 @@ const Settings = () => {
     }
   };
 
-  // Handle export data - creates real downloadable file
+  // Handle export data
   const handleExportData = async () => {
     if (!window.confirm('Are you sure you want to export all your data?')) return;
     
@@ -242,7 +221,6 @@ const Settings = () => {
       setLoading(true);
       const blob = await preferenceService.exportData();
       
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -261,7 +239,7 @@ const Settings = () => {
     }
   };
 
-  // Handle delete account - permanent deletion
+  // Handle delete account
   const handleDeleteAccount = async () => {
     const confirmation = window.confirm(
       '⚠️ WARNING: This will PERMANENTLY delete your account and ALL associated data.\n\nThis action CANNOT be undone.\n\nAre you absolutely sure you want to continue?'
@@ -282,7 +260,6 @@ const Settings = () => {
       setLoading(true);
       await preferenceService.deleteAccount();
       
-      // Clear local storage and redirect to home
       localStorage.removeItem('auth_token');
       window.location.href = '/';
     } catch (err) {
@@ -303,79 +280,72 @@ const Settings = () => {
     { value: 'fa', label: t ? t('settings.languageFa') : 'Persian (فارسی)' },
   ];
 
-  const calendarOptions = [
-    { value: 'gregorian', label: 'Gregorian' },
-    { value: 'jalali', label: 'Jalali (شمسی)' },
-  ];
-
-  const dateFormatOptions = [
-    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY' },
-    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY' },
-    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
-  ];
-
-  const timeFormatOptions = [
-    { value: '12h', label: '12-hour (AM/PM)' },
-    { value: '24h', label: '24-hour' },
-  ];
-
-  const weekStartOptions = [
-    { value: 'sunday', label: 'Sunday' },
-    { value: 'monday', label: 'Monday' },
-    { value: 'saturday', label: 'Saturday' },
-  ];
-
-  const taskViewOptions = [
-    { value: 'list', label: 'List View' },
-    { value: 'board', label: 'Board View' },
-    { value: 'calendar', label: 'Calendar View' },
-  ];
-
   const SettingSection = ({ title, description, children }) => (
-    <div className="py-6 first:pt-0 last:pb-0">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-secondary-900">{title}</h3>
-        {description && <p className="text-sm text-secondary-500 mt-1">{description}</p>}
-      </div>
+    <Box sx={{ py: 3 }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+          {title}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+        )}
+      </Box>
       {children}
-    </div>
+    </Box>
   );
 
   const SettingRow = ({ label, description, children }) => (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex-1 pr-4">
-        <p className="font-medium text-secondary-900">{label}</p>
-        {description && <p className="text-sm text-secondary-500 mt-0.5">{description}</p>}
-      </div>
-      <div className="flex-shrink-0">{children}</div>
-    </div>
+    <Box sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between',
+      py: 2,
+      borderBottom: 1,
+      borderColor: 'divider',
+    }}>
+      <Box sx={{ flex: 1, mr: 2 }}>
+        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+          {label}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+        )}
+      </Box>
+      <Box sx={{ flexShrink: 0 }}>
+        {children}
+      </Box>
+    </Box>
   );
 
   if (loading && !dataLoaded) {
     return (
       <MainLayout>
-        <div className="max-w-3xl mx-auto">
+        <Container maxWidth="md">
           <PageHeader
             title="Settings"
             description="Manage your app preferences and notification settings"
           />
-          <Card className="mb-6">
-            <CardBody>
-              <div className="animate-pulse space-y-4">
-                <div className="h-6 bg-secondary-200 rounded w-1/4"></div>
-                <div className="h-10 bg-secondary-200 rounded"></div>
-                <div className="h-10 bg-secondary-200 rounded"></div>
-              </div>
-            </CardBody>
+          <Card>
+            <CardContent>
+              <Box sx={{ opacity: 0.5 }}>
+                <Box sx={{ height: 32, width: '25%', bgcolor: 'grey.300', borderRadius: 1, mb: 2 }} />
+                <Box sx={{ height: 48, bgcolor: 'grey.300', borderRadius: 1, mb: 1 }} />
+                <Box sx={{ height: 48, bgcolor: 'grey.300', borderRadius: 1 }} />
+              </Box>
+            </CardContent>
           </Card>
-        </div>
+        </Container>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto">
+      <Container maxWidth="md">
         <PageHeader
           title="Settings"
           description="Manage your app preferences and notification settings"
@@ -383,20 +353,18 @@ const Settings = () => {
 
         {/* Success/Error Alerts */}
         {success && (
-          <Alert
-            variant="success"
-            className="mb-6"
-            icon={<Icons.CheckCircle className="w-5 h-5" />}
+          <Alert 
+            severity="success" 
+            sx={{ mb: 3 }}
             onClose={() => setSuccess('')}
           >
             {success}
           </Alert>
         )}
         {error && (
-          <Alert
-            variant="danger"
-            className="mb-6"
-            icon={<Icons.ExclamationCircle className="w-5 h-5" />}
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
             onClose={() => setError('')}
           >
             {error}
@@ -404,20 +372,21 @@ const Settings = () => {
         )}
 
         {/* Notification Settings */}
-        <Card className="mb-6">
-          <CardBody>
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
             <SettingSection
               title="Notification Preferences"
               description="Choose how you want to be notified about your tasks and updates"
             >
-              <div className="divide-y divide-secondary-100">
+              <Box sx={{ borderTop: 1, borderBottom: 1, borderColor: 'divider' }}>
                 <SettingRow
                   label="Email Notifications"
                   description="Receive notifications via email"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.emailNotifications}
                     onChange={() => handleNotificationChange('emailNotifications')}
+                    disabled={saving}
                   />
                 </SettingRow>
 
@@ -425,9 +394,10 @@ const Settings = () => {
                   label="Push Notifications"
                   description="Receive push notifications in your browser"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.pushNotifications}
                     onChange={() => handleNotificationChange('pushNotifications')}
+                    disabled={saving}
                   />
                 </SettingRow>
 
@@ -435,9 +405,10 @@ const Settings = () => {
                   label="Task Reminders"
                   description="Get reminded about upcoming and overdue tasks"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.taskReminders}
                     onChange={() => handleNotificationChange('taskReminders')}
+                    disabled={saving}
                   />
                 </SettingRow>
 
@@ -445,9 +416,10 @@ const Settings = () => {
                   label="Daily Digest"
                   description="Receive a daily summary of your tasks"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.dailyDigest}
                     onChange={() => handleNotificationChange('dailyDigest')}
+                    disabled={saving}
                   />
                 </SettingRow>
 
@@ -455,9 +427,10 @@ const Settings = () => {
                   label="Weekly Report"
                   description="Get a weekly productivity report"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.weeklyReport}
                     onChange={() => handleNotificationChange('weeklyReport')}
+                    disabled={saving}
                   />
                 </SettingRow>
 
@@ -465,177 +438,213 @@ const Settings = () => {
                   label="Marketing Emails"
                   description="Receive updates about new features and promotions"
                 >
-                  <Toggle
+                  <Switch
                     checked={notifications.marketingEmails}
                     onChange={() => handleNotificationChange('marketingEmails')}
+                    disabled={saving}
                   />
                 </SettingRow>
-              </div>
+              </Box>
             </SettingSection>
-          </CardBody>
+          </CardContent>
         </Card>
 
         {/* App Preferences */}
-        <Card className="mb-6">
-          <CardBody>
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
             <SettingSection
               title="App Preferences"
               description="Customize how the app looks and behaves"
             >
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    label={t ? t('settings.theme') : 'Theme'}
-                    name="theme"
-                    value={preferences.theme}
-                    onChange={handlePreferenceChange}
-                    options={themeOptions}
-                  />
-                  <Select
-                    label={t ? t('settings.language') : 'Language'}
-                    name="language"
-                    value={preferences.language}
-                    onChange={handlePreferenceChange}
-                    options={languageOptions}
-                  />
-                </div>
-                
-                {/* Dark Mode Toggle */}
-                <div className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg border border-secondary-200">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary-100' : 'bg-secondary-200'}`}>
-                      {theme === 'dark' ? (
-                        <Icons.Moon className="w-5 h-5 text-primary-600" />
-                      ) : (
-                        <Icons.Sun className="w-5 h-5 text-warning-500" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">
-                        {t ? t('settings.darkMode') : 'Dark Mode'}
-                      </div>
-                      <div className="text-xs text-secondary-500">
-                        {theme === 'dark' 
-                          ? (t ? t('settings.darkModeOn') : 'Dark mode is enabled')
-                          : (t ? t('settings.darkModeOff') : 'Switch between light and dark theme')
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <Toggle
-                    checked={theme === 'dark'}
-                    onChange={handleDarkModeToggle}
-                  />
-                </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Theme</InputLabel>
+                    <Select
+                      name="theme"
+                      value={preferences.theme}
+                      onChange={handlePreferenceChange}
+                      label="Theme"
+                    >
+                      {themeOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Language</InputLabel>
+                    <Select
+                      name="language"
+                      value={preferences.language}
+                      onChange={handlePreferenceChange}
+                      label="Language"
+                    >
+                      {languageOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    label="Calendar Type"
-                    name="calendarType"
-                    value={preferences.calendarType}
-                    onChange={handlePreferenceChange}
-                    options={calendarOptions}
-                  />
-                  <Select
-                    label="Date Format"
-                    name="dateFormat"
-                    value={preferences.dateFormat}
-                    onChange={handlePreferenceChange}
-                    options={dateFormatOptions}
-                  />
-                  <Select
-                    label="Time Format"
-                    name="timeFormat"
-                    value={preferences.timeFormat}
-                    onChange={handlePreferenceChange}
-                    options={timeFormatOptions}
-                  />
-                </div>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Date Format</InputLabel>
+                    <Select
+                      name="dateFormat"
+                      value={preferences.dateFormat}
+                      onChange={handlePreferenceChange}
+                      label="Date Format"
+                    >
+                      <MenuItem value="MM/DD/YYYY">MM/DD/YYYY</MenuItem>
+                      <MenuItem value="DD/MM/YYYY">DD/MM/YYYY</MenuItem>
+                      <MenuItem value="YYYY-MM-DD">YYYY-MM-DD</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Time Format</InputLabel>
+                    <Select
+                      name="timeFormat"
+                      value={preferences.timeFormat}
+                      onChange={handlePreferenceChange}
+                      label="Time Format"
+                    >
+                      <MenuItem value="12h">12-hour (AM/PM)</MenuItem>
+                      <MenuItem value="24h">24-hour</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    label="Start of Week"
-                    name="startOfWeek"
-                    value={preferences.startOfWeek}
-                    onChange={handlePreferenceChange}
-                    options={weekStartOptions}
-                  />
-                  <Select
-                    label="Default Task View"
-                    name="defaultTaskView"
-                    value={preferences.defaultTaskView}
-                    onChange={handlePreferenceChange}
-                    options={taskViewOptions}
-                  />
-                </div>
-              </div>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Start of Week</InputLabel>
+                    <Select
+                      name="startOfWeek"
+                      value={preferences.startOfWeek}
+                      onChange={handlePreferenceChange}
+                      label="Start of Week"
+                    >
+                      <MenuItem value="sunday">Sunday</MenuItem>
+                      <MenuItem value="monday">Monday</MenuItem>
+                      <MenuItem value="saturday">Saturday</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Default Task View</InputLabel>
+                    <Select
+                      name="defaultTaskView"
+                      value={preferences.defaultTaskView}
+                      onChange={handlePreferenceChange}
+                      label="Default Task View"
+                    >
+                      <MenuItem value="list">List View</MenuItem>
+                      <MenuItem value="board">Board View</MenuItem>
+                      <MenuItem value="calendar">Calendar View</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
             </SettingSection>
-          </CardBody>
+          </CardContent>
         </Card>
 
         {/* Data & Privacy */}
-        <Card className="mb-6">
-          <CardBody>
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
             <SettingSection
               title="Data & Privacy"
               description="Manage your data and privacy settings"
             >
-              <div className="space-y-4">
-                <div className="p-4 bg-secondary-50 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Icons.Document className="w-5 h-5 text-secondary-500 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-secondary-900">Export Your Data</h4>
-                      <p className="text-sm text-secondary-500 mt-1">
-                        Download a copy of all your tasks and account data.
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-3"
-                        onClick={handleExportData}
-                        loading={loading}
-                        disabled={loading}
-                      >
-                        Export Data
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box 
+                  sx={{ 
+                    p: 3, 
+                    bgcolor: 'grey.50', 
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 2
+                  }}
+                >
+                  <Box sx={{ color: 'text.secondary', mt: 0.5 }}>
+                    <Icons.Document />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      Export Your Data
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      Download a copy of all your tasks and account data.
+                    </Typography>
+                    <Button 
+                      variant="outlined" 
+                      size="small" 
+                      sx={{ mt: 2 }}
+                      onClick={handleExportData}
+                      disabled={loading}
+                    >
+                      Export Data
+                    </Button>
+                  </Box>
+                </Box>
 
-                <div className="p-4 bg-danger-50 rounded-lg border border-danger-200">
-                  <div className="flex items-start gap-3">
-                    <Icons.ExclamationTriangle className="w-5 h-5 text-danger-500 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-danger-900">Delete Account</h4>
-                      <p className="text-sm text-danger-700 mt-1">
-                        Permanently delete your account and all associated data. This action cannot be undone.
-                      </p>
-                      <Button 
-                        variant="danger" 
-                        size="sm" 
-                        className="mt-3"
-                        onClick={handleDeleteAccount}
-                        loading={loading}
-                        disabled={loading}
-                      >
-                        Delete Account
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                <Box 
+                  sx={{ 
+                    p: 3, 
+                    bgcolor: 'error.light', 
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: 'error.light',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 2
+                  }}
+                >
+                  <Box sx={{ color: 'error.main', mt: 0.5 }}>
+                    <Icons.ExclamationTriangle />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: 'error.dark' }}>
+                      Delete Account
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 0.5, color: 'error.dark' }}>
+                      Permanently delete your account and all associated data. This action cannot be undone.
+                    </Typography>
+                    <Button 
+                      variant="contained" 
+                      color="error"
+                      size="small" 
+                      sx={{ mt: 2 }}
+                      onClick={handleDeleteAccount}
+                      disabled={loading}
+                    >
+                      Delete Account
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
             </SettingSection>
-          </CardBody>
+          </CardContent>
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} loading={saving} disabled={saving}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button 
+            variant="contained" 
+            onClick={handleSave} 
+            loading={saving}
+            disabled={saving}
+          >
             Save All Settings
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Container>
     </MainLayout>
   );
 };

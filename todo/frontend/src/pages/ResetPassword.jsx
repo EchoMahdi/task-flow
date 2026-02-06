@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/index';
-import { Button, Input, Alert, Card, CardBody } from '../components/ui/index';
+import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton, LinearProgress } from '@mui/material';
 import { Icons } from '../components/ui/Icons';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import LockIcon from '@mui/icons-material/Lock';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -84,11 +90,11 @@ const ResetPassword = () => {
     if (/[^a-zA-Z\d]/.test(password)) strength++;
     
     const levels = [
-      { strength: 1, label: 'Weak', color: 'bg-danger-500' },
-      { strength: 2, label: 'Fair', color: 'bg-warning-500' },
-      { strength: 3, label: 'Good', color: 'bg-warning-400' },
-      { strength: 4, label: 'Strong', color: 'bg-success-500' },
-      { strength: 5, label: 'Very Strong', color: 'bg-success-600' },
+      { strength: 1, label: 'Weak', color: '#ef4444' },
+      { strength: 2, label: 'Fair', color: '#f97316' },
+      { strength: 3, label: 'Good', color: '#eab308' },
+      { strength: 4, label: 'Strong', color: '#22c55e' },
+      { strength: 5, label: 'Very Strong', color: '#15803d' },
     ];
     
     return levels[strength - 1] || { strength: 0, label: '', color: '' };
@@ -100,26 +106,36 @@ const ResetPassword = () => {
   if (!token) {
     return (
       <AuthLayout>
-        <div className="w-full max-w-md animate-fade-in">
-          <Card className="shadow-elevated">
-            <CardBody className="p-8 text-center">
-              <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icons.ExclamationCircle className="w-8 h-8 text-danger-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary-900 mb-2">
+        <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Card sx={{ boxShadow: 4 }}>
+            <CardContent sx={{ p: 4, textAlign: 'center' }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: '50%', 
+                bgcolor: 'error.light', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}>
+                <ErrorIcon sx={{ fontSize: 32, color: 'error.main' }} />
+              </Box>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
                 Invalid Reset Link
-              </h1>
-              <p className="text-secondary-500 mb-6">
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 This password reset link is invalid or has expired. Please request a new one.
-              </p>
+              </Typography>
               <Link to="/forgot-password">
-                <Button fullWidth>
+                <Button variant="contained" fullWidth>
                   Request New Link
                 </Button>
               </Link>
-            </CardBody>
+            </CardContent>
           </Card>
-        </div>
+        </Box>
       </AuthLayout>
     );
   }
@@ -128,54 +144,73 @@ const ResetPassword = () => {
   if (success) {
     return (
       <AuthLayout>
-        <div className="w-full max-w-md animate-fade-in">
-          <Card className="shadow-elevated">
-            <CardBody className="p-8 text-center">
-              <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icons.CheckCircle className="w-8 h-8 text-success-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary-900 mb-2">
+        <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+          <Card sx={{ boxShadow: 4 }}>
+            <CardContent sx={{ p: 4, textAlign: 'center' }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: '50%', 
+                bgcolor: 'success.light', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}>
+                <CheckCircleIcon sx={{ fontSize: 32, color: 'success.main' }} />
+              </Box>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
                 Password Reset Successful
-              </h1>
-              <p className="text-secondary-500 mb-6">
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Your password has been successfully reset. You can now sign in with your new password.
-              </p>
+              </Typography>
               <Link to="/login">
-                <Button fullWidth>
+                <Button variant="contained" fullWidth>
                   Sign in
                 </Button>
               </Link>
-            </CardBody>
+            </CardContent>
           </Card>
-        </div>
+        </Box>
       </AuthLayout>
     );
   }
 
   return (
     <AuthLayout>
-      <div className="w-full max-w-md animate-fade-in">
-        <Card className="shadow-elevated">
-          <CardBody className="p-8">
+      <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+        <Card sx={{ boxShadow: 4 }}>
+          <CardContent sx={{ p: 4 }}>
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Icons.Lock className="w-8 h-8 text-primary-600" />
-              </div>
-              <h1 className="text-2xl font-bold text-secondary-900 mb-2">
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                borderRadius: '50%', 
+                bgcolor: 'primary.light', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3
+              }}>
+                <LockIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+              </Box>
+              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
                 Set new password
-              </h1>
-              <p className="text-secondary-500">
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 Your new password must be different from previously used passwords.
-              </p>
-            </div>
+              </Typography>
+            </Box>
 
             {/* Error Alert */}
             {apiError && (
-              <Alert
-                variant="danger"
-                className="mb-6"
-                icon={<Icons.ExclamationCircle className="w-5 h-5" />}
+              <Alert 
+                severity="error" 
+                sx={{ mb: 3 }}
                 onClose={() => setApiError('')}
               >
                 {apiError}
@@ -183,67 +218,97 @@ const ResetPassword = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <Input
+            <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box>
+                <TextField
                   label="New password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  error={errors.password}
-                  icon={<Icons.Lock className="w-5 h-5" />}
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon sx={{ fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                   autoComplete="new-password"
                   autoFocus
+                  fullWidth
                 />
                 {formData.password && (
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-secondary-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                          style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-secondary-500">{passwordStrength.label}</span>
-                    </div>
-                  </div>
+                  <Box sx={{ mt: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={(passwordStrength.strength / 5) * 100}
+                        sx={{ 
+                          flex: 1, 
+                          height: 6, 
+                          borderRadius: 3,
+                          bgcolor: 'grey.200',
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: passwordStrength.color
+                          }
+                        }}
+                      />
+                      <Typography variant="caption" color="text.secondary">
+                        {passwordStrength.label}
+                      </Typography>
+                    </Box>
+                  </Box>
                 )}
-              </div>
+              </Box>
 
-              <Input
+              <TextField
                 label="Confirm new password"
                 type={showPassword ? 'text' : 'password'}
                 name="password_confirmation"
                 value={formData.password_confirmation}
                 onChange={handleChange}
                 placeholder="••••••••"
-                error={errors.password_confirmation}
-                icon={<Icons.Lock className="w-5 h-5" />}
+                error={!!errors.password_confirmation}
+                helperText={errors.password_confirmation}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                }}
                 autoComplete="new-password"
+                fullWidth
               />
 
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="text-xs text-secondary-500 hover:text-secondary-700 flex items-center gap-1"
-              >
-                {showPassword ? (
-                  <>
-                    <Icons.EyeSlash className="w-4 h-4" />
-                    Hide passwords
-                  </>
-                ) : (
-                  <>
-                    <Icons.Eye className="w-4 h-4" />
-                    Show passwords
-                  </>
-                )}
-              </button>
+              <Box>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary"
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? 'Hide passwords' : 'Show passwords'}
+                </Typography>
+              </Box>
 
               <Button
                 type="submit"
+                variant="contained"
                 fullWidth
                 loading={loading}
                 disabled={loading}
@@ -253,18 +318,24 @@ const ResetPassword = () => {
             </form>
 
             {/* Back to login */}
-            <div className="mt-8 text-center">
+            <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Link
                 to="/login"
-                className="inline-flex items-center text-sm text-secondary-500 hover:text-secondary-700"
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  fontSize: '0.875rem', 
+                  color: '#65676b', 
+                  textDecoration: 'none' 
+                }}
               >
-                <Icons.ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowBackIcon sx={{ fontSize: 16, mr: 0.5 }} />
                 Back to sign in
               </Link>
-            </div>
-          </CardBody>
+            </Box>
+          </CardContent>
         </Card>
-      </div>
+      </Box>
     </AuthLayout>
   );
 };

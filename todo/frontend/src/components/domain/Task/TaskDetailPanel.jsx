@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icons } from '../../ui/Icons';
-import { Input, Textarea, Select } from '../../ui/index';
+import { Input,  TextField, Select } from '../../ui/index';
 import './TaskDetailPanel.css';
 
 /**
@@ -214,7 +214,8 @@ export const TaskDetailPanel = ({
 
           {/* Description */}
           <div className="task-detail-panel__field">
-            <Textarea
+            < TextField
+             multiline
               label="Description"
               name="description"
               value={formData.description}
