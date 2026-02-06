@@ -5,6 +5,8 @@
  * All dates are stored in Gregorian format, conversion happens only for display.
  */
 
+import { toPersianNumerals } from '../utils/persianNumerals';
+
 const JALALI_EPOCH = 1948321; // Julian day for 622-03-19 (Islamic New Year)
 const GREGORIAN_EPOCH = 1721426; // Julian day for 1-01-01 (Gregorian)
 
@@ -200,6 +202,11 @@ export function formatDate(date, format = 'YYYY/MM/DD', calendar = 'gregorian', 
       formatted = formatted.replace(new RegExp(key, 'g'), value);
     });
     
+    // Convert numerals to Persian for Persian locale
+    if (locale === 'fa') {
+      formatted = toPersianNumerals(formatted);
+    }
+    
     return formatted;
   } else {
     // Gregorian
@@ -229,6 +236,11 @@ export function formatDate(date, format = 'YYYY/MM/DD', calendar = 'gregorian', 
     Object.entries(replacements).forEach(([key, value]) => {
       formatted = formatted.replace(new RegExp(key, 'g'), value);
     });
+    
+    // Convert numerals to Persian for Persian locale
+    if (locale === 'fa') {
+      formatted = toPersianNumerals(formatted);
+    }
     
     return formatted;
   }
@@ -326,10 +338,10 @@ export function getRelativeTime(date, calendar = 'gregorian', locale = 'en') {
   
   if (locale === 'fa') {
     if (diffSec < 60) return 'همین لحظه';
-    if (diffMin < 60) return `${diffMin} دقیقه پیش`;
-    if (diffHour < 24) return `${diffHour} ساعت پیش`;
+    if (diffMin < 60) return `${toPersianNumerals(diffMin)} دقیقه پیش`;
+    if (diffHour < 24) return `${toPersianNumerals(diffHour)} ساعت پیش`;
     if (diffDay === 1) return 'دیروز';
-    if (diffDay < 7) return `${diffDay} روز پیش`;
+    if (diffDay < 7) return `${toPersianNumerals(diffDay)} روز پیش`;
     return formatDate(date, 'YYYY/MM/DD', calendar, locale);
   } else {
     if (diffSec < 60) return 'Just now';

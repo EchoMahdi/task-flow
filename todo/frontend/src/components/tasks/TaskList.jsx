@@ -1,5 +1,4 @@
 import React from 'react';
-import { format } from 'date-fns';
 import {
   Box,
   Card,
@@ -12,6 +11,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DateDisplay from '../../ui/DateDisplay';
+
 
 function TaskList({ tasks, onToggleComplete, onEdit, onDelete, loading }) {
   const getPriorityColor = (priority) => {
@@ -85,9 +86,7 @@ function TaskList({ tasks, onToggleComplete, onEdit, onDelete, loading }) {
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                   {task.due_date && (
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Due: {format(new Date(task.due_date), 'MMM d, yyyy')}
-                    </Typography>
+                     <DateDisplay date={due_date} variant="compact" />
                   )}
                   
                   {task.tags && task.tags.length > 0 && (

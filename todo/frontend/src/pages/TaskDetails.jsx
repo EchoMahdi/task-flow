@@ -22,6 +22,7 @@ import {
   IconButton
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
+import DateDisplay from '../components/ui/DateDisplay';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -113,24 +114,6 @@ const TaskDetails = () => {
     };
     const { color, label } = config[status] || config.pending;
     return <Chip color={color} label={label} />;
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   const getActivityIcon = (type) => {
@@ -386,7 +369,9 @@ const TaskDetails = () => {
                           <Typography variant="body2" sx={{ color: 'text.primary' }}>{getActivityText(activity)}</Typography>
                         }
                         secondary={
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{formatDateTime(activity.timestamp)}</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            <DateDisplay date={activity.timestamp} showTime={true} variant="compact" />
+                          </Typography>
                         }
                       />
                     </ListItem>
@@ -409,7 +394,7 @@ const TaskDetails = () => {
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Due Date</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
-                      {formatDate(task.dueDate)}
+                      <DateDisplay date={task.dueDate} variant="compact" />
                       {task.dueTime && ` at ${task.dueTime}`}
                     </Typography>
                   </Box>
@@ -425,14 +410,18 @@ const TaskDetails = () => {
                   <ScheduleIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Created</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.createdAt)}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                      <DateDisplay date={task.createdAt} variant="compact" />
+                    </Typography>
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <EditIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
                   <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Last Updated</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>{formatDate(task.updatedAt)}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                      <DateDisplay date={task.updatedAt} variant="compact" />
+                    </Typography>
                   </Box>
                 </Box>
               </Box>

@@ -3,6 +3,22 @@ import dateService from '../services/dateService';
 import datePreferenceService from '../services/datePreferenceService';
 
 /**
+ * Detect if the user's timezone is Iran (Asia/Tehran)
+ * @returns {boolean} True if timezone is Iran
+ */
+function isIranTimezone() {
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return timezone === 'Asia/Tehran' || 
+           timezone === 'Asia/Iran' ||
+           timezone.toLowerCase().includes('tehran') ||
+           timezone.toLowerCase().includes('iran');
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Hook for accessing and managing date formatting preferences
  */
 export function useDateFormat() {
@@ -17,6 +33,22 @@ export function useDateFormat() {
   const [locale, setLocale] = useState(() => {
     return localStorage.getItem('app_language') || 'en';
   });
+
+  // Auto-detect Iran timezone and set calendar to Jalali
+  useEffect(() => {
+    const detectAndSetCalendar = async () => {
+      const currentCalendarType = await datePreferenceService.getCalendarType();
+      const isIran = isIranTimezone();
+      
+      // If timezone is Iran and calendar is not explicitly set to Gregorian, use Jalali
+      if (isIran && currentCalendarType !== 'gregorian') {
+        await datePreferenceService.setCalendarType('jalali');
+        setPreferences(prev => ({ ...prev, calendarType: 'jalali' }));
+      }
+    };
+    
+    detectAndSetCalendar();
+  }, []);
 
   // Update preferences
   const updatePreferences = useCallback((newPrefs) => {
@@ -49,6 +81,18 @@ export function useDateFormat() {
       dateFormat: options.dateFormat || preferences.dateFormat,
       timeFormat: options.timeFormat || preferences.timeFormat,
     });
+  }, [locale, preferences]);
+
+  // Format time only
+  const formatTime = useCallback((date, options = {}) => {
+    if (!date) return '';
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    if (isNaN(date.getTime())) return '';
+    
+    const timeFormat = options.timeFormat || preferences.timeFormat;
+    return dateService.formatDate(date, timeFormat, preferences.calendarType, locale);
   }, [locale, preferences]);
 
   // Format a date range
@@ -104,6 +148,7 @@ export function useDateFormat() {
     setDateFormat,
     setTimeFormat,
     formatDate,
+    formatTime,
     formatDateRange,
     getRelativeTime,
     toJalali,

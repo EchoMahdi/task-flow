@@ -28,6 +28,10 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
+// AppLayout component
+import { AppLayout } from './AppLayout/AppLayout';
+export { AppLayout } from './AppLayout/AppLayout';
+
 // Header Component for authenticated pages
 export const Header = ({ onMenuClick, sidebarOpen }) => {
   const { user, logout } = useAuth();

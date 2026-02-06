@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { MainLayout } from '../components/layout/index';
+import { AppLayout } from '../components/layout/index';
 import { 
   Card, 
   CardContent, 
@@ -203,7 +203,7 @@ const TaskList = () => {
   ];
 
   return (
-    <MainLayout>
+    <AppLayout>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
@@ -498,7 +498,7 @@ const TaskList = () => {
           </Box>
         )}
       </Box>
-    </MainLayout>
+    </AppLayout>
   );
 };
 

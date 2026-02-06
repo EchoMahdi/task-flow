@@ -12,6 +12,7 @@ import CloseIcon from '@mui/icons-material/CloseIcon';
 import DeleteIcon from '@mui/icons-material/DeleteIcon';
 
 import { Input,  TextField, Select } from '../../ui/index';
+import DateDisplay from '../../ui/DateDisplay';
 import './TaskDetailPanel.css';
 
 /**
@@ -280,7 +281,7 @@ export const TaskDetailPanel = ({
               <span className="task-detail-panel__meta-label">Created</span>
               <span className="task-detail-panel__meta-value">
                 {task.createdAt 
-                  ? new Date(task.createdAt).toLocaleDateString()
+                  ? <DateDisplay date={task.createdAt} variant="compact" />
                   : 'Unknown'
                 }
               </span>
@@ -289,7 +290,7 @@ export const TaskDetailPanel = ({
               <div className="task-detail-panel__meta-item">
                 <span className="task-detail-panel__meta-label">Updated</span>
                 <span className="task-detail-panel__meta-value">
-                  {new Date(task.updatedAt).toLocaleDateString()}
+                  <DateDisplay date={task.updatedAt} variant="compact" />
                 </span>
               </div>
             )}

@@ -12,20 +12,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
-/**
- * Format date for display
- * @param {string} dateString - ISO date string
- * @returns {string} Formatted date
- */
-const formatDate = (dateString) => {
-  if (!dateString) return null;
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-};
+import DateDisplay from '../../ui/DateDisplay';
 
 /**
  * Check if date is overdue
@@ -227,11 +214,10 @@ export const TaskRow = ({
               isOverdue(task.dueDate) && 'task-row__due-date--overdue',
               isDueToday(task.dueDate) && 'task-row__due-date--today',
             ].filter(Boolean).join(' ')}
-            aria-label={`Due date: ${formatDate(task.dueDate)}`}
           >
             <CalendarTodayIcon className="task-row__icon" aria-hidden="true" />
             <span className="sr-only">Due: </span>
-            {formatDate(task.dueDate)}
+            <DateDisplay date={task.dueDate} variant="compact" />
           </span>
         )}
 

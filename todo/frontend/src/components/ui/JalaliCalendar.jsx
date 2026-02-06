@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import dateService from '../../services/dateService';
+import { toPersianNumerals } from '../../utils/persianNumerals';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -152,6 +153,9 @@ const JalaliCalendar = ({
                       currentMonth === viewMonth && 
                       currentJalali.day === day;
       
+      // Use Persian numerals for Persian locale
+      const displayDay = locale === 'fa' ? toPersianNumerals(day) : day;
+      
       days.push(
         <button
           key={day}
@@ -159,10 +163,13 @@ const JalaliCalendar = ({
           className={`calendar-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
           onClick={() => handleDateSelect(day)}
         >
-          {day}
+          {displayDay}
         </button>
       );
     }
+    
+    // Use Persian numerals for year in Persian locale
+    const displayYear = locale === 'fa' ? toPersianNumerals(viewYear) : viewYear;
     
     return (
       <div className="calendar-grid">
@@ -179,7 +186,7 @@ const JalaliCalendar = ({
             className="calendar-header-label"
             onClick={() => setView('months')}
           >
-            {monthNames[viewMonth - 1]} {viewYear}
+            {monthNames[viewMonth - 1]} {displayYear}
           </button>
           <button 
             type="button"
@@ -199,6 +206,9 @@ const JalaliCalendar = ({
   const renderMonthsView = () => {
     const monthNames = getMonthNames();
     
+    // Use Persian numerals for year in Persian locale
+    const displayYear = locale === 'fa' ? toPersianNumerals(viewYear) : viewYear;
+    
     return (
       <div className="calendar-grid">
         <div className="calendar-header">
@@ -209,7 +219,7 @@ const JalaliCalendar = ({
           >
             <ChevronRightIcon />
           </button>
-          <span className="calendar-header-label">{viewYear}</span>
+          <span className="calendar-header-label">{displayYear}</span>
           <button 
             type="button"
             className="calendar-nav-btn" 
@@ -238,6 +248,10 @@ const JalaliCalendar = ({
     const startYear = viewYear - 6;
     const years = Array.from({ length: 12 }, (_, i) => startYear + i);
     
+    // Use Persian numerals for Persian locale
+    const displayStartYear = locale === 'fa' ? toPersianNumerals(startYear) : startYear;
+    const displayEndYear = locale === 'fa' ? toPersianNumerals(startYear + 11) : startYear + 11;
+    
     return (
       <div className="calendar-grid">
         <div className="calendar-header">
@@ -248,7 +262,7 @@ const JalaliCalendar = ({
           >
             <ChevronRightIcon />
           </button>
-          <span className="calendar-header-label">{startYear} - {startYear + 11}</span>
+          <span className="calendar-header-label">{displayStartYear} - {displayEndYear}</span>
           <button 
             type="button"
             className="calendar-nav-btn" 
@@ -265,7 +279,7 @@ const JalaliCalendar = ({
               className={`calendar-year ${currentYear === year ? 'today' : ''}`}
               onClick={() => handleYearSelect(year)}
             >
-              {year}
+              {locale === 'fa' ? toPersianNumerals(year) : year}
             </button>
           ))}
         </div>
@@ -369,7 +383,7 @@ const JalaliCalendar = ({
                 className={`view-btn ${view === 'years' ? 'active' : ''}`}
                 onClick={() => setView('years')}
               >
-                {viewYear}
+                {locale === 'fa' ? toPersianNumerals(viewYear) : viewYear}
               </button>
               <button
                 type="button"

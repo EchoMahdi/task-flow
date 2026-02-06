@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MainLayout } from '../components/layout/index';
+import { AppLayout } from '../components/layout/index';
 import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { taskService } from '../services/taskService';
@@ -162,7 +162,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <MainLayout>
+      <AppLayout>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
           <Skeleton variant="text" width={200} height={40} />
           <StatsSkeleton />
@@ -176,13 +176,13 @@ const Dashboard = () => {
             </Grid>
           </Grid>
         </Box>
-      </MainLayout>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <MainLayout>
+      <AppLayout>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h5" sx={{ mb: 2 }}>Error Loading Dashboard</Typography>
@@ -192,12 +192,12 @@ const Dashboard = () => {
             </Button>
           </Box>
         </Box>
-      </MainLayout>
+      </AppLayout>
     );
   }
 
   return (
-    <MainLayout>
+    <AppLayout>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, animation: 'fadeIn 0.3s ease-in-out' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
@@ -645,7 +645,7 @@ const Dashboard = () => {
           </Grid>
         </Card>
       </Box>
-    </MainLayout>
+    </AppLayout>
   );
 };
 
