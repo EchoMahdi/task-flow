@@ -1,0 +1,931 @@
+/**
+ * ============================================================================
+ * HeaderToolbar CSS Module
+ * Professional, responsive styling for the header toolbar
+ * ============================================================================
+ */
+
+/* CSS Variables - will be overridden by inline styles from theme */
+.header {
+  --header-bg: #ffffff;
+  --header-border: #e5e7eb;
+  --header-text: #111827;
+  --header-height: 64px;
+  --header-padding-x: 1.5rem;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-notification: 1001;
+  
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 var(--header-padding-x);
+  max-width: 100%;
+}
+
+/* ============================================================================
+ * Sections
+ * ============================================================================ */
+
+.sectionLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionCenter {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  max-width: 480px;
+  margin: 0 1rem;
+}
+
+.sectionRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* ============================================================================
+ * Logo & Brand
+ * ============================================================================ */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--header-text);
+  font-weight: 600;
+  font-size: 1.125rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.logo:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.logo svg {
+  width: 24px;
+  height: 24px;
+  color: #3b82f6;
+}
+
+.logoText {
+  font-weight: 600;
+}
+
+.pageTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 0.375rem 0.75rem;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 0.375rem;
+}
+
+/* ============================================================================
+ * Search
+ * ============================================================================ */
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--search-bg, #f3f4f6);
+  border: 1px solid var(--search-border, #e5e7eb);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.searchContainer:focus-within {
+  border-color: var(--search-border);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.searchContainer svg {
+  width: 18px;
+  height: 18px;
+  color: var(--search-placeholder, #9ca3af);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--search-text, #111827);
+  padding: 0 0.5rem;
+  outline: none;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: var(--search-placeholder, #9ca3af);
+}
+
+.searchClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--search-placeholder, #9ca3af);
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.searchClear:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--search-text, #111827);
+}
+
+.searchClear svg {
+  width: 16px;
+  height: 16px;
+}
+
+.searchShortcut {
+  font-size: 0.75rem;
+  font-family: inherit;
+  padding: 0.125rem 0.375rem;
+  background-color: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.25rem;
+  color: var(--search-placeholder, #9ca3af);
+}
+
+/* ============================================================================
+ * Icon Buttons
+ * ============================================================================ */
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.iconButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+.iconButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================================================
+ * Add Task Button
+ * ============================================================================ */
+
+.addTaskButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addTaskButton:hover {
+  background-color: #2563eb;
+}
+
+.addTaskButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+
+.addTaskButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.addTaskText {
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * View Controls
+ * ============================================================================ */
+
+.viewControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 0.5rem;
+}
+
+.viewToggle {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.viewToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.viewToggleBtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+.viewToggleBtn.active {
+  background-color: white;
+  color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.viewToggleBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+.filterButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================================================
+ * Dropdowns
+ * ============================================================================ */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropdownTrigger:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+.dropdownTrigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.dropdownBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: calc(var(--z-dropdown) - 1);
+  background-color: transparent;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  min-width: 180px;
+  background-color: var(--dropdown-bg, white);
+  border: 1px solid var(--dropdown-border, #e5e7eb);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  z-index: var(--z-dropdown);
+}
+
+[dir="rtl"] .dropdownMenu {
+  right: 0;
+}
+
+[dir="ltr"] .dropdownMenu {
+  left: 0;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.dropdownItem:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.dropdownItem.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.dropdownItem svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.dropdownItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.checkmark {
+  margin-left: auto;
+  color: #3b82f6;
+  font-size: 0.875rem;
+}
+
+[dir="rtl"] .checkmark {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 0.5rem 0;
+}
+
+.triggerIcon {
+  display: flex;
+  align-items: center;
+}
+
+.triggerIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.triggerLabel {
+  font-weight: 500;
+}
+
+/* ============================================================================
+ * User Menu
+ * ============================================================================ */
+
+.userMenu {
+  position: relative;
+}
+
+.userMenuTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.userMenuTrigger:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.userMenuTrigger svg {
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[dir="rtl"] .userInfo {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.userMenuHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.userAvatarLarge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.userAvatarLarge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userMenuHeader div {
+  display: flex;
+  flex-direction: column;
+}
+
+.userMenuHeader strong {
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.userMenuHeader span {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* ============================================================================
+ * Notifications
+ * ============================================================================ */
+
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.375rem;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[dir="rtl"] .notificationBadge {
+  right: auto;
+  left: 4px;
+}
+
+.notificationPanel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  width: 360px;
+  max-height: 480px;
+  background-color: var(--panel-bg, white);
+  border: 1px solid var(--panel-border, #e5e7eb);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-notification);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+[dir="rtl"] .notificationPanel {
+  right: 0;
+  left: auto;
+}
+
+[dir="ltr"] .notificationPanel {
+  right: 0;
+  left: auto;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.panelHeader h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.markAllRead {
+  font-size: 0.8125rem;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.markAllRead:hover {
+  text-decoration: underline;
+}
+
+.notificationList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.notificationItem:hover {
+  background-color: #f9fafb;
+}
+
+.notificationItem.unread {
+  background-color: #f0f9ff;
+}
+
+.notificationItem.unread:hover {
+  background-color: #e0f2fe;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  margin-top: 0.375rem;
+  flex-shrink: 0;
+}
+
+.notificationContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.notificationContent strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.notificationContent p {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 0.375rem 0;
+}
+
+.notificationTime {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.loadingState,
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.panelFooter {
+  padding: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.panelFooter a {
+  font-size: 0.8125rem;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.panelFooter a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================================
+ * Responsive Design
+ * ============================================================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .header {
+    --header-padding-x: 1rem;
+  }
+
+  .addTaskText {
+    display: none;
+  }
+
+  .addTaskButton {
+    padding: 0.5rem;
+  }
+
+  .viewControls {
+    display: none;
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .userMenuTrigger {
+    padding: 0.375rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .header {
+    --header-height: 56px;
+    --header-padding-x: 0.75rem;
+  }
+
+  .pageTitle {
+    display: none;
+  }
+
+  .sectionCenter {
+    flex: 1;
+    margin: 0 0.5rem;
+    max-width: none;
+  }
+
+  .searchContainer {
+    padding: 0.375rem 0.5rem;
+  }
+
+  .searchShortcut {
+    display: none;
+  }
+
+  .addTaskButton {
+    padding: 0.5rem;
+    min-width: 40px;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .userEmail {
+    display: none;
+  }
+
+  .languageSwitcher .triggerLabel {
+    display: none;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .searchInput {
+    font-size: 0.8125rem;
+  }
+
+  .iconButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .notificationPanel {
+    width: calc(100vw - 2rem);
+    left: 1rem;
+    right: 1rem;
+  }
+}
+
+/* ============================================================================
+ * RTL Support
+ * ============================================================================ */
+
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .sectionLeft {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .sectionRight {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .logo {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .addTaskButton {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .viewToggle {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .filterButton {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dropdownTrigger {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .userMenuTrigger {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .userInfo {
+  align-items: flex-end;
+  text-align: right;
+}
+
+[dir="rtl"] .notificationItem {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .notificationBadge {
+  right: auto;
+  left: 4px;
+}
+
+/* ============================================================================
+ * High Contrast / Accessibility
+ * ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .header {
+    border-bottom-width: 2px;
+  }
+
+  .iconButton,
+  .addTaskButton,
+  .dropdownTrigger {
+    border: 1px solid currentColor;
+  }
+
+  .searchContainer {
+    border-width: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header *,
+  .header *::before,
+  .header *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Hide default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}

@@ -1,0 +1,14 @@
+
+vendor/
+frontend/node_modules/
+.idea/
+.venv/
+storage/logs/
+public/uploads/
+/dist/
+/build/
+.env
+*.sqlite
+*.sqlite3
+database/database.sqlite
+database/database.sqlite-journal

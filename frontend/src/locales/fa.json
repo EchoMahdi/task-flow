@@ -1,0 +1,321 @@
+{
+  "app": {
+    "name": "تسک‌فلو",
+    "tagline": "مدیریت آسان وظایف"
+  },
+  "nav": {
+    "dashboard": "داشبورد",
+    "tasks": "وظایف",
+    "calendar": "تقویم",
+    "notifications": "اعلان‌ها",
+    "profile": "پروفایل",
+    "settings": "تنظیمات",
+    "logout": "خروج"
+  },
+  "common": {
+    "save": "ذخیره",
+    "cancel": "لغو",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "add": "افزودن",
+    "search": "جستجو",
+    "filter": "فیلتر",
+    "loading": "در حال بارگذاری...",
+    "success": "موفق",
+    "error": "خطا",
+    "confirm": "تأیید",
+    "back": "بازگشت",
+    "next": "بعدی",
+    "previous": "قبلی",
+    "yes": "بله",
+    "no": "خیر",
+    "all": "همه",
+    "none": "هیچ",
+    "select": "انتخاب کنید",
+    "close": "بستن",
+    "view": "مشاهده",
+    "create": "ایجاد",
+    "update": "به‌روزرسانی",
+    "export": "خروجی",
+    "import": "ورودی",
+    "download": "دانلود",
+    "upload": "آپلود",
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "name": "نام",
+    "remember_me": "مرا به خاطر بسپار",
+    "forgot_password": "فراموشی رمز عبور؟",
+    "login": "ورود",
+    "submit": "ارسال"
+  },
+  "validation": {
+    "required": "فیلد :attribute الزامی است.",
+    "email": "فیلد :attribute باید یک آدرس ایمیل معتبر باشد.",
+    "min": {
+      "string": "فیلد :attribute باید حداقل :min کاراکتر باشد."
+    },
+    "max": {
+      "string": "فیلد :attribute نمی‌تواند بیش از :max کاراکتر باشد."
+    },
+    "confirmed": "تأیید فیلد :attribute مطابقت ندارد.",
+    "unique": "فیلد :attribute قبلاً ثبت شده است.",
+    "exists": "فیلد :attribute انتخاب شده نامعتبر است.",
+    "date": "فیلد :attribute یک تاریخ معتبر نیست.",
+    "in": "فیلد :attribute انتخاب شده نامعتبر است.",
+    "array": "فیلد :attribute باید یک آرایه باشد."
+  },
+  "auth": {
+    "login": {
+      "title": "خوش آمدید",
+      "subtitle": "برای ادامه وارد حساب کاربری شوید",
+      "success": "ورود موفق",
+      "failed": "اطلاعات ورود نادرست است. لطفاً مجدداً تلاش کنید.",
+      "hide_password": "پنهان کردن رمز",
+      "show_password": "نمایش رمز",
+      "or_continue": "یا با ادامه دهید",
+      "no_account": "حساب کاربری ندارید؟",
+      "sign_up_link": "رایگان ثبت‌نام کنید"
+    },
+    "register": {
+      "title": "ایجاد حساب کاربری",
+      "subtitle": "برای شروع کار با تسک‌فلو ثبت‌نام کنید",
+      "success": "ثبت‌نام موفق",
+      "failed": "ثبت‌نام ناموفق بود. لطفاً مجدداً تلاش کنید."
+    },
+    "logout": {
+      "success": "با موفقیت خارج شدید"
+    },
+    "forgot_password": {
+      "title": "فراموشی رمز عبور",
+      "subtitle": "ایمیل خود را برای بازنشانی رمز وارد کنید",
+      "success": "اگر حسابی با این ایمیل وجود دارد، لینک بازنشانی رمز ارسال شده است."
+    },
+    "reset_password": {
+      "title": "بازنشانی رمز عبور",
+      "success": "رمز عبور با موفقیت بازنشانی شد"
+    }
+  },
+  "dashboard": {
+    "title": "داشبورد",
+    "welcome": "خوش آمدید",
+    "overview": "نمای کلی",
+    "stats": "آمار",
+    "recentTasks": "وظایف اخیر",
+    "pendingTasks": "وظایف در انتظار",
+    "completedTasks": "وظایف تکمیل شده",
+    "totalTasks": "کل وظایف",
+    "productivity": "بهره‌وری",
+    "activity": "فعالیت"
+  },
+  "tasks": {
+    "title": "وظایف",
+    "create": "ایجاد وظیفه",
+    "edit": "ویرایش وظیفه",
+    "delete": "حذف وظیفه",
+    "view": "مشاهده وظیفه",
+    "list": "لیست وظایف",
+    "newTask": "وظیفه جدید",
+    "taskTitle": "عنوان وظیفه",
+    "taskDescription": "توضیحات",
+    "taskDueDate": "تاریخ سررسید",
+    "taskPriority": "اولویت",
+    "taskStatus": "وضعیت",
+    "taskTags": "برچسب‌ها",
+    "taskAssignee": "مسئول",
+    "dueDate": "سررسید",
+    "priority": {
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "بالا",
+      "urgent": "فوری"
+    },
+    "status": {
+      "pending": "در انتظار",
+      "in_progress": "در حال انجام",
+      "completed": "تکمیل شده",
+      "cancelled": "لغو شده",
+      "overdue": "سررسید گذشته"
+    },
+    "noTasks": "هیچ وظیفه‌ای یافت نشد",
+    "addFirstTask": "اولین وظیفه خود را اضافه کنید",
+    "filterByStatus": "فیلتر بر اساس وضعیت",
+    "filterByPriority": "فیلتر بر اساس اولویت",
+    "sortBy": "مرتب‌سازی بر اساس",
+    "searchTasks": "جستجوی وظایف",
+    "searchPlaceholder": "جستجوی وظایف، پروژه‌ها، برچسب‌ها...",
+    "viewList": "نمای لیست",
+    "viewBoard": "نمای تخته",
+    "filterToday": "امروز",
+    "filterUpcoming": "پیش‌رو",
+    "filterOverdue": "سررسیده",
+    "sortDate": "تاریخ",
+    "sortPriority": "اولویت",
+    "sortName": "نام",
+    "create_success": "وظیفه با موفقیت ایجاد شد",
+    "update_success": "وظیفه با موفقیت به‌روزرسانی شد",
+    "delete_success": "وظیفه با موفقیت حذف شد",
+    "complete_success": "وظیفه به عنوان تکمیل شده علامت‌گذاری شد",
+    "incomplete_success": "وظیفه به عنوان در انتظار علامت‌گذاری شد"
+  },
+  "settings": {
+    "title": "تنظیمات",
+    "notifications": "تنظیمات اعلان‌ها",
+    "preferences": "تنظیمات برنامه",
+    "privacy": "حریم خصوصی و داده‌ها",
+    "account": "حساب کاربری",
+    "theme": "تم",
+    "themeLight": "روشن",
+    "themeDark": "تاریک",
+    "themeSystem": "سیستم",
+    "darkMode": "حالت تاریک",
+    "darkModeOn": "حالت تاریک فعال است",
+    "darkModeOff": "تغییر بین تم روشن و تاریک",
+    "language": "زبان",
+    "languageEn": "انگلیسی",
+    "languageFa": "فارسی",
+    "dateFormat": "فرمت تاریخ",
+    "timeFormat": "فرمت زمان",
+    "startOfWeek": "شروع هفته",
+    "emailNotifications": "اعلان‌های ایمیل",
+    "pushNotifications": "اعلان‌های Push",
+    "taskReminders": "یادآوری وظایف",
+    "dailyDigest": "خلاصه روزانه",
+    "weeklyReport": "گزارش هفتگی",
+    "marketingEmails": "ایمیل‌های بازاریابی",
+    "saveSuccess": "تنظیمات با موفقیت ذخیره شد!",
+    "exportData": "خروجی داده‌ها",
+    "exportDataDesc": "دانلود کپی از تمام داده‌های خود",
+    "deleteAccount": "حذف حساب کاربری",
+    "deleteAccountDesc": "حذف دائمی حساب و تمام داده‌های مرتبط",
+    "deleteAccountWarning": "⚠️ هشدار: این کار حساب و تمام داده‌های شما را برای همیشه حذف می‌کند.",
+    "preferences_updated": "تنظیمات با موفقیت ذخیره شد"
+  },
+  "notifications": {
+    "title": "اعلان‌ها",
+    "markAllRead": "علامت‌گذاری همه به عنوان خوانده شده",
+    "noNotifications": "هیچ اعلانی ندارید",
+    "allRead": "همه خوانده شده",
+    "settings": "تنظیمات اعلان‌ها"
+  },
+  "profile": {
+    "title": "پروفایل",
+    "name": "نام",
+    "email": "ایمیل",
+    "avatar": "آواتار",
+    "bio": "درباره",
+    "updateProfile": "به‌روزرسانی پروفایل",
+    "changePassword": "تغییر رمز عبور"
+  },
+  "errors": {
+    "notFound": "صفحه یافت نشد",
+    "unauthorized": "دسترسی غیرمجاز",
+    "serverError": "خطای سرور",
+    "networkError": "خطای شبکه",
+    "tryAgain": "دوباره تلاش کنید",
+    "goHome": "بازگشت به خانه",
+    "validation_failed": "اعتبارسنجی ناموفق بود",
+    "not_found": "منبع یافت نشد",
+    "server_error": "یک خطای غیرمنتظره رخ داد"
+  },
+  "success": {
+    "operation_completed": "عملیات با موفقیت انجام شد",
+    "data_saved": "داده‌ها با موفقیت ذخیره شدند",
+    "data_deleted": "داده‌ها با موفقیت حذف شدند",
+    "data_updated": "داده‌ها با موفقیت به‌روزرسانی شدند"
+  },
+  "weekdays": {
+    "sunday": "یکشنبه",
+    "monday": "دوشنبه",
+    "tuesday": "سه‌شنبه",
+    "wednesday": "چهارشنبه",
+    "thursday": "پنج‌شنبه",
+    "friday": "جمعه",
+    "saturday": "شنبه",
+    "short": {
+      "sun": "یک",
+      "mon": "دو",
+      "tue": "سه",
+      "wed": "چهار",
+      "thu": "پن",
+      "fri": "جمعه",
+      "sat": "شن"
+    }
+  },
+  "months": {
+    "january": "ژانویه",
+    "february": "فوریه",
+    "march": "مارس",
+    "april": "آوریل",
+    "may": "مه",
+    "june": "ژوئن",
+    "july": "ژوئیه",
+    "august": "اوت",
+    "september": "سپتامبر",
+    "october": "اکتبر",
+    "november": "نوامبر",
+    "december": "دسامبر",
+    "short": {
+      "jan": "1",
+      "feb": "2",
+      "mar": "3",
+      "apr": "4",
+      "may": "5",
+      "jun": "6",
+      "jul": "7",
+      "aug": "8",
+      "sep": "9",
+      "oct": "10",
+      "nov": "11",
+      "dec": "12"
+    }
+  },
+  "time": {
+    "now": "الآن",
+    "minutesAgo": "{minutes} دقیقه پیش",
+    "hoursAgo": "{hours} ساعت پیش",
+    "daysAgo": "{days} روز پیش",
+    "today": "امروز",
+    "yesterday": "دیروز",
+    "tomorrow": "فردا",
+    "thisWeek": "این هفته",
+    "thisMonth": "این ماه",
+    "am": "ق.ظ",
+    "pm": "ب.ظ"
+  },
+  "datetime": {
+    "today": "امروز",
+    "tomorrow": "فردا",
+    "yesterday": "دیروز",
+    "thisWeek": "این هفته",
+    "thisMonth": "این ماه",
+    "overdue": "سررسیده",
+    "now": "الآن",
+    "selectDate": "انتخاب تاریخ",
+    "selectTime": "انتخاب زمان"
+  },
+  "calendar": {
+    "title": "تقویم",
+    "subtitle": "مشاهده و مدیریت وظایف در نمای تقویم",
+    "day": "روز",
+    "week": "هفته",
+    "month": "ماه",
+    "today": "امروز",
+    "more": "بیشتر",
+    "noTasks": "هیچ وظیفه‌ای برای این روز نیست",
+    "dragHint": "وظایف را بکشید تا زمان‌بندی کنید"
+  },
+  "filters": {
+    "title": "فیلترها",
+    "status": "وضعیت",
+    "priority": "اولویت",
+    "dateRange": "بازه زمانی",
+    "includeCompleted": "شامل تکمیل‌شده‌ها",
+    "clear": "پاک کردن فیلترها",
+    "completedIncluded": "تکمیل‌شده‌ها شامل شدند"
+  },
+  "format": {
+    "date": "YYYY/MM/DD",
+    "time": "HH:mm",
+    "datetime": "YYYY/MM/DD HH:mm"
+  }
+}
