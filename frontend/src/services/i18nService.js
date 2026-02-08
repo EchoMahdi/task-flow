@@ -23,12 +23,24 @@ export const getDirection = (lang) => {
 
 /**
  * Get all supported languages
- * @returns {Array} Array of language objects with code and name
+ * @returns {Array} Array of language objects with code, name, nativeName, and direction
  */
 export const getSupportedLanguages = () => {
   return [
-    { code: 'en', name: 'English', nativeName: 'English', dir: 'ltr' },
-    { code: 'fa', name: 'Persian', nativeName: 'فارسی', dir: 'rtl' }
+    { 
+      code: 'en', 
+      name: 'English', 
+      nativeName: 'English', 
+      dir: 'ltr',
+      flag: '🇺🇸'
+    },
+    { 
+      code: 'fa', 
+      name: 'Persian', 
+      nativeName: 'فارسی', 
+      dir: 'rtl',
+      flag: '🇮🇷'
+    }
   ]
 }
 

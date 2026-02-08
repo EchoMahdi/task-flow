@@ -34,7 +34,7 @@ class ThemeController extends Controller
             ], 401);
         }
         
-        $preferences = $user->preference;
+        $preferences = $user->preferences ?? new UserPreference();
         
         return response()->json([
             'theme_mode' => $preferences->theme ?? 'system',
@@ -44,7 +44,7 @@ class ThemeController extends Controller
                 'high_contrast' => $preferences->high_contrast ?? false,
                 'font_scale' => $preferences->font_scale ?? 1.0,
             ],
-            'updated_at' => $preferences->updated_at ?? null,
+            'updated_at' => $preferences->updated_at ? $preferences->updated_at->toIso8601String() : null,
         ]);
     }
     
@@ -80,7 +80,7 @@ class ThemeController extends Controller
             ], 422);
         }
         
-        $preferences = $user->preference;
+        $preferences = $user->preferences()->first() ?? new UserPreference(['user_id' => $user->id]);
         
         if (!$preferences) {
             $preferences = new UserPreference(['user_id' => $user->id]);
@@ -93,7 +93,7 @@ class ThemeController extends Controller
         
         // Update locale (map to existing 'language' field)
         if ($request->has('locale')) {
-            $preferences->language = $request->locale;
+            $preferences->setAttribute('language', $request->locale);
         }
         
         // Update accessibility preferences
@@ -156,7 +156,7 @@ class ThemeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
-        $preferences = $user->preference ?? new UserPreference(['user_id' => $user->id]);
+        $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
         $preferences->theme = $request->theme_mode;
         $preferences->save();
         
@@ -188,7 +188,7 @@ class ThemeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
-        $preferences = $user->preference ?? new UserPreference(['user_id' => $user->id]);
+        $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
         $preferences->language = $request->locale;
         $preferences->save();
         
@@ -222,7 +222,7 @@ class ThemeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
-        $preferences = $user->preference ?? new UserPreference(['user_id' => $user->id]);
+        $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
         
         if ($request->has('reduced_motion')) {
             $preferences->reduced_motion = $request->reduced_motion;
@@ -261,7 +261,7 @@ class ThemeController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
-        $preferences = $user->preference ?? new UserPreference(['user_id' => $user->id]);
+        $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
         
         // Reset to defaults
         $preferences->theme = 'system';

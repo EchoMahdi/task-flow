@@ -20,6 +20,7 @@ import PageHeader from "../components/ui/PageHeader";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { tagService } from "../services/tagService";
+import { taskOptionsService } from "../services/taskOptionsService";
 import { TaskModel, ValidationError } from "../models/TaskModel";
 import TaskPreviewDialog from "../components/domain/Task/TaskPreviewDialog";
 
@@ -32,6 +33,9 @@ const TaskForm = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [tags, setTags] = useState([]);
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [priorityOptions, setPriorityOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
 
   // Use TaskModel for data management
   const [taskModel] = useState(
@@ -71,6 +75,39 @@ const TaskForm = () => {
     };
 
     fetchTags();
+  }, []);
+
+  // Load task options (statuses, priorities) from backend
+  // DUPLICATION: Same pattern in TaskModal.jsx and CalendarFilters.jsx - extract to useTaskOptions hook
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        console.log('[TaskForm] DEBUG: Fetching options (DUPLICATED PATTERN)');
+        setOptionsLoading(true);
+        const optionsData = await taskOptionsService.getOptions();
+        setStatusOptions(optionsData.data.statuses || []);
+        setPriorityOptions(optionsData.data.priorities || []);
+      } catch (err) {
+        console.error("Failed to fetch task options:", err);
+        console.log('[TaskForm] DEBUG: Using fallback options (DUPLICATED in TaskModal.jsx, CalendarFilters.jsx)');
+        // Fallback to default options if API fails
+        setStatusOptions([
+          { value: "pending", label: "Pending", color: "default" },
+          { value: "in_progress", label: "In Progress", color: "primary" },
+          { value: "completed", label: "Completed", color: "success" },
+        ]);
+        setPriorityOptions([
+          { value: "low", label: "Low", color: "success" },
+          { value: "medium", label: "Medium", color: "warning" },
+          { value: "high", label: "High", color: "error" },
+          { value: "urgent", label: "Urgent", color: "error" },
+        ]);
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+
+    fetchOptions();
   }, []);
 
   // Load task data from backend if editing
@@ -199,19 +236,7 @@ const TaskForm = () => {
     }
   };
 
-  const statusOptions = [
-    { value: "pending", label: "Pending" },
-    { value: "in_progress", label: "In Progress" },
-    { value: "completed", label: "Completed" },
-  ];
-
-  const priorityOptions = [
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-  ];
-
-  if (loading) {
+  if (loading || optionsLoading) {
     return (
       <AppLayout>
         <Box sx={{ maxWidth: 800, mx: "auto" }}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/layout/index';
-import { 
+import {
   Card, 
   CardContent, 
   Chip, 
@@ -28,10 +28,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import  useTasks  from '../hooks/useTasks';
+import useTasks from '../hooks/useTasks';
+import { taskOptionsService } from '../services/taskOptionsService';
+import { useTheme } from '../theme/ThemeProvider';
 
 const TaskList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const theme = useTheme();
+  const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   
   // Initialize filters from URL params
   const initialFilters = {
@@ -63,6 +67,40 @@ const TaskList = () => {
     autoFetch: true,
     cacheTTL: 30000,
   });
+  
+  // Options state
+  const [statusFilterOptions, setStatusFilterOptions] = useState([]);
+  const [priorityFilterOptions, setPriorityFilterOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  
+  // Fetch filter options from API
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const optionsData = await taskOptionsService.getOptions();
+        setStatusFilterOptions(optionsData.data.statusFilterOptions || []);
+        setPriorityFilterOptions(optionsData.data.priorityFilterOptions || []);
+      } catch (err) {
+        console.error("Failed to fetch task options:", err);
+        // Fallback to default options
+        setStatusFilterOptions([
+          { value: 'all', label: 'All Status' },
+          { value: 'pending', label: 'Pending' },
+          { value: 'completed', label: 'Completed' },
+        ]);
+        setPriorityFilterOptions([
+          { value: 'all', label: 'All Priority' },
+          { value: 'high', label: 'High' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'low', label: 'Low' },
+        ]);
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    
+    fetchOptions();
+  }, []);
   
   // Debounce ref for search
   const searchTimeoutRef = useRef(null);
@@ -165,20 +203,6 @@ const TaskList = () => {
     return { text: due.toLocaleDateString(), sx: { color: 'text.secondary', fontSize: '0.875rem' } };
   };
 
-  // Filter options
-  const statusOptions = [
-    { value: 'all', label: 'All Status' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'completed', label: 'Completed' },
-  ];
-
-  const priorityOptions = [
-    { value: 'all', label: 'All Priority' },
-    { value: 'high', label: 'High' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'low', label: 'Low' },
-  ];
-
   const sortOptions = [
     { value: 'created_at-desc', label: 'Newest First' },
     { value: 'created_at-asc', label: 'Oldest First' },
@@ -241,7 +265,7 @@ const TaskList = () => {
             {/* Search */}
             <Box sx={{ flex: 1, minWidth: 200, position: 'relative' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                <SearchIcon sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', zIndex: 1 }} />
+                <SearchIcon sx={{ position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', zIndex: 1 }} />
                 <TextField
                   type="text"
                   placeholder="Search tasks..."
@@ -253,7 +277,7 @@ const TaskList = () => {
                 />
                 {filters.search && (
                   <CloseIcon 
-                    sx={{ position: 'absolute', right: 40, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
+                    sx={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', cursor: 'pointer', '&:hover': { color: 'text.primary' } }}
                     onClick={handleSearchClear}
                   />
                 )}
@@ -266,8 +290,9 @@ const TaskList = () => {
                 value={filters.status || 'all'}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 displayEmpty
+                disabled={optionsLoading}
               >
-                {statusOptions.map((option) => (
+                {statusFilterOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
                   </MenuItem>
@@ -281,8 +306,9 @@ const TaskList = () => {
                 value={filters.priority || 'all'}
                 onChange={(e) => handleFilterChange('priority', e.target.value)}
                 displayEmpty
+                disabled={optionsLoading}
               >
-                {priorityOptions.map((option) => (
+                {priorityFilterOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
                     {option.label}
                   </MenuItem>
@@ -366,7 +392,7 @@ const TaskList = () => {
                       <TableCell sx={{ px: 3, py: 2, textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase' }}>
                         <input
                           type="checkbox"
-                          style={{ borderRadius: 4, cursor: 'pointer' }}
+                          style={{ borderRadius: '0.25rem', cursor: 'pointer' }}
                           aria-label="Select all tasks"
                         />
                       </TableCell>
@@ -447,7 +473,7 @@ const TaskList = () => {
                                   justifyContent: 'center',
                                   width: 32,
                                   height: 32,
-                                  borderRadius: 4,
+                                  borderRadius: '0.25rem',
                                   transition: 'all 0.15s ease-in-out',
                                   color: 'text.secondary',
                                 }}
@@ -463,7 +489,7 @@ const TaskList = () => {
                                   justifyContent: 'center',
                                   width: 32,
                                   height: 32,
-                                  borderRadius: 4,
+                                  borderRadius: '0.25rem',
                                   border: 'none',
                                   background: 'transparent',
                                   cursor: 'pointer',

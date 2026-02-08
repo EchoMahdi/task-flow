@@ -12,6 +12,8 @@ import FlagIcon from '@mui/icons-material/Flag';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
+import Typography from '@mui/material/Typography';
+import { taskOptionsService } from '../../services/taskOptionsService';
 
 /**
  * CalendarFilters Component
@@ -33,20 +35,42 @@ const CalendarFilters = ({
   const [statusAnchor, setStatusAnchor] = useState(null);
   const [priorityAnchor, setPriorityAnchor] = useState(null);
   
-  // Status options
-  const statusOptions = [
-    { value: 'pending', label: t('status.pending') },
-    { value: 'in_progress', label: t('status.in_progress') },
-    { value: 'completed', label: t('status.completed') },
-  ];
+  // Options state
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [priorityOptions, setPriorityOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Priority options
-  const priorityOptions = [
-    { value: 'low', label: t('priority.low'), color: 'success' },
-    { value: 'medium', label: t('priority.medium'), color: 'warning' },
-    { value: 'high', label: t('priority.high'), color: 'error' },
-    { value: 'urgent', label: t('priority.urgent'), color: 'error' },
-  ];
+  // Fetch options from API
+  // DUPLICATION: Same pattern in TaskModal.jsx and TaskForm.jsx - extract to useTaskOptions hook
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        console.log('[CalendarFilters] DEBUG: Fetching options (DUPLICATED PATTERN)');
+        const optionsData = await taskOptionsService.getOptions();
+        setStatusOptions(optionsData.data.statuses || []);
+        setPriorityOptions(optionsData.data.priorities || []);
+      } catch (err) {
+        console.error("Failed to fetch task options:", err);
+        console.log('[CalendarFilters] DEBUG: Using fallback options (DUPLICATED in TaskModal.jsx, TaskForm.jsx)');
+        // Fallback to default options
+        setStatusOptions([
+          { value: 'pending', label: t('status.pending'), color: 'default' },
+          { value: 'in_progress', label: t('status.in_progress'), color: 'primary' },
+          { value: 'completed', label: t('status.completed'), color: 'success' },
+        ]);
+        setPriorityOptions([
+          { value: 'low', label: t('priority.low'), color: 'success' },
+          { value: 'medium', label: t('priority.medium'), color: 'warning' },
+          { value: 'high', label: t('priority.high'), color: 'error' },
+          { value: 'urgent', label: t('priority.urgent'), color: 'error' },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchOptions();
+  }, [t]);
   
   // Close menus when clicking outside
   const statusButtonRef = useRef(null);
@@ -329,8 +353,5 @@ const CalendarFilters = ({
     </Box>
   );
 };
-
-// Import Typography for the JSX
-import Typography from '@mui/material/Typography';
 
 export default CalendarFilters;

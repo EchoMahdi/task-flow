@@ -57,7 +57,7 @@ function TaskForm({ task, tags, onSubmit, onCancel, loading }) {
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+        <Typography variant="h6" sx={{ mb: 3, fontWeight: 'var(--theme-font-weight-semibold, 600)' }}>
           {task ? 'Edit Task' : 'Create New Task'}
         </Typography>
         

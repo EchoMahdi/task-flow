@@ -26,6 +26,9 @@ require __DIR__.'/api-social.php';
 
 // Task Routes - Define specific routes BEFORE resource routes
 Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {
+    // Get task options (status, priority) for dropdowns
+    Route::get('/options', [TaskController::class, 'options']);
+    
     // Full search with pagination and filters (MUST be before {task} routes)
     Route::get('/search', [TaskController::class, 'search']);
     

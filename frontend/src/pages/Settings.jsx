@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '../components/layout/index';
-import { 
-  Card, CardContent, Button, Switch, Alert, 
-  Box, Typography, FormControl, InputLabel, Select, MenuItem, 
+import {
+  Card, CardContent, Button, Switch, Alert,
+  Box, Typography, FormControl, InputLabel, Select, MenuItem,
   Divider, Container
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
@@ -11,10 +11,13 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { preferenceService } from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../context/I18nContext';
+import { useTheme } from '../theme/ThemeProvider';
 
 const Settings = () => {
   const { user, refreshUser } = useAuth();
   const { t, changeLanguage } = useI18n();
+  const theme = useTheme();
+  const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -282,7 +285,7 @@ const Settings = () => {
   const SettingSection = ({ title, description, children }) => (
     <Box sx={{ py: 3 }}>
       <Box sx={{ mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 'var(--theme-font-weight-semibold, 600)', mb: 0.5 }}>
           {title}
         </Typography>
         {description && (
@@ -305,7 +308,7 @@ const Settings = () => {
       borderColor: 'divider',
     }}>
       <Box sx={{ flex: 1, mr: 2 }}>
-        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+        <Typography variant="body1" sx={{ fontWeight: 'var(--theme-font-weight-medium, 500)' }}>
           {label}
         </Typography>
         {description && (
@@ -331,9 +334,9 @@ const Settings = () => {
           <Card>
             <CardContent>
               <Box sx={{ opacity: 0.5 }}>
-                <Box sx={{ height: 32, width: '25%', bgcolor: 'grey.300', borderRadius: 1, mb: 2 }} />
-                <Box sx={{ height: 48, bgcolor: 'grey.300', borderRadius: 1, mb: 1 }} />
-                <Box sx={{ height: 48, bgcolor: 'grey.300', borderRadius: 1 }} />
+                <Box sx={{ height: 32, width: '25%', bgcolor: 'action.hover', borderRadius: 1, mb: 2 }} />
+                <Box sx={{ height: 48, bgcolor: 'action.hover', borderRadius: 1, mb: 1 }} />
+                <Box sx={{ height: 48, bgcolor: 'action.hover', borderRadius: 1 }} />
               </Box>
             </CardContent>
           </Card>

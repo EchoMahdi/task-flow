@@ -1,16 +1,19 @@
-/**
+/*
  * Theme Manager CSS
  * 
  * CSS custom properties and base styles for the centralized theme system.
  * All styles use semantic tokens from the theme manager.
  */
 
+/* Vazir Font for Persian - Import once at the top */
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@latest/dist/font-face.css');
+
 /* ============================================================================
    CSS CUSTOM PROPERTIES - DYNAMIC THEMING
    ============================================================================ */
 
 :root {
-  /* Colors - Light Mode (default) */
+  /* Colors - Light Mode (default) - Using semantic tokens */
   --theme-color-primary-main: #2563eb;
   --theme-color-primary-light: #60a5fa;
   --theme-color-primary-dark: #1d4ed8;
@@ -18,6 +21,7 @@
   --theme-color-success-main: #22c55e;
   --theme-color-warning-main: #f59e0b;
   --theme-color-error-main: #ef4444;
+  --theme-color-info-main: #06b6d4;
   
   --theme-color-background-primary: #fafafa;
   --theme-color-background-secondary: #ffffff;
@@ -27,8 +31,12 @@
   --theme-color-text-secondary: #52525b;
   --theme-color-text-tertiary: #71717a;
   
-  --theme-color-border-default: #d4d4d8;
   --theme-color-border-light: #e4e4e7;
+  --theme-color-border-default: #d4d4d8;
+  
+  /* Surface colors */
+  --theme-color-surface-default: #ffffff;
+  --theme-color-surface-overlay: rgba(24, 24, 27, 0.5);
   
   /* Typography */
   --theme-font-family-primary: "Inter", "Roboto", "Helvetica Neue", "Arial", sans-serif;
@@ -56,6 +64,7 @@
   --theme-color-success-main: #4ade80;
   --theme-color-warning-main: #fbbf24;
   --theme-color-error-main: #f87171;
+  --theme-color-info-main: #22d3ee;
   
   --theme-color-background-primary: #09090b;
   --theme-color-background-secondary: #18181b;
@@ -65,14 +74,36 @@
   --theme-color-text-secondary: #a1a1aa;
   --theme-color-text-tertiary: #71717a;
   
-  --theme-color-border-default: #3f3f46;
   --theme-color-border-light: #27272a;
+  --theme-color-border-default: #3f3f46;
+  
+  --theme-color-surface-default: #18181b;
+  --theme-color-surface-overlay: rgba(0, 0, 0, 0.7);
 }
 
 /* RTL Support */
-[dir="rtl"] {
+[dir="rtl"],
+[lang="fa"] {
   --theme-direction: rtl;
   --theme-text-align: right;
+  --theme-font-family-primary: "Vazir", "Tahoma", "Arial", sans-serif;
+}
+
+/* RTL-specific font weights */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  font-weight: 600;
+}
+
+/* RTL body font */
+[dir="rtl"] body,
+[lang="fa"] body {
+  font-family: "Vazir", "Tahoma", "Segoe UI", Arial, sans-serif;
+  font-weight: 300;
 }
 
 /* Reduced Motion */

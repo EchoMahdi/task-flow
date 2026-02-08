@@ -21,6 +21,7 @@ import { useTranslation } from '../../context/I18nContext';
 import LoadingButton from '@/components/ui/LoadingButton';
 import { useDateFormat } from '../../hooks/useDateFormat';
 import taskService from '../../services/taskService';
+import { taskOptionsService } from '../../services/taskOptionsService';
 
 /**
  * TaskModal Component
@@ -50,6 +51,42 @@ const TaskModal = ({
   // Loading state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Options state
+  const [priorityOptions, setPriorityOptions] = useState([]);
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        setOptionsLoading(true);
+        const optionsData = await taskOptionsService.getOptions();
+        console.log('[TaskModal] DEBUG: Fetched options from API (should match TaskController.php options())');
+        setPriorityOptions(optionsData.data.priorities || []);
+        setStatusOptions(optionsData.data.statuses || []);
+      } catch (err) {
+        console.error("Failed to fetch task options:", err);
+        console.log('[TaskModal] DEBUG: Using fallback options (DUPLICATED in TaskController.php lines 289-312)');
+        // Fallback to default options - DUPLICATED from TaskController.php
+        setPriorityOptions([
+          { value: 'low', label: t('priority.low') },
+          { value: 'medium', label: t('priority.medium') },
+          { value: 'high', label: t('priority.high') },
+          { value: 'urgent', label: t('priority.urgent') },
+        ]);
+        setStatusOptions([
+          { value: 'pending', label: t('status.pending') },
+          { value: 'in_progress', label: t('status.in_progress') },
+          { value: 'completed', label: t('status.completed') },
+        ]);
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    
+    fetchOptions();
+  }, [t]);
   
   // Initialize form data
   useEffect(() => {
@@ -126,21 +163,6 @@ const TaskModal = ({
       setLoading(false);
     }
   };
-  
-  // Priority options
-  const priorityOptions = [
-    { value: 'low', label: t('priority.low') },
-    { value: 'medium', label: t('priority.medium') },
-    { value: 'high', label: t('priority.high') },
-    { value: 'urgent', label: t('priority.urgent') },
-  ];
-  
-  // Status options
-  const statusOptions = [
-    { value: 'pending', label: t('status.pending') },
-    { value: 'in_progress', label: t('status.in_progress') },
-    { value: 'completed', label: t('status.completed') },
-  ];
   
   // Format date display
   const formatDueDateDisplay = (dateString) => {

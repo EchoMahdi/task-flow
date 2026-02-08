@@ -19,9 +19,22 @@ class TaskRepository implements TaskRepositoryInterface
     {
         $query = $this->task->where('user_id', Auth::id())
             ->with('tags')
-            ->filter($request->all())
-            ->orderByPriority()
-            ->orderBy('created_at', 'desc');
+            ->filter($request->all());
+
+        // Apply dynamic sorting based on request parameters
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $sortBy = in_array($sortBy, ['due_date', 'priority', 'created_at', 'title']) ? $sortBy : 'created_at';
+        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'desc';
+
+        // Apply priority sorting with custom order if sort_by is priority
+        if ($sortBy === 'priority') {
+            $query->orderByPriority();
+            // Secondary sort by created_at for same priority
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
 
         return $query->paginate($request->get('per_page', 15));
     }
@@ -68,6 +81,7 @@ class TaskRepository implements TaskRepositoryInterface
 
     public function getTaskById(int $id)
     {
+        // DUPLICATION: ->where('user_id', Auth::id())->with('tags') pattern repeated in getAllTasks, getTasksForDateRange
         return $this->task->where('user_id', Auth::id())->with('tags')->findOrFail($id);
     }
 
@@ -76,6 +90,7 @@ class TaskRepository implements TaskRepositoryInterface
         $task = Auth::user()->tasks()->create($data);
 
         if (isset($data['tags'])) {
+            // DUPLICATION: tags attach/sync/detach pattern repeated in createTask, updateTask, deleteTask
             $task->tags()->attach($data['tags']);
         }
 

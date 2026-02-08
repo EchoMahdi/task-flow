@@ -20,6 +20,7 @@ function TaskFilters({ tags, filters: initialFilters = {}, onFilterChange, onSea
   const [search, setSearch] = useState('');
   
   // Use the production-ready search hook for real backend search
+  // All filtering and sorting is handled by the backend
   const {
     results,
     loading,
@@ -103,7 +104,7 @@ function TaskFilters({ tags, filters: initialFilters = {}, onFilterChange, onSea
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+        <Typography variant="h6" sx={{ mb: 3, fontWeight: 'var(--theme-font-weight-semibold, 600)' }}>
           Filters
           {loading && (
             <CircularProgress size={16} sx={{ ml: 2, verticalAlign: 'middle' }} />

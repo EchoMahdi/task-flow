@@ -82,10 +82,12 @@ const useTaskSearch = (options = {}) => {
 
   /**
    * Perform the actual search
+   * NOTE: AbortController pattern duplicated from useTasks.js - consider extracting to shared utility
    */
   const performSearch = useCallback(async (searchTerm, searchFilters = {}) => {
     // Cancel any pending request
     if (abortControllerRef.current) {
+      console.log('[useTaskSearch] DEBUG: AbortController - cancelling pending request (DUPLICATED PATTERN)');
       abortControllerRef.current.abort();
     }
 

@@ -206,6 +206,14 @@ export const colorsLight = {
     disabled: 'rgba(0, 0, 0, 0.26)',
     disabledBackground: 'rgba(0, 0, 0, 0.12)',
   },
+  
+  // Action colors (for interactive elements like buttons, dropdowns)
+  action: {
+    hover: 'rgba(0, 0, 0, 0.04)',
+    active: 'rgba(0, 0, 0, 0.08)',
+    disabled: 'rgba(0, 0, 0, 0.26)',
+    disabledBackground: 'rgba(0, 0, 0, 0.12)',
+  },
 };
 
 // ============================================================================
@@ -360,6 +368,14 @@ export const colorsDark = {
     disabled: 'rgba(255, 255, 255, 0.3)',
     disabledBackground: 'rgba(255, 255, 255, 0.12)',
   },
+  
+  // Action colors - adjusted for dark mode
+  action: {
+    hover: 'rgba(255, 255, 255, 0.04)',
+    active: 'rgba(255, 255, 255, 0.08)',
+    disabled: 'rgba(255, 255, 255, 0.3)',
+    disabledBackground: 'rgba(255, 255, 255, 0.12)',
+  },
 };
 
 // ============================================================================
@@ -485,6 +501,130 @@ export const zIndex = {
 };
 
 // ============================================================================
+// SEARCH & INPUT TOKENS
+// ============================================================================
+
+export const searchColors = {
+  light: {
+    background: '#f3f4f6',
+    border: '#e5e7eb',
+    placeholder: '#9ca3af',
+    text: '#111827',
+    icon: '#6b7280',
+    focus: '#3b82f6',
+    focusRing: 'rgba(59, 130, 246, 0.15)',
+  },
+  dark: {
+    background: '#27272a',
+    border: '#3f3f46',
+    placeholder: '#71717a',
+    text: '#f4f4f5',
+    icon: '#a1a1aa',
+    focus: '#60a5fa',
+    focusRing: 'rgba(96, 165, 250, 0.15)',
+  },
+};
+
+export const inputColors = {
+  light: {
+    background: '#ffffff',
+    border: '#d4d4d8',
+    borderHover: '#a1a1aa',
+    text: '#18181b',
+    placeholder: '#71717a',
+    disabledBackground: '#f4f4f5',
+    disabledText: '#a1a1aa',
+  },
+  dark: {
+    background: '#18181b',
+    border: '#3f3f46',
+    borderHover: '#52525b',
+    text: '#f4f4f5',
+    placeholder: '#71717a',
+    disabledBackground: '#27272a',
+    disabledText: '#52525b',
+  },
+};
+
+// ============================================================================
+// ELEMENT SIZE TOKENS
+// ============================================================================
+
+export const inputHeights = {
+  small: '36px',
+  medium: '44px',
+  large: '52px',
+};
+
+export const iconButtonSizes = {
+  small: '32px',
+  medium: '40px',
+  large: '48px',
+};
+
+export const touchTargets = {
+  minimum: '44px',
+  comfortable: '48px',
+};
+
+// ============================================================================
+// COMPONENT TOKEN PRESETS
+// ============================================================================
+
+export const componentTokens = {
+  // Button presets
+  button: {
+    padding: {
+      small: '6px 12px',
+      medium: '8px 16px',
+      large: '10px 20px',
+    },
+    fontSize: {
+      small: '0.8125rem',
+      medium: '0.875rem',
+      large: '0.9375rem',
+    },
+    iconSize: {
+      small: '18px',
+      medium: '20px',
+      large: '22px',
+    },
+  },
+  // Input presets
+  input: {
+    padding: {
+      small: '8px 12px',
+      medium: '10px 14px',
+      large: '12px 16px',
+    },
+    borderRadius: '8px',
+  },
+  // Card presets
+  card: {
+    borderRadius: '12px',
+    padding: '24px',
+  },
+  // Dialog presets
+  dialog: {
+    borderRadius: '16px',
+    padding: '24px',
+  },
+  // Dropdown presets
+  dropdown: {
+    borderRadius: '8px',
+    minWidth: '180px',
+    padding: '8px',
+  },
+  // Badge presets
+  badge: {
+    borderRadius: '9999px',
+    padding: '2px 8px',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+  },
+};
+
+// ============================================================================
 // BREAKPOINTS
 // ============================================================================
 
@@ -583,31 +723,163 @@ export function getCSSVar(name) {
 export function createCSSVariables(mode = 'light', locale = 'en') {
   const colors = getColors(mode);
   const fontFamily = getFontFamily(locale);
+  const search = mode === 'dark' ? searchColors.dark : searchColors.light;
+  const input = mode === 'dark' ? inputColors.dark : inputColors.light;
   
   return {
-    // Colors
+    // ============================================
+    // CORE COLORS
+    // ============================================
+    // Primary colors
     '--theme-color-primary-main': colors.primary[600],
     '--theme-color-primary-light': colors.primary[400],
     '--theme-color-primary-dark': colors.primary[700],
+    '--theme-color-primary-50': colors.primary[50],
+    '--theme-color-primary-100': colors.primary[100],
+    // Secondary colors
     '--theme-color-secondary-main': colors.secondary[500],
+    // Semantic colors
     '--theme-color-success-main': colors.success[500],
     '--theme-color-warning-main': colors.warning[500],
     '--theme-color-error-main': colors.error[500],
+    '--theme-color-info-main': colors.info[500],
+    
+    // ============================================
+    // BACKGROUND COLORS
+    // ============================================
     '--theme-color-background-primary': colors.background.primary,
     '--theme-color-background-secondary': colors.background.secondary,
+    '--theme-color-background-tertiary': colors.background.tertiary,
+    '--theme-color-background-inverse': colors.background.inverse,
+    
+    // ============================================
+    // TEXT COLORS
+    // ============================================
     '--theme-color-text-primary': colors.text.primary,
     '--theme-color-text-secondary': colors.text.secondary,
-    '--theme-color-border-default': colors.border.default,
+    '--theme-color-text-tertiary': colors.text.tertiary,
+    '--theme-color-text-disabled': colors.text.disabled,
+    '--theme-color-text-inverse': colors.text.inverse,
+    '--theme-color-text-link': colors.text.link,
+    '--theme-color-text-link-hover': colors.text.linkHover,
     
-    // Typography
+    // ============================================
+    // BORDER COLORS
+    // ============================================
+    '--theme-color-border-light': colors.border.light,
+    '--theme-color-border-default': colors.border.default,
+    '--theme-color-border-strong': colors.border.strong,
+    '--theme-color-border-inverse': colors.border.inverse,
+    '--theme-color-border-focus': colors.border.focus,
+    
+    // ============================================
+    // SURFACE COLORS
+    // ============================================
+    '--theme-color-surface-default': colors.surface.default,
+    '--theme-color-surface-elevated': colors.surface.elevated,
+    '--theme-color-surface-raised': colors.surface.raised,
+    '--theme-color-surface-overlay': colors.surface.overlay,
+    '--theme-color-surface-backdrop': colors.surface.backdrop,
+    
+    // ============================================
+    // STATE COLORS
+    // ============================================
+    '--theme-color-state-hover': colors.state.hover,
+    '--theme-color-state-focus': colors.state.focus,
+    '--theme-color-state-selected': colors.state.selected,
+    '--theme-color-state-disabled': colors.state.disabled,
+    '--theme-color-state-disabled-background': colors.state.disabledBackground,
+    
+    // ============================================
+    // ACTION COLORS
+    // ============================================
+    '--theme-color-action-hover': colors.action.hover,
+    '--theme-color-action-active': colors.action.active,
+    '--theme-color-action-disabled': colors.action.disabled,
+    '--theme-color-action-disabled-background': colors.action.disabledBackground,
+    
+    // ============================================
+    // SEARCH COLORS
+    // ============================================
+    '--theme-color-search-background': search.background,
+    '--theme-color-search-border': search.border,
+    '--theme-color-search-placeholder': search.placeholder,
+    '--theme-color-search-text': search.text,
+    '--theme-color-search-icon': search.icon,
+    '--theme-color-search-focus': search.focus,
+    '--theme-color-search-focus-ring': search.focusRing,
+    
+    // ============================================
+    // INPUT COLORS
+    // ============================================
+    '--theme-color-input-background': input.background,
+    '--theme-color-input-border': input.border,
+    '--theme-color-input-border-hover': input.borderHover,
+    '--theme-color-input-text': input.text,
+    '--theme-color-input-placeholder': input.placeholder,
+    '--theme-color-input-disabled-background': input.disabledBackground,
+    '--theme-color-input-disabled-text': input.disabledText,
+    
+    // ============================================
+    // TYPOGRAPHY
+    // ============================================
     '--theme-font-family-primary': fontFamily.primary,
     '--theme-font-family-mono': fontFamily.mono,
+    '--theme-font-size-xs': fontSizes.xs,
+    '--theme-font-size-sm': fontSizes.sm,
+    '--theme-font-size-base': fontSizes.base,
+    '--theme-font-size-lg': fontSizes.lg,
+    '--theme-font-size-xl': fontSizes.xl,
+    '--theme-font-weight-normal': fontWeights.normal,
+    '--theme-font-weight-medium': fontWeights.medium,
+    '--theme-font-weight-semibold': fontWeights.semibold,
+    '--theme-font-weight-bold': fontWeights.bold,
     
-    // Spacing
+    // ============================================
+    // SPACING
+    // ============================================
     '--theme-spacing-unit': '0.25rem',
-    '--theme-border-radius-default': '0.5rem',
+    '--theme-spacing-xs': spacing[1],
+    '--theme-spacing-sm': spacing[2],
+    '--theme-spacing-md': spacing[3],
+    '--theme-spacing-lg': spacing[4],
+    '--theme-spacing-xl': spacing[5],
+    '--theme-spacing-2xl': spacing[6],
     
-    // Direction
+    // ============================================
+    // BORDER RADIUS
+    // ============================================
+    '--theme-border-radius-none': borderRadius.none,
+    '--theme-border-radius-sm': borderRadius.sm,
+    '--theme-border-radius-default': borderRadius.default,
+    '--theme-border-radius-md': borderRadius.md,
+    '--theme-border-radius-lg': borderRadius.lg,
+    '--theme-border-radius-xl': borderRadius.xl,
+    '--theme-border-radius-full': borderRadius.full,
+    
+    // ============================================
+    // SHADOWS
+    // ============================================
+    '--theme-shadow-none': shadows.none,
+    '--theme-shadow-xs': shadows.xs,
+    '--theme-shadow-sm': shadows.sm,
+    '--theme-shadow-md': shadows.md,
+    '--theme-shadow-lg': shadows.lg,
+    '--theme-shadow-xl': shadows.xl,
+    '--theme-shadow-focus': shadows.focus,
+    '--theme-shadow-focus-dark': shadows.focusDark,
+    
+    // ============================================
+    // TRANSITIONS
+    // ============================================
+    '--theme-transition-fast': transitions.fast,
+    '--theme-transition-normal': transitions.normal,
+    '--theme-transition-slow': transitions.slow,
+    
+    // ============================================
+    // DIRECTION
+    // ============================================
     '--theme-direction': locale === 'fa' ? 'rtl' : 'ltr',
+    '--theme-text-align': locale === 'fa' ? 'right' : 'left',
   };
 }

@@ -20,6 +20,13 @@ import {
   borderRadius,
   shadows,
   breakpoints,
+  searchColors,
+  inputColors,
+  inputHeights,
+  touchTargets,
+  iconButtonSizes,
+  componentTokens,
+  transitions 
 } from './tokens';
 
 // ============================================================================
@@ -452,9 +459,7 @@ export function createMUITheme(mode, locale, preferences = {}) {
       MuiSkeleton: {
         styleOverrides: {
           root: {
-            backgroundColor: mode === 'dark' 
-              ? colors.neutral[700] 
-              : colors.neutral[200],
+            backgroundColor: colors.neutral[200],
           },
         },
       },
@@ -525,6 +530,621 @@ export function createMUITheme(mode, locale, preferences = {}) {
             backgroundColor: colors.background.secondary,
             borderRight: isRTL ? 'none' : '1px solid ' + colors.border.light,
             borderLeft: isRTL ? '1px solid ' + colors.border.light : 'none',
+          },
+        },
+      },
+      // ============================================
+      // INPUT COMPONENTS
+      // ============================================
+      MuiInputBase: {
+        styleOverrides: {
+          root: {
+            fontSize: fontSizes.sm,
+            lineHeight: lineHeights.normal,
+          },
+          input: {
+            '&::placeholder': {
+              color: mode === 'dark' ? colors.text.tertiary : colors.text.tertiary,
+              opacity: 1,
+            },
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: mode === 'dark' ? colors.border.strong : colors.border.default,
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: colors.primary[600],
+              borderWidth: '2px',
+            },
+          },
+          input: {
+            padding: spacing[2] + ' ' + spacing[3],
+            height: 'unset',
+            minHeight: inputHeights.medium,
+          },
+          notchedOutline: {
+            borderColor: mode === 'dark' ? colors.border.default : colors.border.light,
+          },
+        },
+      },
+      MuiFilledInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+            backgroundColor: mode === 'dark' ? colors.background.tertiary : colors.background.primary,
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? colors.background.tertiary : colors.background.primary,
+            },
+            '&.Mui-focused': {
+              backgroundColor: mode === 'dark' ? colors.background.tertiary : colors.background.primary,
+            },
+          },
+          input: {
+            padding: spacing[2] + ' ' + spacing[3],
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.medium,
+            color: colors.text.secondary,
+            '&.Mui-focused': {
+              color: colors.primary[600],
+            },
+          },
+          outlined: {
+            transform: 'translate(14px, 16px) scale(1)',
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(14px, -8px) scale(0.85)',
+            },
+          },
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            color: colors.text.secondary,
+            fontWeight: fontWeights.medium,
+          },
+        },
+      },
+      MuiFormHelperText: {
+        styleOverrides: {
+          root: {
+            fontSize: fontSizes.xs,
+            color: colors.text.tertiary,
+            '&.Mui-error': {
+              color: colors.error[500],
+            },
+          },
+        },
+      },
+      // ============================================
+      // SELECT COMPONENTS
+      // ============================================
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+          },
+          icon: {
+            color: colors.text.tertiary,
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            padding: spacing[2] + ' ' + spacing[3],
+            minHeight: touchTargets.min,
+            fontSize: fontSizes.sm,
+            '&.Mui-selected': {
+              backgroundColor: colors.state.selected,
+              '&:hover': {
+                backgroundColor: colors.state.selected,
+              },
+            },
+          },
+        },
+      },
+      // ============================================
+      // BUTTON COMPONENTS
+      // ============================================
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+            padding: spacing[2] + ' ' + spacing[4],
+            fontWeight: fontWeights.medium,
+            fontSize: fontSizes.sm,
+            textTransform: 'none',
+            transition: 'all ' + transitions.normal,
+            minHeight: touchTargets.min,
+          },
+          sizeSmall: {
+            padding: spacing[1] + ' ' + spacing[2],
+            fontSize: fontSizes.xs,
+          },
+          sizeLarge: {
+            padding: spacing[2] + ' ' + spacing[5],
+            fontSize: fontSizes.base,
+          },
+          contained: {
+            boxShadow: shadows.xs,
+            '&:hover': {
+              boxShadow: shadows.md,
+            },
+          },
+          outlined: {
+            borderColor: mode === 'dark' ? colors.border.default : colors.border.light,
+          },
+          text: {
+            '&:hover': {
+              backgroundColor: colors.action.hover,
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            width: iconButtonSizes.medium,
+            height: iconButtonSizes.medium,
+            padding: spacing[1],
+            color: colors.text.secondary,
+            '&:hover': {
+              backgroundColor: colors.action.hover,
+              color: colors.text.primary,
+            },
+          },
+          sizeSmall: {
+            width: iconButtonSizes.small,
+            height: iconButtonSizes.small,
+          },
+          sizeLarge: {
+            width: iconButtonSizes.large,
+            height: iconButtonSizes.large,
+          },
+        },
+      },
+      MuiLoadingButton: {
+        styleOverrides: {
+          root: {
+            minWidth: '100px',
+          },
+        },
+      },
+      // ============================================
+      // CARD COMPONENTS
+      // ============================================
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.lg,
+            boxShadow: shadows.sm,
+            border: '1px solid ' + colors.border.light,
+            backgroundColor: colors.background.secondary,
+          },
+        },
+      },
+      MuiCardContent: {
+        styleOverrides: {
+          root: {
+            padding: spacing[4],
+            '&:last-child': {
+              paddingBottom: spacing[4],
+            },
+          },
+        },
+      },
+      MuiCardHeader: {
+        styleOverrides: {
+          root: {
+            padding: spacing[4] + ' ' + spacing[4] + ' 0 ' + spacing[4],
+          },
+          title: {
+            fontSize: fontSizes.lg,
+            fontWeight: fontWeights.semibold,
+          },
+        },
+      },
+      // ============================================
+      // PAPER COMPONENTS
+      // ============================================
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            borderRadius: borderRadius.lg,
+          },
+          elevation1: {
+            boxShadow: shadows.sm,
+          },
+          elevation2: {
+            boxShadow: shadows.md,
+          },
+          elevation3: {
+            boxShadow: shadows.lg,
+          },
+          elevation4: {
+            boxShadow: shadows.xl,
+          },
+        },
+      },
+      // ============================================
+      // DIALOG COMPONENTS
+      // ============================================
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: borderRadius.xl,
+            padding: spacing[4],
+          },
+          paperWidthSm: {
+            maxWidth: '480px',
+          },
+        },
+      },
+      MuiDialogTitle: {
+        styleOverrides: {
+          root: {
+            fontSize: fontSizes.xl,
+            fontWeight: fontWeights.semibold,
+            padding: spacing[2] + ' 0 ' + spacing[3] + ' 0',
+          },
+        },
+      },
+      MuiDialogContent: {
+        styleOverrides: {
+          root: {
+            paddingTop: spacing[3],
+          },
+        },
+      },
+      MuiDialogActions: {
+        styleOverrides: {
+          root: {
+            padding: spacing[3] + ' 0 0 0',
+            gap: spacing[2],
+          },
+        },
+      },
+      // ============================================
+      // CHIP COMPONENTS
+      // ============================================
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.full,
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.medium,
+          },
+          filled: {
+            backgroundColor: mode === 'dark' ? colors.neutral[700] : colors.neutral[100],
+          },
+          outlined: {
+            borderColor: mode === 'dark' ? colors.border.default : colors.border.light,
+          },
+        },
+      },
+      // ============================================
+      // TOOLTIP COMPONENTS
+      // ============================================
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            borderRadius: borderRadius.sm,
+            fontSize: fontSizes.sm,
+            backgroundColor: colors.neutral[800],
+            color: colors.neutral[0],
+            padding: spacing[1] + ' ' + spacing[2],
+          },
+        },
+      },
+      // ============================================
+      // ALERT COMPONENTS
+      // ============================================
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+            padding: spacing[2] + ' ' + spacing[3],
+          },
+          standardSuccess: {
+            backgroundColor: colors.success[50],
+            color: colors.success[800],
+          },
+          standardError: {
+            backgroundColor: colors.error[50],
+            color: colors.error[800],
+          },
+          standardWarning: {
+            backgroundColor: colors.warning[50],
+            color: colors.warning[800],
+          },
+          standardInfo: {
+            backgroundColor: colors.info[50],
+            color: colors.info[800],
+          },
+        },
+      },
+      // ============================================
+      // TAB COMPONENTS
+      // ============================================
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: fontWeights.medium,
+            fontSize: fontSizes.sm,
+            minWidth: 'auto',
+            padding: spacing[2] + ' ' + spacing[3],
+            minHeight: touchTargets.min,
+            '&.Mui-selected': {
+              color: colors.primary[600],
+            },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            height: '2px',
+            borderRadius: borderRadius.sm,
+            backgroundColor: colors.primary[600],
+          },
+        },
+      },
+      // ============================================
+      // LIST COMPONENTS
+      // ============================================
+      MuiList: {
+        styleOverrides: {
+          root: {
+            padding: spacing[1],
+          },
+        },
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.default,
+            margin: spacing[1] + ' ' + spacing[2],
+            minHeight: touchTargets.min,
+            '&.Mui-selected': {
+              backgroundColor: colors.state.selected,
+            },
+          },
+        },
+      },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: {
+            minWidth: spacing[5],
+            color: colors.text.tertiary,
+          },
+        },
+      },
+      MuiListItemText: {
+        styleOverrides: {
+          primary: {
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.normal,
+          },
+          secondary: {
+            fontSize: fontSizes.xs,
+            color: colors.text.tertiary,
+          },
+        },
+      },
+      // ============================================
+      // MENU COMPONENTS
+      // ============================================
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            borderRadius: borderRadius.lg,
+            boxShadow: shadows.lg,
+            border: '1px solid ' + colors.border.light,
+            marginTop: spacing[1],
+          },
+        },
+      },
+      // ============================================
+      // SKELETON COMPONENTS
+      // ============================================
+      MuiSkeleton: {
+        styleOverrides: {
+          root: {
+            backgroundColor: mode === 'dark' ? colors.neutral[700] : colors.neutral[200],
+          },
+        },
+      },
+      // ============================================
+      // LINEAR PROGRESS
+      // ============================================
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: {
+            borderRadius: borderRadius.full,
+            height: '8px',
+          },
+          bar: {
+            borderRadius: borderRadius.full,
+          },
+        },
+      },
+      // ============================================
+      // SWITCH COMPONENTS
+      // ============================================
+      MuiSwitch: {
+        styleOverrides: {
+          root: {
+            padding: spacing[1],
+            width: 52,
+            height: 32,
+          },
+          switchBase: {
+            padding: spacing[1],
+            '&.Mui-checked': {
+              color: colors.primary[600],
+              '& + .MuiSwitch-track': {
+                backgroundColor: colors.primary[600],
+                opacity: 0.5,
+              },
+            },
+          },
+          thumb: {
+            width: 24,
+            height: 24,
+            boxShadow: shadows.xs,
+          },
+          track: {
+            borderRadius: borderRadius.full,
+            backgroundColor: mode === 'dark' ? colors.neutral[600] : colors.neutral[300],
+            opacity: 1,
+          },
+        },
+      },
+      // ============================================
+      // CHECKBOX COMPONENTS
+      // ============================================
+      MuiCheckbox: {
+        styleOverrides: {
+          root: {
+            color: colors.border.strong,
+            '&.Mui-checked': {
+              color: colors.primary[600],
+            },
+          },
+        },
+      },
+      // ============================================
+      // RADIO COMPONENTS
+      // ============================================
+      MuiRadio: {
+        styleOverrides: {
+          root: {
+            color: colors.border.strong,
+            '&.Mui-checked': {
+              color: colors.primary[600],
+            },
+          },
+        },
+      },
+      // ============================================
+      // APP BAR & DRAWER
+      // ============================================
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundColor: colors.background.secondary,
+            color: colors.text.primary,
+            boxShadow: shadows.xs,
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: colors.background.secondary,
+            borderRight: isRTL ? 'none' : '1px solid ' + colors.border.light,
+            borderLeft: isRTL ? '1px solid ' + colors.border.light : 'none',
+          },
+        },
+      },
+      // ============================================
+      // TYPOGRAPHY COMPONENTS
+      // ============================================
+      MuiTypography: {
+        styleOverrides: {
+          h1: {
+            fontWeight: fontWeights.bold,
+            fontSize: fontSizes['4xl'],
+            lineHeight: lineHeights.tight,
+          },
+          h2: {
+            fontWeight: fontWeights.bold,
+            fontSize: fontSizes['3xl'],
+            lineHeight: lineHeights.tight,
+          },
+          h3: {
+            fontWeight: fontWeights.semibold,
+            fontSize: fontSizes['2xl'],
+            lineHeight: lineHeights.tight,
+          },
+          h4: {
+            fontWeight: fontWeights.semibold,
+            fontSize: fontSizes.xl,
+            lineHeight: lineHeights.normal,
+          },
+          h5: {
+            fontWeight: fontWeights.semibold,
+            fontSize: fontSizes.lg,
+            lineHeight: lineHeights.normal,
+          },
+          h6: {
+            fontWeight: fontWeights.semibold,
+            fontSize: fontSizes.base,
+            lineHeight: lineHeights.normal,
+          },
+          body1: {
+            fontSize: fontSizes.base,
+            lineHeight: lineHeights.relaxed,
+          },
+          body2: {
+            fontSize: fontSizes.sm,
+            lineHeight: lineHeights.relaxed,
+          },
+          caption: {
+            fontSize: fontSizes.xs,
+            lineHeight: lineHeights.normal,
+            color: colors.text.tertiary,
+          },
+          button: {
+            textTransform: 'none',
+            fontWeight: fontWeights.medium,
+          },
+        },
+      },
+      // ============================================
+      // BREADCRUMBS
+      // ============================================
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          separator: {
+            color: colors.text.tertiary,
+            marginLeft: spacing[2],
+            marginRight: spacing[2],
+          },
+        },
+      },
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            color: colors.text.link,
+            textDecoration: 'none',
+            '&:hover': {
+              color: colors.text.linkHover,
+              textDecoration: 'underline',
+            },
+          },
+        },
+      },
+      // ============================================
+      // DIVIDER
+      // ============================================
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            borderColor: colors.border.light,
           },
         },
       },

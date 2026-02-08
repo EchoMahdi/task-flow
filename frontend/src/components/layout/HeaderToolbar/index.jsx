@@ -11,6 +11,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/I18nContext';
+import  LanguageSwitcher  from '@/components/ui/LanguageSwitcher/LanguageSwitcher';
 import {
   useThemeMode,
   useDirection,
@@ -261,90 +262,6 @@ function ThemeToggle({ variant = 'dropdown' }) {
 // ============================================================================
 // Language Switcher Component
 // ============================================================================
-
-function LanguageSwitcher() {
-  const { language, changeLanguage, t } = useTranslation();
-  const colors = useColors();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const languages = [
-    { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇺🇸' },
-    { code: 'fa', label: 'Persian', nativeLabel: 'فارسی', flag: '🇮🇷' },
-  ];
-
-  const currentLang = languages.find((l) => l.code === language) || languages[0];
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={dropdownRef} className={HeaderToolbarStyles.dropdown}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={HeaderToolbarStyles.dropdownTrigger}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        aria-label="Language settings"
-      >
-        <span className={HeaderToolbarStyles.triggerIcon}>
-          <span style={{ fontSize: '1.2em' }}>{currentLang.flag}</span>
-        </span>
-        <span className={HeaderToolbarStyles.triggerLabel}>
-          {currentLang.code.toUpperCase()}
-        </span>
-        <ChevronDownIcon />
-      </button>
-
-      {isOpen && (
-        <>
-          <div
-            className={HeaderToolbarStyles.dropdownBackdrop}
-            onClick={() => setIsOpen(false)}
-          />
-          <div
-            className={HeaderToolbarStyles.dropdownMenu}
-            style={{
-              '--dropdown-bg': colors.surface.default,
-              '--dropdown-border': colors.border.default,
-            }}
-          >
-            {languages.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => {
-                  changeLanguage(lang.code);
-                  setIsOpen(false);
-                }}
-                className={`${HeaderToolbarStyles.dropdownItem} ${
-                  language === lang.code ? HeaderToolbarStyles.active : ''
-                }`}
-              >
-                <span className={HeaderToolbarStyles.dropdownItemIcon}>
-                  <span style={{ fontSize: '1.2em' }}>{lang.flag}</span>
-                </span>
-                <span>{lang.nativeLabel}</span>
-                {language === lang.code && (
-                  <span className={HeaderToolbarStyles.checkmark}>
-                    <CheckIcon />
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 // ============================================================================
 // Notification Panel Component

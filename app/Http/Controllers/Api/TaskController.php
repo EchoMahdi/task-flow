@@ -144,6 +144,25 @@ class TaskController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'sort_by' => ['sometimes', 'string', 'in:due_date,priority,created_at,title'],
+            'sort_order' => ['sometimes', 'string', 'in:asc,desc'],
+            'search' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'status' => ['sometimes', 'nullable', 'string', 'in:pending,completed,all'],
+            'priority' => ['sometimes', 'nullable', 'string', 'in:low,medium,high'],
+            'project_id' => ['sometimes', 'nullable', 'integer'],
+            'tag_id' => ['sometimes', 'nullable', 'integer'],
+        ]);
+
+        // Map status to is_completed for repository
+        $request->merge([
+            'is_completed' => isset($validated['status']) && $validated['status'] !== 'all' 
+                ? ($validated['status'] === 'completed' ? true : false) 
+                : null,
+        ]);
+
         $tasks = $this->taskService->getAllTasks($request);
         
         return response()->json([
@@ -255,6 +274,43 @@ class TaskController extends Controller
         return response()->json([
             'message' => $this->translator->get('tasks.complete.undone'),
             'data' => new TaskResource($task),
+        ]);
+    }
+
+    /**
+     * Get task options (status, priority) for dropdowns
+     *
+     * GET /api/tasks/options
+     */
+    public function options(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'statuses' => [
+                    ['value' => 'pending', 'label' => 'Pending', 'color' => 'default'],
+                    ['value' => 'in_progress', 'label' => 'In Progress', 'color' => 'primary'],
+                    ['value' => 'completed', 'label' => 'Completed', 'color' => 'success'],
+                ],
+                'priorities' => [
+                    ['value' => 'low', 'label' => 'Low', 'color' => 'success'],
+                    ['value' => 'medium', 'label' => 'Medium', 'color' => 'warning'],
+                    ['value' => 'high', 'label' => 'High', 'color' => 'error'],
+                    ['value' => 'urgent', 'label' => 'Urgent', 'color' => 'error'],
+                ],
+                // Filter options include 'all' for convenience
+                'statusFilterOptions' => [
+                    ['value' => 'all', 'label' => 'All Status'],
+                    ['value' => 'pending', 'label' => 'Pending'],
+                    ['value' => 'in_progress', 'label' => 'In Progress'],
+                    ['value' => 'completed', 'label' => 'Completed'],
+                ],
+                'priorityFilterOptions' => [
+                    ['value' => 'all', 'label' => 'All Priority'],
+                    ['value' => 'high', 'label' => 'High'],
+                    ['value' => 'medium', 'label' => 'Medium'],
+                    ['value' => 'low', 'label' => 'Low'],
+                ],
+            ],
         ]);
     }
 }

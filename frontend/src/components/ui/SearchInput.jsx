@@ -15,6 +15,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Close as CloseIcon, Search as SearchIcon } from '@mui/icons-material';
+import { useTheme } from '@/theme/ThemeProvider';
 
 /**
  * Debounce hook for input handling
@@ -75,6 +76,37 @@ function SearchInput({
   const inputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const containerRef = useRef(null);
+
+  // Theme for centralized styles
+  const theme = useTheme();
+  const colors = theme.colors || {
+    search: { background: '#f3f4f6', border: '#e5e7eb', placeholder: '#9ca3af', text: '#111827', icon: '#6b7280', focus: '#3b82f6' },
+    surface: { default: '#ffffff' },
+    text: { primary: '#111827', muted: '#9e9e9e' },
+    border: { light: '#e0e0e0' },
+    state: { hover: 'rgba(0, 0, 0, 0.04)' },
+  };
+  
+  const resolvedMode = theme.resolvedMode || 'light';
+  const searchColors = resolvedMode === 'dark' ? {
+    background: '#27272a',
+    border: '#3f3f46',
+    placeholder: '#71717a',
+    text: '#f4f4f5',
+    icon: '#a1a1aa',
+    focus: '#60a5fa',
+    focusRing: 'rgba(96, 165, 250, 0.15)',
+    surface: '#18181b',
+  } : {
+    background: '#f3f4f6',
+    border: '#e5e7eb',
+    placeholder: '#9ca3af',
+    text: '#111827',
+    icon: '#6b7280',
+    focus: '#3b82f6',
+    focusRing: 'rgba(59, 130, 246, 0.15)',
+    surface: '#ffffff',
+  };
 
   // Debounced value for suggestions
   const debouncedValue = useDebounce(localValue, 200);
@@ -177,11 +209,26 @@ function SearchInput({
     [handleSubmit]
   );
 
-  // Size-based styles
+  // Size-based styles using theme tokens
   const sizeStyles = {
-    small: { height: '36px', fontSize: '14px', padding: '0 12px' },
-    medium: { height: '44px', fontSize: '16px', padding: '0 16px' },
-    large: { height: '52px', fontSize: '18px', padding: '0 20px' },
+    small: { 
+      height: '36px', 
+      fontSize: 'var(--theme-font-size-sm, 0.875rem)', 
+      padding: '0 12px',
+      iconSize: '20px',
+    },
+    medium: { 
+      height: '44px', 
+      fontSize: 'var(--theme-font-size-base, 1rem)', 
+      padding: '0 16px',
+      iconSize: '24px',
+    },
+    large: { 
+      height: '52px', 
+      fontSize: 'var(--theme-font-size-lg, 1.125rem)', 
+      padding: '0 20px',
+      iconSize: '24px',
+    },
   };
 
   const currentSize = sizeStyles[size] || sizeStyles.medium;
@@ -189,6 +236,18 @@ function SearchInput({
   const hasValue = localValue.length > 0;
   const showSuggestionsDropdown =
     showSuggestions && isFocused && suggestions.length > 0;
+
+  // CSS custom properties for theming
+  const searchStyleVars = {
+    '--search-bg': searchColors.background,
+    '--search-border': searchColors.border,
+    '--search-placeholder': searchColors.placeholder,
+    '--search-text': searchColors.text,
+    '--search-icon': searchColors.icon,
+    '--search-focus': searchColors.focus,
+    '--search-focus-ring': searchColors.focusRing,
+    '--search-surface': searchColors.surface,
+  };
 
   return (
     <div
@@ -204,24 +263,24 @@ function SearchInput({
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: 'var(--search-bg, #f5f5f5)',
-            border: '1px solid var(--search-border, #e0e0e0)',
-            borderRadius: '8px',
+            backgroundColor: 'var(--search-bg)',
+            border: '1px solid var(--search-border)',
+            borderRadius: 'var(--theme-border-radius-default, 8px)',
             padding: '0 12px',
             transition: 'border-color 0.2s, box-shadow 0.2s',
             borderColor: isFocused
-              ? 'var(--search-focus, #1976d2)'
-              : 'var(--search-border, #e0e0e0)',
+              ? 'var(--search-focus)'
+              : 'var(--search-border)',
             boxShadow: isFocused
-              ? '0 0 0 3px var(--search-focus-ring, rgba(25, 118, 210, 0.1))'
+              ? '0 0 0 3px var(--search-focus-ring)'
               : 'none',
           }}
         >
           <SearchIcon
             sx={{
-              color: 'var(--search-icon, #757575)',
-              fontSize: size === 'small' ? '20px' : '24px',
-              marginRight: '8px',
+              color: 'var(--search-icon)',
+              fontSize: currentSize.iconSize || '24px',
+              marginRight: 'var(--theme-spacing-sm, 8px)',
             }}
             aria-hidden="true"
           />
@@ -247,7 +306,7 @@ function SearchInput({
               backgroundColor: 'transparent',
               fontSize: currentSize.fontSize,
               height: currentSize.height,
-              color: 'var(--search-text, #212121)',
+              color: 'var(--search-text)',
               minWidth: 0,
               ...currentSize,
             }}
@@ -259,21 +318,15 @@ function SearchInput({
               style={{
                 width: '16px',
                 height: '16px',
-                border: '2px solid var(--search-border, #e0e0e0)',
-                borderTopColor: 'var(--search-focus, #1976d2)',
-                borderRadius: '50%',
+                border: '2px solid var(--search-border)',
+                borderTopColor: 'var(--search-focus)',
+                borderRadius: 'var(--theme-border-radius-full, 9999px)',
                 animation: 'spin 0.6s linear infinite',
-                marginLeft: '8px',
+                marginLeft: 'var(--theme-spacing-sm, 8px)',
               }}
               role="status"
               aria-label="Loading"
-            >
-              <style>{`
-                @keyframes spin {
-                  to { transform: rotate(360deg); }
-                }
-              `}</style>
-            </span>
+            />
           )}
 
           {/* Clear button */}
@@ -285,12 +338,12 @@ function SearchInput({
               style={{
                 background: 'none',
                 border: 'none',
-                padding: '4px',
+                padding: 'var(--theme-spacing-xs, 4px)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--search-icon, #757575)',
+                color: 'var(--search-icon)',
               }}
             >
               <CloseIcon
@@ -304,12 +357,12 @@ function SearchInput({
             <kbd
               style={{
                 padding: '2px 6px',
-                fontSize: '12px',
-                border: '1px solid var(--search-border, #e0e0e0)',
-                borderRadius: '4px',
-                color: 'var(--search-placeholder, #9e9e9e)',
-                backgroundColor: 'var(--search-bg, #f5f5f5)',
-                marginLeft: '8px',
+                fontSize: 'var(--theme-font-size-xs, 0.75rem)',
+                border: '1px solid var(--search-border)',
+                borderRadius: 'var(--theme-border-radius-sm, 4px)',
+                color: 'var(--search-placeholder)',
+                backgroundColor: 'var(--search-bg)',
+                marginLeft: 'var(--theme-spacing-sm, 8px)',
               }}
               aria-hidden="true"
             >
@@ -331,12 +384,12 @@ function SearchInput({
             top: '100%',
             left: 0,
             right: 0,
-            marginTop: '4px',
-            backgroundColor: 'var(--surface, #ffffff)',
-            border: '1px solid var(--border, #e0e0e0)',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
+            marginTop: 'var(--theme-spacing-xs, 4px)',
+            backgroundColor: 'var(--search-surface)',
+            border: '1px solid var(--search-border)',
+            borderRadius: 'var(--theme-border-radius-default, 8px)',
+            boxShadow: 'var(--theme-shadow-lg)',
+            zIndex: 'var(--z-dropdown, 1000)',
             maxHeight: '300px',
             overflowY: 'auto',
           }}
@@ -350,25 +403,25 @@ function SearchInput({
               onClick={() => handleSuggestionClick(suggestion)}
               style={{
                 width: '100%',
-                padding: '12px 16px',
+                padding: 'var(--theme-spacing-sm, 8px) var(--theme-spacing-md, 12px)',
                 border: 'none',
-                borderBottom: index < suggestions.length - 1 ? '1px solid var(--border, #f0f0f0)' : 'none',
+                borderBottom: index < suggestions.length - 1 ? '1px solid var(--search-border)' : 'none',
                 backgroundColor: 'transparent',
                 textAlign: 'left',
                 cursor: 'pointer',
-                fontSize: '14px',
-                color: 'var(--text, #212121)',
-                transition: 'background-color 0.1s',
+                fontSize: 'var(--theme-font-size-sm, 0.875rem)',
+                color: 'var(--search-text)',
+                transition: 'background-color 0.1s ease',
               }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'var(--hover-bg, #f5f5f5)';
+                e.target.style.backgroundColor = 'var(--theme-color-state-hover, rgba(0, 0, 0, 0.04))';
               }}
               onMouseLeave={(e) => {
                 e.target.style.backgroundColor = 'transparent';
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <SearchIcon sx={{ fontSize: '18px', color: 'var(--text-muted, #9e9e9e)' }} />
+              <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--theme-spacing-sm, 8px)' }}>
+                <SearchIcon sx={{ fontSize: '18px', color: 'var(--search-icon)' }} />
                 {suggestion}
               </span>
             </button>

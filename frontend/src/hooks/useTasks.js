@@ -119,6 +119,8 @@ const useTasks = (options = {}) => {
     };
 
     // Build params object properly
+    // NOTE: All sorting and filtering is handled by the backend.
+    // The frontend only builds query parameters and renders the returned data.
     const apiParams = {
       page: params.page,
       per_page: params.per_page,
@@ -126,18 +128,22 @@ const useTasks = (options = {}) => {
 
     if (params.sort_by) apiParams.sort_by = params.sort_by;
     if (params.sort_order) apiParams.sort_order = params.sort_order;
-    if (params.status && params.status !== 'all') apiParams.is_completed = params.status === 'completed';
+    if (params.status && params.status !== 'all') apiParams.status = params.status;
     if (params.priority && params.priority !== 'all') apiParams.priority = params.priority;
     if (params.search) apiParams.search = params.search;
     if (params.project_id) apiParams.project_id = params.project_id;
     if (params.tag_id) apiParams.tag_id = params.tag_id;
     if (params.filter) {
-      if (params.filter === 'completed') apiParams.is_completed = true;
+      if (params.filter === 'completed') apiParams.status = 'completed';
       if (params.filter === 'inbox') {
         apiParams.project_id = null;
         apiParams.tag_id = null;
       }
     }
+
+    // Debug logging for diagnostic purposes
+    console.log('[useTasks] Fetching tasks with params:', apiParams);
+    console.log('[useTasks] DEBUG: AbortController pattern - creating new controller for deduplication');
 
     const requestPromise = (async () => {
       try {

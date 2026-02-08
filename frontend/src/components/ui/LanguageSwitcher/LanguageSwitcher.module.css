@@ -1,0 +1,252 @@
+/**
+ * ============================================================================
+ * LanguageSwitcher Styles
+ * ============================================================================
+ *
+ * All styles use semantic tokens from the centralized theme system.
+ * No hardcoded colors, fonts, or spacing values.
+ */
+
+/* Dropdown container */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Trigger button */
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-spacing-sm);
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  background: var(--theme-color-surface-default);
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: var(--theme-border-radius-md);
+  cursor: pointer;
+  font-size: var(--theme-font-size-sm);
+  transition: all var(--theme-transition-fast);
+  min-width: 120px;
+  justify-content: space-between;
+  color: var(--theme-color-text-primary);
+}
+
+.dropdownTrigger:hover {
+  background: var(--theme-color-action-hover);
+}
+
+.dropdownTrigger:focus {
+  outline: 2px solid var(--theme-color-primary-main);
+  outline-offset: 2px;
+}
+
+.triggerIcon {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+}
+
+.triggerLabel {
+  flex: 1;
+  text-align: left;
+  color: var(--theme-color-text-primary);
+}
+
+/* Chevron icon */
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--theme-transition-fast);
+  color: var(--theme-color-text-secondary);
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown backdrop */
+.dropdownBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 100;
+}
+
+/* Dropdown menu */
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + var(--theme-spacing-xs));
+  right: 0;
+  min-width: 180px;
+  background: var(--theme-color-surface-default);
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: var(--theme-border-radius-md);
+  box-shadow: var(--theme-shadow-lg);
+  z-index: 101;
+  overflow: hidden;
+  animation: slideIn var(--theme-transition-fast);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL support for dropdown menu */
+[dir="rtl"] .dropdownMenu {
+  right: auto;
+  left: 0;
+}
+
+/* Dropdown items */
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-spacing-sm);
+  width: 100%;
+  padding: var(--theme-spacing-sm) var(--theme-spacing-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--theme-font-size-sm);
+  text-align: left;
+  transition: background var(--theme-transition-fast);
+  color: var(--theme-color-text-primary);
+}
+
+.dropdownItem:hover,
+.dropdownItem.focused {
+  background: var(--theme-color-action-hover);
+}
+
+.dropdownItem.active {
+  background: var(--theme-color-primary-50);
+  color: var(--theme-color-primary-dark);
+}
+
+.itemIcon {
+  display: flex;
+  align-items: center;
+  font-size: 1.2em;
+}
+
+.itemLabel {
+  flex: 1;
+}
+
+.itemSubtitle {
+  font-size: var(--theme-font-size-xs);
+  color: var(--theme-color-text-tertiary);
+}
+
+/* Checkmark icon */
+.checkmark {
+  width: 16px;
+  height: 16px;
+  color: var(--theme-color-primary-main);
+}
+
+/* Toggle button variant */
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: var(--theme-spacing-xs);
+  background: var(--theme-color-surface-default);
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: var(--theme-border-radius-md);
+  cursor: pointer;
+  transition: all var(--theme-transition-fast);
+}
+
+.toggleButton:hover {
+  background: var(--theme-color-background-tertiary);
+}
+
+.toggleButton:focus {
+  outline: 2px solid var(--theme-color-primary-main);
+  outline-offset: 2px;
+}
+
+/* Button group variant */
+.buttonGroup {
+  display: flex;
+  gap: var(--theme-spacing-xs);
+  padding: var(--theme-spacing-xs);
+  background: var(--theme-color-surface-default);
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: var(--theme-border-radius-md);
+}
+
+.langButton {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-spacing-xs);
+  padding: var(--theme-spacing-xs) var(--theme-spacing-md);
+  background: none;
+  border: none;
+  border-radius: var(--theme-border-radius-sm);
+  cursor: pointer;
+  font-size: var(--theme-font-size-sm);
+  transition: all var(--theme-transition-fast);
+  color: var(--theme-color-text-primary);
+}
+
+.langButton:hover:not(:disabled) {
+  background: var(--theme-color-background-tertiary);
+}
+
+.langButton.active {
+  background: var(--theme-color-primary-main);
+  color: var(--theme-color-text-inverse);
+}
+
+.langButton:focus {
+  outline: 2px solid var(--theme-color-primary-main);
+  outline-offset: 2px;
+}
+
+.langButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Size variants */
+.dropdownTrigger.small,
+.langButton.small {
+  padding: var(--theme-spacing-xs) var(--theme-spacing-sm);
+  font-size: var(--theme-font-size-xs);
+}
+
+.dropdownTrigger.large,
+.langButton.large {
+  padding: var(--theme-spacing-md) var(--theme-spacing-lg);
+  font-size: var(--theme-font-size-base);
+}
+
+/* RTL specific adjustments */
+[dir="rtl"] .dropdownTrigger {
+  text-align: right;
+}
+
+[dir="rtl"] .triggerLabel {
+  text-align: right;
+}
+
+[dir="rtl"] .itemLabel {
+  text-align: right;
+}
+
+[dir="rtl"] .langButton {
+  text-align: right;
+}

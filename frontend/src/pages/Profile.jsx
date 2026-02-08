@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '../components/layout/index';
-import { 
-  Card, CardContent, Button, TextField, Alert, Avatar, 
-  Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem ,Tab 
+import {
+  Card, CardContent, Button, TextField, Alert, Avatar,
+  Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem ,Tab
 } from '@mui/material';
 import PageHeader from '../components/ui/PageHeader';
 import { useAuth } from '../context/AuthContext';
 import { preferenceService } from '../services/preferenceService';
+import { useTheme } from '../theme/ThemeProvider';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import MapIcon from '@mui/icons-material/Map';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -15,6 +16,8 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const Profile = () => {
   const { user, refreshUser } = useAuth();
+  const theme = useTheme();
+  const colors = theme.colors ;
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -201,10 +204,10 @@ const Profile = () => {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'grey.300' }} />
+                <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'action.hover' }} />
                 <Box sx={{ flex: 1 }}>
-                  <Box sx={{ height: 24, width: 128, bgcolor: 'grey.300', borderRadius: 1, mb: 1 }} />
-                  <Box sx={{ height: 20, width: 192, bgcolor: 'grey.300', borderRadius: 1 }} />
+                  <Box sx={{ height: 24, width: 128, bgcolor: 'action.hover', borderRadius: 1, mb: 1 }} />
+                  <Box sx={{ height: 20, width: 192, bgcolor: 'action.hover', borderRadius: 1 }} />
                 </Box>
               </Box>
             </CardContent>
@@ -260,7 +263,7 @@ const Profile = () => {
                     height: 32,
                     borderRadius: '50%',
                     bgcolor: 'primary.main',
-                    color: 'white',
+                    color: 'primary.contrastText',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -411,10 +414,10 @@ const Profile = () => {
                     <Box 
                       sx={{ 
                         p: 3, 
-                        bgcolor: 'warning.light', 
+                        bgcolor: 'warning.50', 
                         borderRadius: 2,
                         border: 1,
-                        borderColor: 'warning.light',
+                        borderColor: 'warning.200',
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 2
@@ -426,7 +429,7 @@ const Profile = () => {
                           Password Requirements
                         </Typography>
                         <Typography variant="body2" sx={{ color: 'warning.dark', mt: 0.5 }}>
-                          <ul style={{ margin: '4px 0 0 0', paddingLeft: 20 }}>
+                          <ul style={{ margin: '4px 0 0 0', paddingLeft: '1.25rem' }}>
                             <li>At least 8 characters long</li>
                             <li>Include uppercase and lowercase letters</li>
                             <li>Include at least one number</li>
@@ -485,10 +488,10 @@ const Profile = () => {
                     <Box 
                       sx={{ 
                         p: 3, 
-                        bgcolor: 'primary.light', 
+                        bgcolor: 'primary.50', 
                         borderRadius: 2,
                         border: 1,
-                        borderColor: 'primary.light',
+                        borderColor: 'primary.200',
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 2
@@ -522,7 +525,7 @@ const Profile = () => {
                       </Select>
                     </FormControl>
 
-                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                    <Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                       <Typography variant="body2" color="text.secondary">
                         <Typography component="span" variant="body2" sx={{ fontWeight: 500 }}>
                           Current local time:

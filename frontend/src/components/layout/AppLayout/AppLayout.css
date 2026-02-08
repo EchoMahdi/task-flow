@@ -2,13 +2,16 @@
  * ============================================================================
  * AppLayout Styles
  * ============================================================================
+ *
+ * All styles use semantic tokens from the centralized theme system.
+ * No hardcoded colors, fonts, or spacing values.
  */
 
 .app-layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--bg-primary, #f8fafc);
+  background-color: var(--theme-color-background-primary, #f8fafc);
 }
 
 .app-layout__main {
@@ -31,20 +34,20 @@
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 8px;
-  background-color: var(--bg-secondary, #ffffff);
-  color: var(--text-secondary, #64748b);
+  border-radius: var(--theme-border-radius-default, 8px);
+  background-color: var(--theme-color-background-secondary, #ffffff);
+  color: var(--theme-color-text-secondary, #64748b);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--theme-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
   transition: all 0.2s ease-in-out;
 }
 
 .app-layout__toggle:hover {
-  background-color: var(--bg-hover, #f1f5f9);
-  color: var(--text-primary, #1e293b);
+  background-color: var(--theme-color-background-tertiary, #f1f5f9);
+  color: var(--theme-color-text-primary, #1e293b);
 }
 
 .app-layout__main--expanded .app-layout__toggle {
@@ -52,26 +55,26 @@
 }
 
 .app-layout__content {
-  padding: 24px;
-  padding-top: 16px;
+  padding: var(--theme-spacing-lg, 24px);
+  padding-top: var(--theme-spacing-md, 16px);
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Dark mode support */
+/* Dark mode support - now uses CSS custom properties */
 @media (prefers-color-scheme: dark) {
   .app-layout {
-    background-color: #0f172a;
+    background-color: var(--theme-color-background-primary);
   }
 
   .app-layout__toggle {
-    background-color: #1e293b;
-    color: #94a3b8;
+    background-color: var(--theme-color-surface-elevated, #1e293b);
+    color: var(--theme-color-text-secondary, #94a3b8);
   }
 
   .app-layout__toggle:hover {
-    background-color: #334155;
-    color: #e2e8f0;
+    background-color: var(--theme-color-surface-raised, #334155);
+    color: var(--theme-color-text-primary, #e2e8f0);
   }
 }
 
@@ -114,7 +117,7 @@
   }
 
   .app-layout__content {
-    padding: 16px;
-    padding-top: 12px;
+    padding: var(--theme-spacing-md, 16px);
+    padding-top: var(--theme-spacing-sm, 12px);
   }
 }

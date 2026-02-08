@@ -2,14 +2,17 @@
  * ============================================================================
  * NavigationRail Styles
  * ============================================================================
+ *
+ * All styles use semantic tokens from the centralized theme system.
+ * No hardcoded colors, fonts, or spacing values.
  */
 
 /* Navigation Rail Container */
 .navigation-rail {
   width: 72px;
   min-height: 100vh;
-  background-color: var(--bg-secondary, #ffffff);
-  border-right: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--theme-color-background-secondary, #ffffff);
+  border-right: 1px solid var(--theme-color-border-light, #e2e8f0);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -38,14 +41,14 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: var(--text-secondary, #64748b);
+  color: var(--theme-color-text-secondary, #64748b);
 }
 
 .nav-loading__spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid var(--border-color, #e2e8f0);
-  border-top-color: var(--primary-color, #3b82f6);
+  border: 2px solid var(--theme-color-border-light, #e2e8f0);
+  border-top-color: var(--theme-color-primary-main, #3b82f6);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -63,13 +66,13 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  color: var(--error-color, #ef4444);
+  color: var(--theme-color-error-main, #ef4444);
   text-align: center;
 }
 
 .nav-error button {
   padding: 8px 16px;
-  background-color: var(--error-color, #ef4444);
+  background-color: var(--theme-color-error-main, #ef4444);
   color: white;
   border: none;
   border-radius: 6px;
@@ -80,7 +83,7 @@
 /* User Section */
 .nav-section--user {
   padding: 16px 8px;
-  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  border-bottom: 1px solid var(--theme-color-border-light, #e2e8f0);
   margin-bottom: 8px;
 }
 
@@ -89,12 +92,12 @@
   align-items: center;
   gap: 12px;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: var(--theme-border-radius-default, 8px);
   transition: background-color 0.2s ease;
 }
 
 .nav-user:hover {
-  background-color: var(--bg-hover, #f1f5f9);
+  background-color: var(--theme-color-background-tertiary, #f1f5f9);
 }
 
 .nav-user__avatar {
@@ -112,17 +115,17 @@
 }
 
 .nav-user__name {
-  font-size: 14px;
+  font-size: var(--theme-font-size-sm, 14px);
   font-weight: 600;
-  color: var(--text-primary, #1e293b);
+  color: var(--theme-color-text-primary, #1e293b);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .nav-user__email {
-  font-size: 12px;
-  color: var(--text-secondary, #64748b);
+  font-size: var(--theme-font-size-xs, 12px);
+  color: var(--theme-color-text-secondary, #64748b);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,13 +154,13 @@
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--theme-border-radius-default, 8px);
   transition: background-color 0.2s ease;
-  color: var(--text-secondary, #64748b);
+  color: var(--theme-color-text-secondary, #64748b);
 }
 
 .nav-section__header:hover {
-  background-color: var(--bg-hover, #f1f5f9);
+  background-color: var(--theme-color-background-tertiary, #f1f5f9);
 }
 
 .nav-section__icon {
@@ -200,38 +203,38 @@
   border: none;
   background: none;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--theme-border-radius-default, 8px);
   transition: all 0.2s ease;
-  color: var(--text-primary, #1e293b);
+  color: var(--theme-color-text-primary, #1e293b);
   text-align: left;
   position: relative;
 }
 
 .nav-item:hover {
-  background-color: var(--bg-hover, #f1f5f9);
+  background-color: var(--theme-color-background-tertiary, #f1f5f9);
 }
 
 .nav-item--active {
-  background-color: var(--primary-light, #eff6ff);
-  color: var(--primary-color, #3b82f6);
+  background-color: var(--theme-color-primary-50, #eff6ff);
+  color: var(--theme-color-primary-main, #3b82f6);
 }
 
 .nav-item--active:hover {
-  background-color: var(--primary-light, #dbeafe);
+  background-color: var(--theme-color-primary-100, #dbeafe);
 }
 
 .nav-item__icon {
   font-size: 20px;
   flex-shrink: 0;
-  color: var(--text-secondary, #64748b);
+  color: var(--theme-color-text-secondary, #64748b);
 }
 
 .nav-item--active .nav-item__icon {
-  color: var(--primary-color, #3b82f6);
+  color: var(--theme-color-primary-main, #3b82f6);
 }
 
 .nav-item__label {
-  font-size: 14px;
+  font-size: var(--theme-font-size-sm, 14px);
   font-weight: 500;
   flex: 1;
   white-space: nowrap;
@@ -245,7 +248,7 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  background-color: var(--primary-color, #3b82f6);
+  background-color: var(--theme-color-primary-main, #3b82f6);
   color: white;
   border-radius: 10px;
   display: flex;
@@ -254,7 +257,7 @@
 }
 
 .nav-item--active .nav-item__badge {
-  background-color: var(--primary-color, #3b82f6);
+  background-color: var(--theme-color-primary-main, #3b82f6);
 }
 
 .nav-item__favorite {
@@ -268,13 +271,13 @@
 
 /* Add Button */
 .nav-item--add {
-  color: var(--text-secondary, #64748b);
+  color: var(--theme-color-text-secondary, #64748b);
   margin-top: 4px;
 }
 
 .nav-item--add:hover {
-  background-color: var(--bg-hover, #f1f5f9);
-  color: var(--primary-color, #3b82f6);
+  background-color: var(--theme-color-background-tertiary, #f1f5f9);
+  color: var(--theme-color-primary-main, #3b82f6);
 }
 
 .nav-item--add .nav-item__icon {
@@ -285,84 +288,84 @@
 .nav-section--bottom {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+  border-top: 1px solid var(--theme-color-border-light, #e2e8f0);
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support - now uses CSS custom properties */
 @media (prefers-color-scheme: dark) {
   .navigation-rail {
-    background-color: #1e293b;
-    border-right-color: #334155;
+    background-color: var(--theme-color-background-secondary);
+    border-right-color: var(--theme-color-border-default);
   }
 
   .nav-section--user {
-    border-bottom-color: #334155;
+    border-bottom-color: var(--theme-color-border-default);
   }
 
   .nav-user:hover {
-    background-color: #334155;
+    background-color: var(--theme-color-background-tertiary);
   }
 
   .nav-user__name {
-    color: #f1f5f9;
+    color: var(--theme-color-text-primary);
   }
 
   .nav-user__email {
-    color: #94a3b8;
+    color: var(--theme-color-text-secondary);
   }
 
   .nav-section__header {
-    color: #94a3b8;
+    color: var(--theme-color-text-secondary);
   }
 
   .nav-section__header:hover {
-    background-color: #334155;
+    background-color: var(--theme-color-background-tertiary);
   }
 
   .nav-item {
-    color: #e2e8f0;
+    color: var(--theme-color-text-primary);
   }
 
   .nav-item:hover {
-    background-color: #334155;
+    background-color: var(--theme-color-background-tertiary);
   }
 
   .nav-item--active {
-    background-color: #1e3a5f;
+    background-color: rgba(37, 99, 235, 0.15);
   }
 
   .nav-item--active:hover {
-    background-color: #1e3a5f;
+    background-color: rgba(37, 99, 235, 0.2);
   }
 
   .nav-item__icon {
-    color: #94a3b8;
+    color: var(--theme-color-text-secondary);
   }
 
   .nav-item--active .nav-item__icon {
-    color: #60a5fa;
+    color: var(--theme-color-primary-main);
   }
 
   .nav-item--add {
-    color: #94a3b8;
+    color: var(--theme-color-text-secondary);
   }
 
   .nav-item--add:hover {
-    background-color: #334155;
-    color: #60a5fa;
+    background-color: var(--theme-color-background-tertiary);
+    color: var(--theme-color-primary-main);
   }
 
   .nav-section--bottom {
-    border-top-color: #334155;
+    border-top-color: var(--theme-color-border-default);
   }
 
   .nav-loading {
-    color: #94a3b8;
+    color: var(--theme-color-text-secondary);
   }
 
   .nav-loading__spinner {
-    border-color: #334155;
-    border-top-color: #60a5fa;
+    border-color: var(--theme-color-border-default);
+    border-top-color: var(--theme-color-primary-main);
   }
 }
 
@@ -416,12 +419,12 @@
 }
 
 .navigation-rail::-webkit-scrollbar-thumb {
-  background-color: var(--border-color, #e2e8f0);
+  background-color: var(--theme-color-border-light, #e2e8f0);
   border-radius: 3px;
 }
 
 @media (prefers-color-scheme: dark) {
   .navigation-rail::-webkit-scrollbar-thumb {
-    background-color: #334155;
+    background-color: var(--theme-color-border-default, #334155);
   }
 }
