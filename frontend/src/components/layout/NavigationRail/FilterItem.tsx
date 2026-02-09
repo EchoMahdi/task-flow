@@ -82,7 +82,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
     >
       <Icon
         sx={{
-          fontSize: 20,
+          fontSize: 'var(--theme-nav-icon-size, 20px)',
           color: active ? 'primary.main' : 'text.secondary',
           flexShrink: 0,
         }}

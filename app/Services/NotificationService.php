@@ -248,6 +248,16 @@ class NotificationService
     }
 
     /**
+     * Get unread notification count for a user.
+     */
+    public function getUnreadCount(int $userId): int
+    {
+        return NotificationLog::where('user_id', $userId)
+            ->whereNull('read_at')
+            ->count();
+    }
+
+    /**
      * Delete a notification log.
      */
     public function deleteNotificationLog(int $id, int $userId): bool

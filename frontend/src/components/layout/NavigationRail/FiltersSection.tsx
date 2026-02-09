@@ -92,9 +92,9 @@ const FiltersSection: React.FC<FiltersSectionProps> = ({
       onKeyPress={(e) => e.key === 'Enter' && setExpanded(!expanded)}
     >
       <Box sx={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
-        <ExpandMoreIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+        <ExpandMoreIcon sx={{ fontSize: 'var(--theme-nav-section-icon-size, 18px)', color: 'text.secondary' }} />
       </Box>
-      <FilterListIcon sx={{ fontSize: 16, color: 'text.secondary', ml: 0.5 }} />
+      <FilterListIcon sx={{ fontSize: 'var(--theme-nav-section-icon-size, 16px)', color: 'text.secondary', ml: 0.5 }} />
       {!collapsed && (
         <Typography variant="body2" sx={{ flex: 1, ml: 0.5, fontWeight: 500 }}>
           Filters
@@ -108,16 +108,15 @@ const FiltersSection: React.FC<FiltersSectionProps> = ({
       <Box>
         <SectionHeader />
         <Box sx={{ pl: 1 }}>
-          {FILTERS.map((filter) => (
-            <FilterItem
-              key={filter.id}
-              filter={filter}
-              collapsed={true}
-              active={activeFilterId === filter.id}
-              onClick={() => handleFilterClick(filter)}
-            />
-          ))}
-        </Box>
+            {FILTERS.map((filter) => (
+              <FilterItem
+                key={filter.id}
+                filter={filter}
+                collapsed={true}
+                onClick={() => handleFilterClick(filter)}
+              />
+            ))}
+          </Box>
       </Box>
     );
   }
@@ -132,7 +131,6 @@ const FiltersSection: React.FC<FiltersSectionProps> = ({
               key={filter.id}
               filter={filter}
               collapsed={false}
-              active={activeFilterId === filter.id}
               onClick={() => handleFilterClick(filter)}
             />
           ))}

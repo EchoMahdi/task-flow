@@ -12,6 +12,7 @@ import {
   Typography,
   Tooltip,
 } from '@mui/material';
+import { useTheme as useMUITheme } from '@mui/material/styles';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useNavigation } from '../../../context/NavigationContext';
@@ -61,7 +62,10 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
   onClick,
   onToggleFavorite,
 }): React.ReactNode => {
+  const muiTheme = useMUITheme();
   const { isActive } = useNavigation();
+  const favoriteColor = muiTheme.palette.warning.main;
+  const secondaryColor = muiTheme.palette.text.secondary;
   
   // Determine if this project is currently active
   const active = isActive('project', `project-${project.id}`);
@@ -96,14 +100,14 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
       {/* Project Icon */}
       <Box
         sx={{
-          width: 28,
-          height: 28,
+          width: 'var(--theme-nav-icon-size, 28px)',
+          height: 'var(--theme-nav-icon-size, 28px)',
           borderRadius: 1,
           bgcolor: active ? project.color : `${project.color}80`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 16,
+          fontSize: 'var(--theme-font-size-base, 16px)',
           flexShrink: 0,
         }}
       >
@@ -131,12 +135,12 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
         <Typography
           variant="caption"
           sx={{
-            color: active ? 'text.secondary' : 'text.secondary',
+            color: 'text.secondary',
             bgcolor: 'grey.200',
             px: 0.75,
             py: 0.25,
             borderRadius: 1,
-            fontSize: 11,
+            fontSize: 'var(--theme-font-size-xs, 11px)',
           }}
         >
           {project.task_count}
@@ -149,8 +153,8 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
           size="small"
           onClick={onToggleFavorite}
           sx={{
-            width: 24,
-            height: 24,
+            width: 'var(--theme-nav-icon-size, 24px)',
+            height: 'var(--theme-nav-icon-size, 24px)',
             opacity: project.is_favorite ? 1 : 0,
             '&:hover': {
               opacity: 1,
@@ -159,9 +163,9 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
           aria-label={project.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           {project.is_favorite ? (
-            <StarIcon sx={{ color: '#f59e0b', fontSize: 18 }} />
+            <StarIcon sx={{ color: favoriteColor, fontSize: 'var(--theme-nav-icon-size, 18px)' }} />
           ) : (
-            <StarBorderIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
+            <StarBorderIcon sx={{ color: secondaryColor, fontSize: 'var(--theme-nav-icon-size, 18px)' }} />
           )}
         </IconButton>
       )}

@@ -11,7 +11,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/I18nContext';
-import  LanguageSwitcher  from '@/components/ui/LanguageSwitcher/LanguageSwitcher';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher/LanguageSwitcher';
+import { api } from '@/services/authService';
 import {
   useThemeMode,
   useDirection,
@@ -272,38 +273,68 @@ function NotificationPanel({ onClose }) {
   const colors = useColors();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Mock notifications for demo - in real app, fetch from API
+  // Fetch notifications from real API
   useEffect(() => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setNotifications([
-        {
-          id: 1,
-          title: 'Task due soon',
-          message: 'Complete project report by 5 PM',
-          time: '2 hours ago',
-          read: false,
-        },
-        {
-          id: 2,
-          title: 'New comment',
-          message: 'Sarah commented on your task',
-          time: '5 hours ago',
-          read: false,
-        },
-        {
-          id: 3,
-          title: 'Task completed',
-          message: 'Weekly sync was marked complete',
-          time: '1 day ago',
-          read: true,
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    const fetchNotifications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get('/notifications/history');
+        const data = response.data.data || [];
+        // Transform API data to match component format
+        const transformedNotifications = data.slice(0, 5).map(notification => ({
+          id: notification.id,
+          title: notification.title,
+          message: notification.message,
+          time: formatTimestamp(notification.created_at || notification.timestamp),
+          read: notification.read,
+          type: notification.type,
+        }));
+        setNotifications(transformedNotifications);
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+        setError('Failed to load notifications');
+        // Fallback to empty on error
+        setNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
+
+  // Format timestamp helper
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // Mark all as read via API
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post('/notifications/mark-all-read');
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+      // Optimistic update even on error
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    }
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -327,11 +358,7 @@ function NotificationPanel({ onClose }) {
           {unreadCount > 0 && (
             <button
               className={HeaderToolbarStyles.markAllRead}
-              onClick={() =>
-                setNotifications((prev) =>
-                  prev.map((n) => ({ ...n, read: true }))
-                )
-              }
+              onClick={handleMarkAllRead}
             >
               {t('notifications.markAllRead')}
             </button>
@@ -701,12 +728,29 @@ export function HeaderToolbar({
   const { t, language } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isRTL, direction } = useDirection();
   const colors = useColors();
-  const spacing = useSpacing();
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(3); // Mock count
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  // Fetch unread notification count from real API
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const response = await api.get('/notifications/unread-count');
+        setNotificationCount(response.data.count || 0);
+      } catch (err) {
+        console.error('Failed to fetch notification count:', err);
+        // Fallback to 0 on error
+        setNotificationCount(0);
+      }
+    };
+
+    fetchNotificationCount();
+    // Poll for updates every 60 seconds
+    const interval = setInterval(fetchNotificationCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Determine current page title
   const getPageTitle = () => {

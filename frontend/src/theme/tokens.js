@@ -625,6 +625,51 @@ export const componentTokens = {
 };
 
 // ============================================================================
+// NAVIGATION RAIL TOKENS
+// ============================================================================
+
+export const navigationRailColors = {
+  light: {
+    railBackground: '#ffffff',
+    railBorder: '#e4e4e7',
+    itemActiveBg: '#eff6ff',
+    itemActiveText: '#3b82f6',
+    itemHoverBg: '#f4f4f5',
+    itemText: '#18181b',
+    itemTextSecondary: '#52525b',
+    sectionBorder: '#e4e4e7',
+    favoriteActive: '#f59e0b',
+    badgeBg: '#3b82f6',
+    badgeText: '#ffffff',
+  },
+  dark: {
+    railBackground: '#18181b',
+    railBorder: '#3f3f46',
+    itemActiveBg: 'rgba(96, 165, 250, 0.15)',
+    itemActiveText: '#60a5fa',
+    itemHoverBg: '#27272a',
+    itemText: '#f4f4f5',
+    itemTextSecondary: '#a1a1aa',
+    sectionBorder: '#3f3f46',
+    favoriteActive: '#fbbf24',
+    badgeBg: '#60a5fa',
+    badgeText: '#18181b',
+  },
+};
+
+export const navigationRailSizes = {
+  collapsed: '72px',
+  expanded: '260px',
+  itemHeight: '40px',
+  iconSize: '20px',
+  sectionIconSize: '18px',
+  avatarSize: '40px',
+  badgeMinWidth: '20px',
+  badgeHeight: '20px',
+  badgeFontSize: '12px',
+};
+
+// ============================================================================
 // BREAKPOINTS
 // ============================================================================
 
@@ -881,5 +926,33 @@ export function createCSSVariables(mode = 'light', locale = 'en') {
     // ============================================
     '--theme-direction': locale === 'fa' ? 'rtl' : 'ltr',
     '--theme-text-align': locale === 'fa' ? 'right' : 'left',
+    
+    // ============================================
+    // NAVIGATION RAIL COLORS
+    // ============================================
+    '--theme-nav-rail-background': mode === 'dark' ? navigationRailColors.dark.railBackground : navigationRailColors.light.railBackground,
+    '--theme-nav-rail-border': mode === 'dark' ? navigationRailColors.dark.railBorder : navigationRailColors.light.railBorder,
+    '--theme-nav-item-active-bg': mode === 'dark' ? navigationRailColors.dark.itemActiveBg : navigationRailColors.light.itemActiveBg,
+    '--theme-nav-item-active-text': mode === 'dark' ? navigationRailColors.dark.itemActiveText : navigationRailColors.light.itemActiveText,
+    '--theme-nav-item-hover-bg': mode === 'dark' ? navigationRailColors.dark.itemHoverBg : navigationRailColors.light.itemHoverBg,
+    '--theme-nav-item-text': mode === 'dark' ? navigationRailColors.dark.itemText : navigationRailColors.light.itemText,
+    '--theme-nav-item-text-secondary': mode === 'dark' ? navigationRailColors.dark.itemTextSecondary : navigationRailColors.light.itemTextSecondary,
+    '--theme-nav-section-border': mode === 'dark' ? navigationRailColors.dark.sectionBorder : navigationRailColors.light.sectionBorder,
+    '--theme-nav-favorite-active': mode === 'dark' ? navigationRailColors.dark.favoriteActive : navigationRailColors.light.favoriteActive,
+    '--theme-nav-badge-bg': mode === 'dark' ? navigationRailColors.dark.badgeBg : navigationRailColors.light.badgeBg,
+    '--theme-nav-badge-text': mode === 'dark' ? navigationRailColors.dark.badgeText : navigationRailColors.light.badgeText,
+    
+    // ============================================
+    // NAVIGATION RAIL SIZES
+    // ============================================
+    '--theme-nav-rail-collapsed-width': navigationRailSizes.collapsed,
+    '--theme-nav-rail-expanded-width': navigationRailSizes.expanded,
+    '--theme-nav-item-height': navigationRailSizes.itemHeight,
+    '--theme-nav-icon-size': navigationRailSizes.iconSize,
+    '--theme-nav-section-icon-size': navigationRailSizes.sectionIconSize,
+    '--theme-nav-avatar-size': navigationRailSizes.avatarSize,
+    '--theme-nav-badge-min-width': navigationRailSizes.badgeMinWidth,
+    '--theme-nav-badge-height': navigationRailSizes.badgeHeight,
+    '--theme-nav-badge-font-size': navigationRailSizes.badgeFontSize,
   };
 }

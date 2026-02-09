@@ -26,7 +26,9 @@ import {
   touchTargets,
   iconButtonSizes,
   componentTokens,
-  transitions 
+  transitions,
+  navigationRailColors,
+  navigationRailSizes
 } from './tokens';
 
 // ============================================================================
@@ -1148,8 +1150,78 @@ export function createMUITheme(mode, locale, preferences = {}) {
           },
         },
       },
+      // ============================================
+      // NAVIGATION RAIL
+      // ============================================
+      MuiDrawer: {
+        styleOverrides: {
+          root: {
+            width: navigationRailSizes.expanded,
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+          },
+          paper: {
+            width: navigationRailSizes.expanded,
+            borderRight: '1px solid ' + (mode === 'dark' ? navigationRailColors.dark.railBorder : navigationRailColors.light.railBorder),
+            backgroundColor: mode === 'dark' ? navigationRailColors.dark.railBackground : navigationRailColors.light.railBackground,
+            transition: transitions.normal,
+          },
+        },
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            minHeight: navigationRailSizes.itemHeight,
+            padding: spacing[2] + ' ' + spacing[3],
+            borderRadius: borderRadius.default,
+            margin: spacing[1] + ' ' + spacing[2],
+            '&.Mui-selected': {
+              backgroundColor: mode === 'dark' ? navigationRailColors.dark.itemActiveBg : navigationRailColors.light.itemActiveBg,
+              color: mode === 'dark' ? navigationRailColors.dark.itemActiveText : navigationRailColors.light.itemActiveText,
+              '& .MuiListItemIcon-root': {
+                color: mode === 'dark' ? navigationRailColors.dark.itemActiveText : navigationRailColors.light.itemActiveText,
+              },
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? navigationRailColors.dark.itemActiveBg : navigationRailColors.light.itemActiveBg,
+              },
+            },
+            '&:hover': {
+              backgroundColor: mode === 'dark' ? navigationRailColors.dark.itemHoverBg : navigationRailColors.light.itemHoverBg,
+            },
+          },
+          gutters: {
+            paddingLeft: spacing[2],
+            paddingRight: spacing[2],
+          },
+        },
+      },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: {
+            minWidth: 'auto',
+            color: mode === 'dark' ? navigationRailColors.dark.itemTextSecondary : navigationRailColors.light.itemTextSecondary,
+          },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          navTitle: {
+            fontSize: fontSizes.xs,
+            fontWeight: fontWeights.semibold,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: mode === 'dark' ? navigationRailColors.dark.itemTextSecondary : navigationRailColors.light.itemTextSecondary,
+          },
+          navItem: {
+            fontSize: fontSizes.sm,
+            fontWeight: fontWeights.medium,
+            color: mode === 'dark' ? navigationRailColors.dark.itemText : navigationRailColors.light.itemText,
+          },
+        },
+      },
     },
-  });
+    },
+  );
 }
 
 // ============================================================================

@@ -65,6 +65,8 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  console.log('[AddProjectModal] Rendering, open:', open);
+  console.log('[AddProjectModal] Modal DOM structure check');
   const [name, setName] = useState('');
   const [color, setColor] = useState(PROJECT_COLORS[0]);
   const [icon, setIcon] = useState(PROJECT_ICONS[0].value);
@@ -257,11 +259,10 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
             Cancel
           </Button>
           <LoadingButton
-            type="submit"
             variant="contained"
             loading={loading}
             loadingText="Creating..."
-            disabled={!name.trim()}
+            disabled={!name.trim() || loading}
           >
             Create Project
           </LoadingButton>

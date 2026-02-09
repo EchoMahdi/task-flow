@@ -15,13 +15,14 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
+import { useTheme as useMUITheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
 import FolderIcon from '@mui/icons-material/Folder';
 import ProjectItem, { ProjectItemData } from './ProjectItem';
 import AddProjectModal from './AddProjectModal';
-import { eventBus, TaskEvents, TaskEventData } from '../../../utils/eventBus';
+import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
 
 interface ProjectsSectionProps {
   collapsed: boolean;
@@ -67,7 +68,9 @@ const fetchProjects = async (): Promise<ProjectItemData[]> => {
   }
 
   const data = await response.json();
-  return data.data || data;
+  // Ensure we always return an array
+  const projects = Array.isArray(data) ? data : (data.data || []);
+  return projects;
 };
 
 /**
@@ -265,11 +268,15 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   // Handle add project
   const handleAddProject = useCallback(async (project: { name: string; color: string; icon: string }) => {
+    console.log('[ProjectsSection] handleAddProject called with:', project);
     try {
       const newProject = await createProject(project);
+      console.log('[ProjectsSection] Project created successfully:', newProject);
       setProjects((prev) => [...prev, newProject]);
       setAddModalOpen(false);
+      console.log('[ProjectsSection] Modal closed, addModalOpen set to false');
     } catch (err) {
+      console.error('[ProjectsSection] Failed to create project:', err);
       throw err; // Let the modal handle the error
     }
   }, []);
@@ -300,7 +307,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       onKeyPress={(e) => e.key === 'Enter' && onToggle()}
     >
       <Box sx={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
-        <ExpandMoreIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+        <ExpandMoreIcon sx={{ fontSize: 'var(--theme-nav-section-icon-size, 18px)', color: 'text.secondary' }} />
       </Box>
       {icon}
       {!collapsed && (
@@ -350,7 +357,11 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
             variant="outlined"
             size="small"
             startIcon={<AddIcon />}
-            onClick={() => setAddModalOpen(true)}
+            onClick={() => {
+              console.log('[ProjectsSection] Create Project button clicked');
+              setAddModalOpen(true);
+              console.log('[ProjectsSection] addModalOpen set to true');
+            }}
             sx={{ mt: 1 }}
             fullWidth
           >
@@ -373,7 +384,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         <Box sx={{ mb: 1 }}>
           <SectionHeader
             title="Favorites"
-            icon={<StarIcon sx={{ fontSize: 16, color: '#f59e0b', ml: 0.5 }} />}
+            icon={<StarIcon sx={{ fontSize: 'var(--theme-font-size-sm, 16px)', color: 'warning.main', ml: 0.5 }} />}
             expanded={favoritesExpanded}
             onToggle={() => setFavoritesExpanded(!favoritesExpanded)}
             count={favorites.length}
@@ -385,7 +396,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                   key={project.id}
                   project={project}
                   collapsed={collapsed}
-                  active={activeProjectId === project.id}
                   onClick={() => handleProjectClick(project)}
                   onToggleFavorite={(e) => handleToggleFavorite(project.id, e)}
                 />
@@ -399,7 +409,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       <Box>
         <SectionHeader
           title="All Projects"
-          icon={<FolderIcon sx={{ fontSize: 16, color: 'text.secondary', ml: 0.5 }} />}
+          icon={<FolderIcon sx={{ fontSize: 'var(--theme-font-size-sm, 16px)', color: 'text.secondary', ml: 0.5 }} />}
           expanded={allProjectsExpanded}
           onToggle={() => setAllProjectsExpanded(!allProjectsExpanded)}
           count={nonFavorites.length}
@@ -411,7 +421,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 key={project.id}
                 project={project}
                 collapsed={collapsed}
-                active={activeProjectId === project.id}
                 onClick={() => handleProjectClick(project)}
                 onToggleFavorite={(e) => handleToggleFavorite(project.id, e)}
               />
@@ -421,15 +430,21 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       </Box>
 
       {/* Add Project Button */}
+      {/* Debug: Added red border to verify button visibility */}
       {!collapsed && (
-        <Box sx={{ px: 2, mt: 1 }}>
+        <Box sx={{ px: 2, mt: 1, position: 'relative', zIndex: 1001, border: '2px solid red' }}>
           <Button
+            id="add-project-button"
             variant="text"
             size="small"
             startIcon={<AddIcon />}
-            onClick={() => setAddModalOpen(true)}
+            onClick={() => {
+              console.log('[ProjectsSection] Add Project button clicked');
+              setAddModalOpen(true);
+              console.log('[ProjectsSection] addModalOpen set to true');
+            }}
             fullWidth
-            sx={{ justifyContent: 'flex-start' }}
+            sx={{ justifyContent: 'flex-start', border: '2px solid blue' }}
           >
             Add Project
           </Button>

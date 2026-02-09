@@ -232,4 +232,18 @@ class NotificationController extends Controller
             'message' => 'Notification deleted',
         ]);
     }
+
+    /**
+     * Get unread notification count.
+     */
+    public function getUnreadCount(): JsonResponse
+    {
+        $userId = Auth::id();
+        $count = $this->notificationService->getUnreadCount($userId);
+
+        return response()->json([
+            'success' => true,
+            'count' => $count,
+        ]);
+    }
 }
