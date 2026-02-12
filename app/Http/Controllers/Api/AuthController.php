@@ -52,7 +52,6 @@ class AuthController extends Controller
                     'token' => $token,
                 ],
             ], 201);
-
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
@@ -71,7 +70,7 @@ class AuthController extends Controller
                 'user_agent' => $request->userAgent(),
                 'ip' => $request->ip(),
             ]);
-            
+
             $credentials = $request->validate([
                 'email' => ['required', 'string', 'email'],
                 'password' => ['required', 'string'],
@@ -79,19 +78,13 @@ class AuthController extends Controller
 
             $result = $this->authService->login($credentials);
 
-            Log::debug('Login success', ['user_id' => $result['user']->id]);
 
             return response()->json([
                 'success' => true,
                 'message' => $this->translator->get('auth.login.success'),
                 'data' => new AuthResource($result),
             ]);
-
         } catch (ValidationException $e) {
-            Log::warning('Login validation failed', [
-                'email' => $request->email,
-                'errors' => $e->errors(),
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => $this->translator->get('auth.login.failed'),
@@ -150,13 +143,6 @@ class AuthController extends Controller
     {
         try {
             $user = Auth::user();
-            
-            // Log incoming request data for debugging
-            Log::debug('updateProfile: Incoming request data', [
-                'user_id' => $user->id,
-                'all_input' => $request->all(),
-                'has_profile' => $request->has('profile'),
-            ]);
 
             $validated = $request->validate([
                 'name' => ['sometimes', 'string', 'max:255'],
@@ -172,24 +158,13 @@ class AuthController extends Controller
                 'profile.location' => ['nullable', 'string', 'max:255'],
             ]);
 
-            Log::debug('updateProfile: Validation passed', [
-                'validated_data' => $validated,
-            ]);
-
             $user = $this->authService->updateProfile($user, $validated);
-
-            Log::debug('updateProfile: Service returned user', [
-                'user_id' => $user->id,
-                'profile_exists' => $user->profile !== null,
-                'profile_bio' => $user->profile?->bio,
-            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => $this->translator->get('success.data_updated'),
                 'data' => new UserResource($user),
             ]);
-
         } catch (ValidationException $e) {
             Log::warning('updateProfile: Validation failed', [
                 'errors' => $e->errors(),
@@ -233,7 +208,6 @@ class AuthController extends Controller
                 'message' => $this->translator->get('preferences.updated'),
                 'data' => $preferences,
             ]);
-
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
@@ -262,7 +236,6 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => $this->translator->get('success.data_updated'),
             ]);
-
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
@@ -338,7 +311,6 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => $this->translator->get('auth.forgot_password.success'),
             ]);
-
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
@@ -356,7 +328,7 @@ class AuthController extends Controller
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]);
 
-            $user = $this->authService->resetPassword(
+            $this->authService->resetPassword(
                 $validated['token'],
                 $validated['email'],
                 $validated['password']
@@ -366,7 +338,6 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => $this->translator->get('auth.reset_password.success'),
             ]);
-
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
@@ -409,6 +380,7 @@ class AuthController extends Controller
 
     /**
      * Resend email verification.
+     * 
      */
     public function resendVerification(Request $request): JsonResponse
     {
@@ -435,7 +407,7 @@ class AuthController extends Controller
     public function exportData(Request $request): JsonResponse
     {
         $user = $this->authService->getCurrentUser($request->user());
-        
+
         $exportData = [
             'user' => [
                 'id' => $user->id,
@@ -476,7 +448,7 @@ class AuthController extends Controller
             })->toArray() : [],
             'exported_at' => now()->toIso8601String(),
         ];
-        
+
         return response()->json([
             'success' => true,
             'data' => $exportData,
@@ -489,9 +461,9 @@ class AuthController extends Controller
     public function deleteAccount(Request $request): JsonResponse
     {
         $user = Auth::user();
-        
+
         $this->authService->deleteAccount($user);
-        
+
         return response()->json([
             'success' => true,
             'message' => $this->translator->get('success.data_deleted'),

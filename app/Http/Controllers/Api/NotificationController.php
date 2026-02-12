@@ -28,9 +28,9 @@ class NotificationController extends Controller
     public function getTaskNotifications(int $taskId): JsonResponse
     {
         $userId = Auth::id();
-        
+
         $rules = $this->notificationService->getTaskNotificationRules($taskId, $userId);
-        
+
         return response()->json([
             'success' => true,
             'data' => NotificationRuleResource::collection($rules),
@@ -180,7 +180,7 @@ class NotificationController extends Controller
     public function markAsRead(int $id): JsonResponse
     {
         $userId = Auth::id();
-        
+
         $log = $this->notificationService->markNotificationAsRead($id, $userId);
 
         if (!$log) {
@@ -202,7 +202,7 @@ class NotificationController extends Controller
     public function markAllAsRead(): JsonResponse
     {
         $userId = Auth::id();
-        
+
         $count = $this->notificationService->markAllNotificationsAsRead($userId);
 
         return response()->json([
@@ -217,7 +217,7 @@ class NotificationController extends Controller
     public function deleteNotificationLog(int $id): JsonResponse
     {
         $userId = Auth::id();
-        
+
         $deleted = $this->notificationService->deleteNotificationLog($id, $userId);
 
         if (!$deleted) {

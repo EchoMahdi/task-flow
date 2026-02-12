@@ -6,26 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthResource;
 use App\Models\SocialAccount;
 use App\Models\User;
-use App\Models\UserPreference;
 use App\Services\AuthService;
 use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Laravel\Socialite\Facades\Socialite;
-use Laravel\Socialite\Two\User as SocialiteUser;
+use App\Http\Controllers\Api\SocialAuth\SocialAuthHandlerFactory;
+use App\Http\Controllers\Api\SocialAuth\SocialAuthHandlerInterface;
 
 class SocialAuthController extends Controller
 {
     protected AuthService $authService;
     protected TranslationService $translator;
+    protected SocialAuthHandlerFactory $handlerFactory;
 
-    public function __construct(AuthService $authService, TranslationService $translator)
-    {
+    public function __construct(
+        AuthService $authService,
+        TranslationService $translator,
+        SocialAuthHandlerFactory $handlerFactory
+    ) {
         $this->authService = $authService;
         $this->translator = $translator;
+        $this->handlerFactory = $handlerFactory;
     }
 
     /**
@@ -33,22 +36,19 @@ class SocialAuthController extends Controller
      */
     public function redirect(string $provider): JsonResponse
     {
-        $validProviders = ['google', 'github'];
-
-        if (!in_array($provider, $validProviders)) {
+        if (!$this->handlerFactory->supports($provider)) {
             return response()->json([
                 'success' => false,
                 'message' => $this->translator->get('errors.invalid_provider'),
             ], 400);
         }
 
-        $config = config("services.{$provider}");
-        $redirectUrl = route("social.callback", ['provider' => $provider]);
+        $handler = $this->handlerFactory->getHandler($provider);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'redirect_url' => $redirectUrl,
+                'redirect_url' => $handler->redirect(),
                 'provider' => $provider,
             ],
         ]);
@@ -59,9 +59,7 @@ class SocialAuthController extends Controller
      */
     public function callback(string $provider): JsonResponse
     {
-        $validProviders = ['google', 'github'];
-
-        if (!in_array($provider, $validProviders)) {
+        if (!$this->handlerFactory->supports($provider)) {
             return response()->json([
                 'success' => false,
                 'message' => $this->translator->get('errors.invalid_provider'),
@@ -69,11 +67,11 @@ class SocialAuthController extends Controller
         }
 
         try {
-            /** @var SocialiteUser $socialUser */
-            $socialUser = Socialite::driver($provider)->user();
+            $handler = $this->handlerFactory->getHandler($provider);
+            $socialUser = $handler->getUser();
 
-            $result = DB::transaction(function () use ($socialUser, $provider) {
-                return $this->handleSocialUser($socialUser, $provider);
+            $result = DB::transaction(function () use ($handler, $socialUser) {
+                return $this->handleSocialAuth($handler, $socialUser);
             });
 
             return response()->json([
@@ -81,7 +79,6 @@ class SocialAuthController extends Controller
                 'message' => $this->translator->get('auth.login.success'),
                 'data' => new AuthResource($result),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -92,31 +89,11 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Handle social user creation or retrieval.
+     * Handle social authentication and create session.
      */
-    protected function handleSocialUser(SocialiteUser $socialUser, string $provider): array
+    protected function handleSocialAuth(SocialAuthHandlerInterface $handler, $socialUser): array
     {
-        // Check if social account already exists
-        $socialAccount = SocialAccount::where('provider', $provider)
-            ->where('provider_id', $socialUser->getId())
-            ->first();
-
-        if ($socialAccount) {
-            // User already exists, update token and return
-            $user = $socialAccount->user;
-            $this->updateSocialAccount($socialAccount, $socialUser);
-        } else {
-            // Check if user with this email already exists
-            $user = User::where('email', $socialUser->getEmail())->first();
-
-            if ($user) {
-                // Link existing user to social account
-                $this->createSocialAccount($user, $socialUser, $provider);
-            } else {
-                // Create new user
-                $user = $this->createUserFromSocial($socialUser, $provider);
-            }
-        }
+        $user = $handler->handleUser($socialUser);
 
         // Create session and token
         $session = $this->authService->createSession($user);
@@ -130,70 +107,13 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Create a new user from social login.
-     */
-    protected function createUserFromSocial(SocialiteUser $socialUser, string $provider): User
-    {
-        $user = User::create([
-            'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'User',
-            'email' => $socialUser->getEmail(),
-            'password' => bcrypt(Str::random(16)),
-            'timezone' => User::DEFAULT_TIMEZONE,
-            'locale' => 'en',
-            'avatar' => $socialUser->getAvatar(),
-        ]);
-
-        // Create default preferences
-        UserPreference::create([
-            'user_id' => $user->id,
-        ]);
-
-        // Create social account
-        $this->createSocialAccount($user, $socialUser, $provider);
-
-        return $user;
-    }
-
-    /**
-     * Create social account for user.
-     */
-    protected function createSocialAccount(User $user, SocialiteUser $socialUser, string $provider): SocialAccount
-    {
-        return SocialAccount::create([
-            'user_id' => $user->id,
-            'provider' => $provider,
-            'provider_id' => $socialUser->getId(),
-            'name' => $socialUser->getName(),
-            'email' => $socialUser->getEmail(),
-            'avatar' => $socialUser->getAvatar(),
-            'access_token' => $socialUser->token,
-            'refresh_token' => $socialUser->refreshToken,
-            'expires_at' => $socialUser->expiresIn ? now()->addSeconds($socialUser->expiresIn) : null,
-        ]);
-    }
-
-    /**
-     * Update social account token.
-     */
-    protected function updateSocialAccount(SocialAccount $account, SocialiteUser $socialUser): void
-    {
-        $account->update([
-            'access_token' => $socialUser->token,
-            'refresh_token' => $socialUser->refreshToken,
-            'expires_at' => $socialUser->expiresIn ? now()->addSeconds($socialUser->expiresIn) : null,
-        ]);
-    }
-
-    /**
      * Disconnect a social account.
      */
     public function disconnect(Request $request, string $provider): JsonResponse
     {
         $user = Auth::user();
 
-        $validProviders = ['google', 'github'];
-
-        if (!in_array($provider, $validProviders)) {
+        if (!$this->handlerFactory->supports($provider)) {
             return response()->json([
                 'success' => false,
                 'message' => $this->translator->get('errors.invalid_provider'),
