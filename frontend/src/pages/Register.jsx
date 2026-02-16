@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../context/I18nContext';
 import { AuthLayout } from '../components/layout/index';
 import { Button, TextField, Checkbox, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton, LinearProgress } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
@@ -14,6 +15,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -44,33 +46,33 @@ const Register = () => {
     const newErrors = {};
     
     if (!formData.name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = t('Name is required');
     } else if (formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+      newErrors.name = t('Name must be at least 2 characters');
     }
     
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('Email is required');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('Please enter a valid email address');
     }
     
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('Password is required');
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = t('Password must be at least 8 characters');
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+      newErrors.password = t('Password must contain uppercase, lowercase, and number');
     }
     
     if (!formData.password_confirmation) {
-      newErrors.password_confirmation = 'Please confirm your password';
+      newErrors.password_confirmation = t('Please confirm your password');
     } else if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = 'Passwords do not match';
+      newErrors.password_confirmation = t('Passwords do not match');
     }
     
     if (!formData.terms) {
-      newErrors.terms = 'You must accept the terms and conditions';
+      newErrors.terms = t('You must accept the terms and conditions');
     }
     
     setErrors(newErrors);
@@ -89,7 +91,7 @@ const Register = () => {
       await register(formData.name, formData.email, formData.password, formData.password_confirmation);
       navigate('/dashboard');
     } catch (error) {
-      setApiError(error.message || 'Registration failed. Please try again.');
+      setApiError(error.message || t('Registration failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -108,11 +110,11 @@ const Register = () => {
     if (/[^a-zA-Z\d]/.test(password)) strength++;
     
     const levels = [
-      { strength: 1, label: 'Weak', color: '#ef4444' },
-      { strength: 2, label: 'Fair', color: '#f97316' },
-      { strength: 3, label: 'Good', color: '#eab308' },
-      { strength: 4, label: 'Strong', color: '#22c55e' },
-      { strength: 5, label: 'Very Strong', color: '#15803d' },
+      { strength: 1, label: t('Weak'), color: '#ef4444' },
+      { strength: 2, label: t('Fair'), color: '#f97316' },
+      { strength: 3, label: t('Good'), color: '#eab308' },
+      { strength: 4, label: t('Strong'), color: '#22c55e' },
+      { strength: 5, label: t('Very Strong'), color: '#15803d' },
     ];
     
     return levels[strength - 1] || { strength: 0, label: '', color: '' };
@@ -128,10 +130,10 @@ const Register = () => {
             {/* Header */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                Create your account
+                {t('Create your account')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Start your productivity journey today
+                {t('Start your productivity journey today')}
               </Typography>
             </Box>
 
@@ -149,12 +151,12 @@ const Register = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <TextField
-                label="Full name"
+                label={t('Full name')}
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="John Doe"
+                placeholder={t('John Doe')}
                 error={!!errors.name}
                 helperText={errors.name}
                 InputProps={{
@@ -170,12 +172,12 @@ const Register = () => {
               />
 
               <TextField
-                label="Email address"
+                label={t('Email address')}
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder={t('you@example.com')}
                 error={!!errors.email}
                 helperText={errors.email}
                 InputProps={{
@@ -191,12 +193,12 @@ const Register = () => {
 
               <Box>
                 <TextField
-                  label="Password"
+                  label={t('Password')}
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="••••••••"
+                  placeholder={t('••••••••')}
                   error={!!errors.password}
                   helperText={errors.password}
                   InputProps={{
@@ -245,12 +247,12 @@ const Register = () => {
               </Box>
 
               <TextField
-                label="Confirm password"
+                label={t('Confirm password')}
                 type={showPassword ? 'text' : 'password'}
                 name="password_confirmation"
                 value={formData.password_confirmation}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder={t('••••••••')}
                 error={!!errors.password_confirmation}
                 helperText={errors.password_confirmation}
                 InputProps={{
@@ -271,13 +273,13 @@ const Register = () => {
                   onChange={handleChange}
                   label={
                     <Typography variant="body2" color="text.secondary">
-                      I agree to the{' '}
+                      {t('I agree to the')}{' '}
                       <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                        Terms of Service
+                        {t('Terms of Service')}
                       </Link>{' '}
-                      and{' '}
+                      {t('and')}
                       <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                        Privacy Policy
+                        {t('Privacy Policy')}
                       </Link>
                     </Typography>
                   }
@@ -295,7 +297,7 @@ const Register = () => {
                 fullWidth
                 disabled={loading}
               >
-                Create account
+                {t('Create account')}
               </Button>
             </form>
 
@@ -306,7 +308,7 @@ const Register = () => {
               </Box>
               <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
                 <Typography variant="caption" sx={{ px: 2, bgcolor: 'background.paper', color: 'text.secondary' }}>
-                  Or sign up with
+                  {t('Or sign up with')}
                 </Typography>
               </Box>
             </Box>
@@ -314,22 +316,22 @@ const Register = () => {
             {/* Social Login */}
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
               <Button variant="outlined" type="button" startIcon={<GoogleIcon />}>
-                Google
+                {t('Google')}
               </Button>
               <Button variant="outlined" type="button" startIcon={<GitHubIcon />}>
-                GitHub
+                {t('GitHub')}
               </Button>
             </Box>
 
             {/* Sign in link */}
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
+                {t('Already have an account?')}{' '}
                 <Link
                   to="/login"
                   style={{ color: '#1976d2', fontWeight: 500, textDecoration: 'none' }}
                 >
-                  Sign in
+                  {t('Sign in')}
                 </Link>
               </Typography>
             </Box>

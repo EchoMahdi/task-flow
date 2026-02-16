@@ -207,6 +207,15 @@ export function ThemeProvider({
     const fetchThemeSettings = async () => {
       if (!persistToAPI) return;
       
+      // Check if user is authenticated before making request
+      const authToken = localStorage.getItem('auth_token');
+      
+      if (!authToken) {
+        // User not authenticated - skip API call, use localStorage defaults
+        setIsLoading(false);
+        return;
+      }
+      
       try {
         setIsLoading(true);
         const response = await api.get('/user/theme');

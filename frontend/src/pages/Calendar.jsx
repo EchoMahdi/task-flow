@@ -49,9 +49,9 @@ const CalendarPage = () => {
   // Handle task save
   const handleTaskSave = useCallback((task, mode) => {
     if (mode === 'create') {
-      toastService.success(t('tasks.created'));
+      toastService.success(t('Task created successfully'));
     } else if (mode === 'edit') {
-      toastService.success(t('tasks.updated'));
+      toastService.success(t('Task updated successfully'));
     }
     setModalOpen(false);
     setSelectedTask(null);
@@ -59,7 +59,7 @@ const CalendarPage = () => {
   
   // Handle task delete
   const handleTaskDelete = useCallback((task) => {
-    toastService.success(t('tasks.deleted'));
+    toastService.success(t('Task deleted successfully'));
     setModalOpen(false);
     setSelectedTask(null);
   }, [t]);
@@ -80,10 +80,10 @@ const CalendarPage = () => {
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 700, color: 'text.primary', m: 0 }}>
-            {t('navigation.calendar')}
+            {t('Task Calendar')}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', m: 0 }}>
-            {t('calendar.subtitle')}
+            {t('Manage your tasks in a calendar view')}
           </Typography>
         </Box>
       </Box>

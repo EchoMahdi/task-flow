@@ -70,15 +70,15 @@ const TaskModal = ({
         console.log('[TaskModal] DEBUG: Using fallback options (DUPLICATED in TaskController.php lines 289-312)');
         // Fallback to default options - DUPLICATED from TaskController.php
         setPriorityOptions([
-          { value: 'low', label: t('priority.low') },
-          { value: 'medium', label: t('priority.medium') },
-          { value: 'high', label: t('priority.high') },
-          { value: 'urgent', label: t('priority.urgent') },
+          { value: 'low', label: t('Low') },
+          { value: 'medium', label: t('Medium') },
+          { value: 'high', label: t('High') },
+          { value: 'urgent', label: t('Urgent') },
         ]);
         setStatusOptions([
-          { value: 'pending', label: t('status.pending') },
-          { value: 'in_progress', label: t('status.in_progress') },
-          { value: 'completed', label: t('status.completed') },
+          { value: 'pending', label: t('Pending') },
+          { value: 'in_progress', label: t('In Progress') },
+          { value: 'completed', label: t('Completed') },
         ]);
       } finally {
         setOptionsLoading(false);
@@ -140,7 +140,7 @@ const TaskModal = ({
       onSave(savedTask, mode);
     } catch (err) {
       console.error('Failed to save task:', err);
-      setError(err.response?.data?.message || t('errors.serverError'));
+      setError(err.response?.data?.message || t('Server error occurred while saving task. Please try again later'));
     } finally {
       setLoading(false);
     }
@@ -158,7 +158,7 @@ const TaskModal = ({
       onDelete(task);
     } catch (err) {
       console.error('Failed to delete task:', err);
-      setError(err.response?.data?.message || t('errors.serverError'));
+      setError(err.response?.data?.message || t('Server error occurred while deleting task. Please try again later'));
     } finally {
       setLoading(false);
     }
@@ -212,9 +212,9 @@ const TaskModal = ({
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 2 }}>
         <Typography variant="h6" component="div">
-          {isCreateMode && t('tasks.create')}
-          {isEditMode && t('tasks.edit')}
-          {isViewMode && t('tasks.details')}
+          {isCreateMode && t('Create Task')}
+          {isEditMode && t('Edit Task')}
+          {isViewMode && t('Task Details')}
         </Typography>
         <IconButton
           edge="end"
@@ -238,7 +238,7 @@ const TaskModal = ({
           {/* Title */}
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
-              {t('tasks.title')}
+              {t('Title')}
             </Typography>
             {isViewMode ? (
               <Typography variant="body1" sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
@@ -250,7 +250,7 @@ const TaskModal = ({
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder={t('tasks.titlePlaceholder')}
+                placeholder={t('Task title')}
                 required
                 disabled={loading}
                 size="small"
@@ -261,7 +261,7 @@ const TaskModal = ({
           {/* Due Date */}
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
-              {t('tasks.dueDate')}
+              {t('Due Date')}
             </Typography>
             {isViewMode ? (
               <Typography variant="body1" sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
@@ -285,7 +285,7 @@ const TaskModal = ({
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
-                {t('tasks.priority')}
+                {t('Priority')}
               </Typography>
               {isViewMode ? (
                 <Chip 
@@ -314,7 +314,7 @@ const TaskModal = ({
             
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
-                {t('tasks.status')}
+                {t('Status')}
               </Typography>
               {isViewMode ? (
                 <Chip 
@@ -345,7 +345,7 @@ const TaskModal = ({
           {/* Description */}
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.75, color: 'text.secondary' }}>
-              {t('tasks.description')}
+              {t('Description')}
             </Typography>
             {isViewMode ? (
               <Typography 
@@ -358,7 +358,7 @@ const TaskModal = ({
                   lineHeight: 1.6
                 }}
               >
-                {formData.description || t('common.noDescription')}
+                {formData.description || t('No description provided')}
               </Typography>
             ) : (
               <TextField

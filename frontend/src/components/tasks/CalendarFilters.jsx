@@ -54,15 +54,15 @@ const CalendarFilters = ({
         console.log('[CalendarFilters] DEBUG: Using fallback options (DUPLICATED in TaskModal.jsx, TaskForm.jsx)');
         // Fallback to default options
         setStatusOptions([
-          { value: 'pending', label: t('status.pending'), color: 'default' },
-          { value: 'in_progress', label: t('status.in_progress'), color: 'primary' },
-          { value: 'completed', label: t('status.completed'), color: 'success' },
+          { value: 'pending', label: t('Pending'), color: 'default' },
+          { value: 'in_progress', label: t('In Progress'), color: 'primary' },
+          { value: 'completed', label: t('Completed'), color: 'success' },
         ]);
         setPriorityOptions([
-          { value: 'low', label: t('priority.low'), color: 'success' },
-          { value: 'medium', label: t('priority.medium'), color: 'warning' },
-          { value: 'high', label: t('priority.high'), color: 'error' },
-          { value: 'urgent', label: t('priority.urgent'), color: 'error' },
+          { value: 'low', label: t('Low'), color: 'success' },
+          { value: 'medium', label: t('Medium'), color: 'warning' },
+          { value: 'high', label: t('High'), color: 'error' },
+          { value: 'urgent', label: t('Urgent'), color: 'error' },
         ]);
       } finally {
         setLoading(false);
@@ -175,7 +175,7 @@ const CalendarFilters = ({
             },
           }}
         >
-          {t('filters.status')}
+          {t('Status')}
         </Button>
         <Menu
           anchorEl={statusAnchor}
@@ -230,7 +230,7 @@ const CalendarFilters = ({
             },
           }}
         >
-          {t('filters.priority')}
+          {t('Priority')}
         </Button>
         <Menu
           anchorEl={priorityAnchor}
@@ -279,7 +279,7 @@ const CalendarFilters = ({
           label={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <CheckCircleIcon fontSize="small" color={filters.include_completed ? 'success' : 'disabled'} />
-              <Typography variant="body2">{t('filters.includeCompleted')}</Typography>
+              <Typography variant="body2">{t('Include Completed')}</Typography>
             </Box>
           }
           sx={{ ml: 1 }}
@@ -293,7 +293,7 @@ const CalendarFilters = ({
             onClick={handleReset}
             sx={{ color: 'text.secondary', ml: 'auto' }}
           >
-            {t('filters.clear')}
+            {t('Clear Filters')}
           </Button>
         )}
       </Box>
@@ -337,7 +337,7 @@ const CalendarFilters = ({
             <Chip
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  {t('filters.completedIncluded')}
+                  {t('Include Completed')}
                   <CloseIcon sx={{ fontSize: 14 }} onClick={handleIncludeCompleted} />
                 </Box>
               }

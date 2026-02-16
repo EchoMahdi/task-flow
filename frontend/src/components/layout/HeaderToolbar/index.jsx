@@ -101,14 +101,14 @@ function SearchSection({ onSearch }) {
         onChange={setQuery}
         onSubmit={handleSubmit}
         onClear={clearSearch}
-        placeholder={t('search.placeholder') || 'Search tasks, projects, tags...'}
+        placeholder={t('Search') }
         loading={loading}
         suggestions={suggestions}
         showSuggestions={true}
         onSuggestionSelect={fetchSuggestions}
         size="medium"
         fullWidth={true}
-        ariaLabel={t('search.ariaLabel') || 'Search tasks, projects, and tags'}
+        ariaLabel={t('Search')}
         style={{
           '--search-bg': colors.background.secondary,
           '--search-border': colors.border.default,
@@ -124,12 +124,12 @@ function SearchSection({ onSearch }) {
       {results.length > 0 && query && (
         <div className={HeaderToolbarStyles.searchResultsDropdown}>
           <div className={HeaderToolbarStyles.searchResultsHeader}>
-            <span>{t('search.resultsCount', { count: results.length })}</span>
+            <span>{t('Results', { count: results.length })}</span>
             <button
               onClick={() => navigate(`/tasks?search=${encodeURIComponent(query)}`)}
               className={HeaderToolbarStyles.viewAllLink}
             >
-              {t('search.viewAll')}
+              {t('View all results')}
             </button>
           </div>
           {results.slice(0, 5).map((task) => (
@@ -354,13 +354,13 @@ function NotificationPanel({ onClose }) {
         aria-label="Notifications"
       >
         <div className={HeaderToolbarStyles.panelHeader}>
-          <h3>{t('notifications.title')}</h3>
+          <h3>{t('Notifications')}</h3>
           {unreadCount > 0 && (
             <button
               className={HeaderToolbarStyles.markAllRead}
               onClick={handleMarkAllRead}
             >
-              {t('notifications.markAllRead')}
+              {t('Mark all as read')}
             </button>
           )}
         </div>
@@ -368,11 +368,11 @@ function NotificationPanel({ onClose }) {
         <div className={HeaderToolbarStyles.notificationList}>
           {loading ? (
             <div className={HeaderToolbarStyles.loadingState}>
-              {t('common.loading')}
+              {t('Loading notifications')}
             </div>
           ) : notifications.length === 0 ? (
             <div className={HeaderToolbarStyles.emptyState}>
-              {t('notifications.noNotifications')}
+              {t('No notifications')}
             </div>
           ) : (
             notifications.map((notification) => (
@@ -405,7 +405,7 @@ function NotificationPanel({ onClose }) {
               onClose();
             }}
           >
-            {t('nav.notifications')}
+            {t('View all notifications')}
           </a>
         </div>
       </div>
@@ -505,11 +505,11 @@ function UserMenu({ user, onLogout }) {
 
             <a href="/profile" className={HeaderToolbarStyles.dropdownItem}>
               <ProfileIcon />
-              <span>{t('nav.profile')}</span>
+              <span>{t('Profile')}</span>
             </a>
             <a href="/settings" className={HeaderToolbarStyles.dropdownItem}>
               <SettingsIcon />
-              <span>{t('nav.settings')}</span>
+              <span>{t('Settings')}</span>
             </a>
 
             <div className={HeaderToolbarStyles.dropdownDivider} />
@@ -522,7 +522,7 @@ function UserMenu({ user, onLogout }) {
               className={HeaderToolbarStyles.dropdownItem}
             >
               <LogoutIcon />
-              <span>{t('nav.logout')}</span>
+              <span>{t('Logout')}</span>
             </button>
           </div>
         </>
@@ -614,7 +614,7 @@ function ViewControls({
           <span>
             {currentFilter
               ? filters.find((f) => f.id === currentFilter)?.label
-              : t('common.filter')}
+              : t('Filter')}
           </span>
         </button>
 
@@ -665,7 +665,7 @@ function ViewControls({
           aria-haspopup="true"
         >
           <SortIcon />
-          <span>{t('tasks.sortBy')}</span>
+          <span>{t('Sort')}</span>
         </button>
 
         {isSortOpen && (
@@ -755,16 +755,16 @@ export function HeaderToolbar({
   // Determine current page title
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path === '/dashboard') return t('dashboard.title');
+    if (path === '/dashboard') return t('Dashboard');
     if (path.startsWith('/tasks')) {
-      if (path === '/tasks') return t('tasks.title');
-      if (path.includes('/new')) return t('tasks.create');
-      return t('tasks.view');
+      if (path === '/tasks') return t('Tasks');
+      if (path.includes('/new')) return t('Create Task');
+      return t('Task Details');
     }
-    if (path === '/notifications') return t('notifications.title');
-    if (path === '/profile') return t('profile.title');
-    if (path === '/settings') return t('settings.title');
-    return t('app.name');
+    if (path === '/notifications') return t('Notifications');
+    if (path === '/profile') return t('Profile');
+    if (path === '/settings') return t('Settings');
+    return t('Task Flow');
   };
 
   const handleLogout = useCallback(async () => {
@@ -811,7 +811,7 @@ export function HeaderToolbar({
           >
             <LogoIcon />
             <span className={HeaderToolbarStyles.logoText}>
-              {t('app.name')}
+              {t('Task Flow')}
             </span>
           </a>
 
@@ -834,11 +834,11 @@ export function HeaderToolbar({
           <button
             onClick={onAddTask?.onAddTask ? onAddTask.onAddTask : () => navigate('/tasks/new')}
             className={HeaderToolbarStyles.addTaskButton}
-            aria-label={t('tasks.create')}
+            aria-label={t('Add new task')}
           >
             <AddTaskIcon />
             <span className={HeaderToolbarStyles.addTaskText}>
-              {t('tasks.newTask')}
+              {t('Add Task')}
             </span>
           </button>
 

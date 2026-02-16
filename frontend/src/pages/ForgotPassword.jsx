@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/index';
+import { useTranslation } from '../context/I18nContext';
 import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyIcon from '@mui/icons-material/Key';
@@ -12,14 +13,15 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { t } = useTranslation();
 
   const validate = () => {
     if (!email) {
-      setError('Email is required');
+      setError(t('Email is required'));
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email address');
+      setError(t('Please enter a valid email address'));
       return false;
     }
     return true;
@@ -38,7 +40,7 @@ const ForgotPassword = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
     } catch (err) {
-      setError('Failed to send reset link. Please try again.');
+      setError(t('Failed to send reset link. Please try again'));
     } finally {
       setLoading(false);
     }
@@ -64,10 +66,10 @@ const ForgotPassword = () => {
                 <CheckCircleIcon sx={{ fontSize: 32, color: 'success.main' }} />
               </Box>
               <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                Check your email
+                {t('Check your email')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                We've sent a password reset link to{' '}
+                {t("We've sent a password reset link to")}{' '}
                 <Typography component="span" variant="body2" sx={{ fontWeight: 500 }}>
                   {email}
                 </Typography>
@@ -86,7 +88,7 @@ const ForgotPassword = () => {
               </Typography>
               <Link to="/login">
                 <Button variant="outlined" fullWidth startIcon={<ArrowBackIcon />}>
-                  Back to sign in
+                  {t('Back to sign in')}
                 </Button>
               </Link>
             </CardContent>
@@ -117,10 +119,10 @@ const ForgotPassword = () => {
                 <KeyIcon sx={{ fontSize: 32, color: 'primary.main' }} />
               </Box>
               <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                Forgot your password?
+                {t('Forgot your password?')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                No worries, we'll send you reset instructions.
+                {t("No worries, we'll send you reset instructions")}
               </Typography>
             </Box>
 
@@ -138,14 +140,14 @@ const ForgotPassword = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <TextField
-                label="Email address"
+                label={t('Email address')}
                 type="email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setError('');
                 }}
-                placeholder="you@example.com"
+                placeholder={t('you@example.com')}
                 error={!!error}
                 helperText={error}
                 InputProps={{
@@ -166,7 +168,7 @@ const ForgotPassword = () => {
                 fullWidth
                 disabled={loading}
               >
-                Send reset link
+                {t('Send reset link')}
               </Button>
             </form>
 
@@ -183,7 +185,7 @@ const ForgotPassword = () => {
                 }}
               >
                 <ArrowBackIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                Back to sign in
+                {t('Back to sign in')}
               </Link>
             </Box>
           </CardContent>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/layout/index';
+import { useTranslation } from '../context/I18nContext';
 import {
   Card, 
   CardContent, 
@@ -35,6 +36,7 @@ import { useTheme } from '../theme/ThemeProvider';
 const TaskList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
+  const { t } = useTranslation();
   const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   
   // Initialize filters from URL params
@@ -268,7 +270,7 @@ const TaskList = () => {
                 <SearchIcon sx={{ position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary', zIndex: 1 }} />
                 <TextField
                   type="text"
-                  placeholder="Search tasks..."
+                  placeholder={t("Search tasks...")}
                   value={filters.search || ''}
                   onChange={handleSearchChange}
                   sx={{ width: '100%', '& .MuiOutlinedInput-root': { pl: 5, pr: 1 } }}

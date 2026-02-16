@@ -63,13 +63,6 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         try {
-            // Debug: Log request details
-            Log::debug('Login attempt', [
-                'email' => $request->email,
-                'origin' => $request->header('Origin'),
-                'user_agent' => $request->userAgent(),
-                'ip' => $request->ip(),
-            ]);
 
             $credentials = $request->validate([
                 'email' => ['required', 'string', 'email'],
@@ -77,7 +70,6 @@ class AuthController extends Controller
             ]);
 
             $result = $this->authService->login($credentials);
-
 
             return response()->json([
                 'success' => true,

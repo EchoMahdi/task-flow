@@ -27,6 +27,7 @@ import GridViewIcon from '@mui/icons-material/GridView';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useTranslation } from '@/context/I18nContext';
 
 // AppLayout component
 export { AppLayout } from './AppLayout/AppLayout';
@@ -39,6 +40,8 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [notificationCount] = React.useState(3);
+  const { t } = useTranslation()
+
   
   // Notification menu state
   const [notificationAnchorEl, setNotificationAnchorEl] = React.useState(null);
@@ -78,7 +81,7 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
           <IconButton
             onClick={onMenuClick}
             sx={{ display: { lg: 'none' } }}
-            aria-label="Toggle sidebar"
+            aria-label={t("toggle menu")}
           >
             <MenuIcon />
           </IconButton>
@@ -88,7 +91,7 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
             <SearchIcon sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'text.secondary' }} />
             <TextField
               type="text"
-              placeholder="Search tasks..."
+              placeholder={t("Search")}
               size="small"
               sx={{
                 width: { xs: 200, lg: 320 },
@@ -194,16 +197,16 @@ export const Header = ({ onMenuClick, sidebarOpen }) => {
             </Box>
             <MenuItem onClick={() => { navigate('/profile'); handleUserClose(); }}>
               <PersonIcon sx={{ mr: 1 }} />
-              <Typography>Profile</Typography>
+              <Typography>{t("Profile")}</Typography>
             </MenuItem>
             <MenuItem onClick={() => { navigate('/settings'); handleUserClose(); }}>
               <SettingsIcon sx={{ mr: 1 }} />
-              <Typography>Settings</Typography>
+              <Typography>{t("Settings")}</Typography>
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
               <LogoutIcon sx={{ mr: 1 }} />
-              <Typography>Sign out</Typography>
+              <Typography>{t("Sign out")}</Typography>
             </MenuItem>
           </Menu>
         </Box>

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   getCurrentLanguage,
   setLanguage as setLanguageStorage,
@@ -7,101 +13,109 @@ import {
   loadTranslations,
   translate,
   isRTL,
-  getSupportedLanguages
-} from '../services/i18nService'
+  getSupportedLanguages,
+} from "../services/i18nService";
 
 /**
  * API service for user preferences
  */
 const preferenceApi = {
+  
   async getLocale() {
-    const token = localStorage.getItem('auth_token')
-    if (!token) return null
     
+    const token = localStorage.getItem("auth_token");
+    if (!token) return null;
+
     try {
-      const response = await fetch('/api/user/theme', {
+      // DEBUG: Log CSRF fetch attempt      
+      const response = await fetch("/api/user/theme", {
+        method: 'GET',
+        credentials: 'include', // Include cookies for CSRF
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept-Language": localStorage.getItem('app_language') || 'en',
         },
-      })
-      
+      });
+
       if (!response.ok) {
-        if (response.status === 401) return null
-        throw new Error('Failed to fetch theme settings')
+        if (response.status === 401) return null;
+        throw new Error("Failed to fetch theme settings");
       }
-      
-      const data = await response.json()
-      return data.locale || null
+
+      const data = await response.json();
+      return data.locale || null;
     } catch (error) {
-      console.warn('Could not fetch locale from backend:', error)
-      return null
+      console.warn("Could not fetch locale from backend:", error);
+      return null;
     }
   },
 
   async updateLocale(locale) {
-    const token = localStorage.getItem('auth_token')
-    if (!token) return false
-    
+    const token = localStorage.getItem("auth_token");
+    if (!token) return false;
+
     try {
-      const response = await fetch('/api/user/theme/locale', {
-        method: 'PUT',
+      const response = await fetch("/api/user/theme/locale", {
+        method: "PUT",
+        credentials: 'include', // Include cookies for CSRF
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept-Language": localStorage.getItem('app_language') || 'en',
         },
         body: JSON.stringify({ locale }),
-      })
-      
+      });
+
       if (!response.ok) {
-        if (response.status === 401) return false
-        throw new Error('Failed to update locale')
+        if (response.status === 401) return false;
+        throw new Error("Failed to update locale");
       }
-      
-      return true
+
+      return true;
     } catch (error) {
-      console.warn('Could not sync locale to backend:', error)
-      return false
+      console.warn("Could not sync locale to backend:", error);
+      return false;
     }
   },
-}
+};
 
 /**
  * I18n Context - Manages language state and provides translation functions
  */
-const I18nContext = createContext(null)
+const I18nContext = createContext(null);
 
 /**
  * Apply language changes to the document
  * @param {string} language - Language code
  */
 function applyLanguageToDocument(language) {
-  if (typeof document === 'undefined') return
+  if (typeof document === "undefined") return;
 
-  const direction = getDirection(language)
-  const fontFamily = getFontFamily(language)
+  const direction = getDirection(language);
+  const fontFamily = getFontFamily(language);
 
   // Set HTML attributes
-  document.documentElement.lang = language
-  document.documentElement.dir = direction
+  document.documentElement.lang = language;
+  document.documentElement.dir = direction;
 
   // Apply font family to body
-  document.body.style.fontFamily = fontFamily
+  document.body.style.fontFamily = fontFamily;
 
   // Update RTL/LTR classes on body
-  if (direction === 'rtl') {
-    document.body.classList.add('rtl')
-    document.body.classList.remove('ltr')
+  if (direction === "rtl") {
+    document.body.classList.add("rtl");
+    document.body.classList.remove("ltr");
   } else {
-    document.body.classList.add('ltr')
-    document.body.classList.remove('rtl')
+    document.body.classList.add("ltr");
+    document.body.classList.remove("rtl");
   }
 }
 
 /**
  * I18n Provider Component
  * Wraps the app and provides language context to all components
- * 
+ *
  * Features:
  * - Global language state management
  * - Backend synchronization for authenticated users
@@ -109,102 +123,99 @@ function applyLanguageToDocument(language) {
  * - LocalStorage persistence
  */
 export function I18nProvider({ children }) {
-  const [language, setLanguageState] = useState(getCurrentLanguage())
-  const [translations, setTranslations] = useState(loadTranslations(getCurrentLanguage()))
-  const [direction, setDirection] = useState(getDirection(getCurrentLanguage()))
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [language, setLanguageState] = useState(getCurrentLanguage());
+  const [translations, setTranslations] = useState(
+    loadTranslations(getCurrentLanguage()),
+  );
+  const [direction, setDirection] = useState(
+    getDirection(getCurrentLanguage()),
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Initialize language on mount
   useEffect(() => {
     const initializeLanguage = async () => {
-      setIsLoading(true)
-      setError(null)
-      
+      setIsLoading(true);
+      setError(null);
+
       try {
         // Try to get locale from backend for authenticated users
-        const backendLocale = await preferenceApi.getLocale()
-        
-        if (backendLocale && (backendLocale === 'en' || backendLocale === 'fa')) {
+        const backendLocale = await preferenceApi.getLocale();
+
+        if (backendLocale) {
           // Use backend preference
-          setLanguageStorage(backendLocale)
-          setLanguageState(backendLocale)
-          setTranslations(loadTranslations(backendLocale))
-          setDirection(getDirection(backendLocale))
-          applyLanguageToDocument(backendLocale)
+          setLanguageStorage(backendLocale);
+          setLanguageState(backendLocale);
+          setTranslations(loadTranslations(backendLocale));
+          setDirection(getDirection(backendLocale));
+          applyLanguageToDocument(backendLocale);
         } else {
           // Use localStorage or default
-          const storedLang = getCurrentLanguage()
-          setLanguageState(storedLang)
-          setTranslations(loadTranslations(storedLang))
-          setDirection(getDirection(storedLang))
-          applyLanguageToDocument(storedLang)
+          const storedLang = getCurrentLanguage();
+          setLanguageState(storedLang);
+          setTranslations(loadTranslations(storedLang));
+          setDirection(getDirection(storedLang));
+          applyLanguageToDocument(storedLang);
         }
       } catch (err) {
-        console.warn('Error initializing language:', err)
+        console.warn("Error initializing language:", err);
         // Fallback to localStorage
-        const storedLang = getCurrentLanguage()
-        setLanguageState(storedLang)
-        setTranslations(loadTranslations(storedLang))
-        setDirection(getDirection(storedLang))
-        applyLanguageToDocument(storedLang)
+        const storedLang = getCurrentLanguage();
+        setLanguageState(storedLang);
+        setTranslations(loadTranslations(storedLang));
+        setDirection(getDirection(storedLang));
+        applyLanguageToDocument(storedLang);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    initializeLanguage()
-  }, [])
+    initializeLanguage();
+  }, []);
 
   // Apply direction and font when language changes
   useEffect(() => {
-    applyLanguageToDocument(language)
-  }, [language])
+    applyLanguageToDocument(language);
+  }, [language]);
 
   /**
    * Change the current language
    * Updates local state, localStorage, and syncs with backend
-   * 
-   * @param {string} newLang - Language code ('en' or 'fa')
+   *
+   * @param {string} 
    * @returns {Promise<boolean>} - Whether the change was successful
    */
-  const changeLanguage = useCallback(async (newLang) => {
-    if (!newLang || (newLang !== 'en' && newLang !== 'fa')) {
-      console.warn(`Invalid language code: ${newLang}`)
-      return false
-    }
-
-    const previousLang = language
-
-    // Optimistically update local state
-    setLanguageStorage(newLang)
-    setLanguageState(newLang)
-    setTranslations(loadTranslations(newLang))
-    setDirection(getDirection(newLang))
-
-    // Apply to document immediately
-    applyLanguageToDocument(newLang)
-
-    // Sync with backend in background
-    try {
-      const success = await preferenceApi.updateLocale(newLang)
-      if (!success) {
-        console.warn('Failed to sync language preference with backend')
+  const changeLanguage = useCallback(
+    async (newLang) => {
+      if (!newLang ) {
+        console.warn(`Invalid language code: ${newLang}`);
+        return false;
       }
-    } catch (err) {
-      console.error('Error syncing language to backend:', err)
-      // Revert on failure (optional - depends on requirements)
-      // setLanguageStorage(previousLang)
-      // setLanguageState(previousLang)
-      // setTranslations(loadTranslations(previousLang))
-      // setDirection(getDirection(previousLang))
-      // applyLanguageToDocument(previousLang)
-      setError('Failed to save language preference')
-      return false
-    }
 
-    return true
-  }, [language])
+      try {
+        const success = await preferenceApi.updateLocale(newLang);
+        if (success) {
+          setLanguageStorage(newLang);
+          setLanguageState(newLang);
+          setTranslations(loadTranslations(newLang));
+          setDirection(getDirection(newLang));
+          applyLanguageToDocument(newLang);
+        } else {
+          console.warn("Failed to sync language preference with backend");
+          return false;
+        }
+      } catch (err) {
+        console.error("Error syncing language to backend:", err);
+        setError("Failed to save language preference");
+
+        return false;
+      }
+
+      return true;
+    },
+    [language],
+  );
 
   /**
    * Get translation for a key
@@ -212,33 +223,36 @@ export function I18nProvider({ children }) {
    * @param {Object} params - Optional parameters for interpolation
    * @returns {string} Translated string
    */
-  const t = useCallback((key, params = {}) => {
-    return translate(key, language, params)
-  }, [language])
+  const t = useCallback(
+    (key, params = {}) => {
+      return translate(key, language, params);
+    },
+    [language],
+  );
 
   /**
    * Check if current language is RTL
    * @returns {boolean}
    */
   const isRtl = useCallback(() => {
-    return isRTL(language)
-  }, [language])
+    return isRTL(language);
+  }, [language]);
 
   /**
    * Get font family for current language
    * @returns {string}
    */
   const getFontFamilyForCurrentLang = useCallback(() => {
-    return getFontFamily(language)
-  }, [language])
+    return getFontFamily(language);
+  }, [language]);
 
   /**
    * Get supported languages
    * @returns {Array}
    */
   const getLanguages = useCallback(() => {
-    return getSupportedLanguages()
-  }, [])
+    return getSupportedLanguages();
+  }, []);
 
   const value = {
     language,
@@ -250,16 +264,12 @@ export function I18nProvider({ children }) {
     getFontFamily: getFontFamilyForCurrentLang,
     getLanguages,
     isRTL: isRTL(language),
-    supportedLanguages: ['en', 'fa'],
+    supportedLanguages: ["en", "fa"],
     isLoading,
     error,
-  }
+  };
 
-  return (
-    <I18nContext.Provider value={value}>
-      {children}
-    </I18nContext.Provider>
-  )
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
 /**
@@ -267,11 +277,11 @@ export function I18nProvider({ children }) {
  * @returns {Object} I18n context object
  */
 export function useI18n() {
-  const context = useContext(I18nContext)
+  const context = useContext(I18nContext);
   if (!context) {
-    throw new Error('useI18n must be used within an I18nProvider')
+    throw new Error("useI18n must be used within an I18nProvider");
   }
-  return context
+  return context;
 }
 
 /**
@@ -279,8 +289,8 @@ export function useI18n() {
  * @returns {Object} Translation helper with t function
  */
 export function useTranslation() {
-  const { t, language, translations, direction } = useI18n()
-  return { t, language, translations, direction }
+  const { t, language, translations, direction } = useI18n();
+  return { t, language, translations, direction };
 }
 
-export default I18nContext
+export default I18nContext;

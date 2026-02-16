@@ -152,8 +152,8 @@ CSS custom properties handle direction-aware styling:
 ### Vazir Font Loading
 
 ```css
-/* Vazir font for Persian */
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font/dist/font-face.css');
+/* Vazir font for Persian - Local self-hosted */
+@import '@fontsource/vazir/all.css';
 
 [lang="fa"] body,
 [dir="rtl"] body {

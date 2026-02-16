@@ -55,8 +55,8 @@ class PasswordResetToken extends Model
         
         return static::create([
             'user_id' => $user->id,
-            'email' => $user->email,
-            'token' => static::generateToken(),
+            'email'   => $user->email,
+            'token'   => static::generateToken(),
             'expires_at' => now()->addMinutes(static::EXPIRATION_MINUTES),
         ]);
     }

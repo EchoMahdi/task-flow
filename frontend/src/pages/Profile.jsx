@@ -13,6 +13,7 @@ import MapIcon from '@mui/icons-material/Map';
 import LanguageIcon from '@mui/icons-material/Language';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { useTranslation } from '@/context/I18nContext';
 
 const Profile = () => {
   const { user, refreshUser } = useAuth();
@@ -23,6 +24,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { t } = useTranslation()
 
   // Profile form - loaded from backend
   const [profileData, setProfileData] = useState({
@@ -73,9 +75,9 @@ const Profile = () => {
   const [passwordErrors, setPasswordErrors] = useState({});
 
   const tabs = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'password', label: 'Password' },
-    { id: 'timezone', label: 'Timezone' },
+    { id: 'profile', label: t("Profile") },
+    { id: 'password', label: t("Password") },
+    { id: 'timezone', label: t("Timezone") },
   ];
 
   const timezones = [
@@ -198,8 +200,8 @@ const Profile = () => {
       <AppLayout>
         <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
           <PageHeader
-            title="Profile"
-            description="Manage your account settings and preferences"
+            title={t("Profile")}
+            description={t("Manage your account settings and preferences")}
           />
           <Card>
             <CardContent>
@@ -221,8 +223,8 @@ const Profile = () => {
     <AppLayout>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <PageHeader
-          title="Profile"
-          description="Manage your account settings and preferences"
+          title={t("Profile")}
+          description={t("Manage your account settings and preferences")}
         />
 
         {/* Success/Error Alerts */}
@@ -335,24 +337,24 @@ const Profile = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Full Name"
+                          label={t("Full Name")}
                           name="name"
                           value={profileData.name}
                           onChange={handleProfileChange}
                           disabled
-                          helperText="Contact support to change your name"
+                          helperText={t("Contact support to change your name")}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Email Address"
+                          label={t("Email Address")}
                           name="email"
                           type="email"
                           value={profileData.email}
                           onChange={handleProfileChange}
                           disabled
-                          helperText="Contact support to change your email"
+                          helperText={t("Contact support to change your email")}
                         />
                       </Grid>
                     </Grid>
@@ -361,18 +363,18 @@ const Profile = () => {
                       fullWidth
                       multiline
                       rows={3}
-                      label="Bio"
+                      label={t("Bio")}
                       name="bio"
                       value={profileData.bio}
                       onChange={handleProfileChange}
-                      placeholder="Tell us about yourself..."
+                      placeholder={t("Tell us about yourself...")}
                     />
 
                     <Grid container spacing={3}>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Phone Number"
+                          label={t("Phone Number")}
                           name="phone"
                           value={profileData.phone}
                           onChange={handleProfileChange}
@@ -382,18 +384,18 @@ const Profile = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Location"
+                          label={t("Location")}
                           name="location"
                           value={profileData.location}
                           onChange={handleProfileChange}
-                          placeholder="City, Country"
+                          placeholder={t("City, Country")}
                         />
                       </Grid>
                     </Grid>
 
                     <TextField
                       fullWidth
-                      label="Website"
+                      label={t("Website")}
                       name="website"
                       value={profileData.website}
                       onChange={handleProfileChange}
@@ -402,7 +404,7 @@ const Profile = () => {
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <Button type="submit" variant="contained" disabled={loading}>
-                        Save Changes
+                        {t("Save Changes")}
                       </Button>
                     </Box>
                   </form>
@@ -426,13 +428,13 @@ const Profile = () => {
                       <WarningAmberIcon sx={{ color: 'warning.main', mt: 0.5 }} />
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.dark' }}>
-                          Password Requirements
+                          {t("Password Requirements")}
                         </Typography>
                         <Typography variant="body2" sx={{ color: 'warning.dark', mt: 0.5 }}>
                           <ul style={{ margin: '4px 0 0 0', paddingLeft: '1.25rem' }}>
-                            <li>At least 8 characters long</li>
-                            <li>Include uppercase and lowercase letters</li>
-                            <li>Include at least one number</li>
+                            <li>{t("At least 8 characters long")}</li>
+                            <li>{t("Include uppercase and lowercase letters")}</li>
+                            <li>{t("Include at least one number")}</li>
                           </ul>
                         </Typography>
                       </Box>
@@ -440,43 +442,43 @@ const Profile = () => {
 
                     <TextField
                       fullWidth
-                      label="Current Password"
+                      label={t("Current Password")}
                       name="currentPassword"
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      placeholder="Enter your current password"
+                      placeholder={t("Enter your current password")}
                       error={!!passwordErrors.currentPassword}
                       helperText={passwordErrors.currentPassword}
                     />
 
                     <TextField
                       fullWidth
-                      label="New Password"
+                      label={t("New Password")}
                       name="newPassword"
                       type="password"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      placeholder="Enter your new password"
+                      placeholder={t("Enter your new password")}
                       error={!!passwordErrors.newPassword}
                       helperText={passwordErrors.newPassword}
                     />
 
                     <TextField
                       fullWidth
-                      label="Confirm New Password"
+                      label={t("Confirm New Password")}
                       name="confirmPassword"
                       type="password"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      placeholder="Confirm your new password"
+                      placeholder={t("Confirm your new password")}
                       error={!!passwordErrors.confirmPassword}
                       helperText={passwordErrors.confirmPassword}
                     />
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <Button type="submit" variant="contained" disabled={loading}>
-                        Change Password
+                        {t("Change Password")}
                       </Button>
                     </Box>
                   </form>
@@ -500,22 +502,22 @@ const Profile = () => {
                       <InfoIcon sx={{ color: 'primary.main', mt: 0.5 }} />
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.dark' }}>
-                          About Timezone Settings
+                          {t("About Timezone Settings")}
                         </Typography>
                         <Typography variant="body2" sx={{ color: 'primary.dark', mt: 0.5 }}>
-                          Your timezone affects how due dates and reminders are displayed. 
-                          Make sure to select the correct timezone for accurate notifications.
+                          {t("Your timezone affects how due dates and reminders are displayed.")} 
+                          {t("Make sure to select the correct timezone for accurate notifications.")}
                         </Typography>
                       </Box>
                     </Box>
 
                     <FormControl fullWidth>
-                      <InputLabel>Timezone</InputLabel>
+                      <InputLabel>{t("Timezone")}</InputLabel>
                       <Select
                         name="timezone"
                         value={profileData.timezone}
                         onChange={handleProfileChange}
-                        label="Timezone"
+                        label={t("Timezone")}
                       >
                         {timezones.map((tz) => (
                           <MenuItem key={tz.value} value={tz.value}>
@@ -528,7 +530,7 @@ const Profile = () => {
                     <Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                       <Typography variant="body2" color="text.secondary">
                         <Typography component="span" variant="body2" sx={{ fontWeight: 500 }}>
-                          Current local time:
+                          {t("Current local time:")}
                         </Typography>{' '}
                         {new Date().toLocaleString('en-US', { timeZone: profileData.timezone })}
                       </Typography>
@@ -536,7 +538,7 @@ const Profile = () => {
 
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <Button type="submit" variant="contained" disabled={loading}>
-                        Save Timezone
+                        {t("Save Timezone")}
                       </Button>
                     </Box>
                   </form>
@@ -551,3 +553,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
+

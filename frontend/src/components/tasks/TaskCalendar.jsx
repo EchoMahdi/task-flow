@@ -67,7 +67,7 @@ const TaskCalendar = ({
       setTasks(result.data || []);
     } catch (err) {
       console.error('Failed to fetch calendar tasks:', err);
-      setError(t('errors.serverError'));
+      setError(t('Server error occurred while fetching tasks. Please try again later.'));
     } finally {
       setLoading(false);
     }
@@ -127,7 +127,7 @@ const TaskCalendar = ({
       fetchTasks();
     } catch (err) {
       console.error('Failed to update task date:', err);
-      setError(t('errors.serverError'));
+      setError(t('Server error occurred while updating task date. Please try again later'));
     } finally {
       setDraggedTask(null);
     }
@@ -553,7 +553,7 @@ const TaskCalendar = ({
           loading={loading}
           loadingText={t('errors.retrying')}
         >
-          {t('errors.tryAgain')}
+          {t('Try Again')}
         </LoadingButton>
       </Box>
     );
@@ -581,7 +581,7 @@ const TaskCalendar = ({
             <ChevronRightIcon />
           </IconButton>
           <Button variant="outlined" size="small" onClick={handleToday}>
-            {t('datetime.today')}
+            {t('Today')}
           </Button>
           <IconButton onClick={handleNext} size="small">
             <ChevronLeftIcon />
@@ -621,7 +621,7 @@ const TaskCalendar = ({
             startIcon={<AddIcon />}
             onClick={() => onCreateTask && onCreateTask()}
           >
-            {t('tasks.create')}
+            {t('Create Task')}
           </Button>
         </Box>
       </Box>

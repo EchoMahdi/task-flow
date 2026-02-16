@@ -5,8 +5,8 @@ import en from '../locales/en.json'
  * i18n Service - Handles internationalization and language management
  */
 const translations = {
-  fa,
-  en
+  en,
+  fa
 }
 
 const defaultLanguage = 'en'
@@ -46,12 +46,18 @@ export const getSupportedLanguages = () => {
 
 /**
  * Get translation for a key
- * @param {string} key - Dot-notation key (e.g., 'app.name')
+ * @param {string} key - Dot-notation key (e.g., 'app.name') or flat key (e.g., 'Login')
  * @param {string} lang - Language code
  * @param {Object} params - Optional parameters for interpolation
  * @returns {string} Translated string
  */
 export const translate = (key, lang = defaultLanguage, params = {}) => {
+  // DEBUG: Log translation key pattern to identify nested vs flat usage
+  const isNestedKey = key.includes('.');
+  if (isNestedKey) {
+    console.debug(`[i18n] Nested key detected: '${key}' (should be migrated to flat key)`);
+  }
+  
   const langTranslations = translations[lang] || translations[defaultLanguage]
   const defaultTranslations = translations[defaultLanguage]
   
@@ -71,7 +77,6 @@ export const translate = (key, lang = defaultLanguage, params = {}) => {
   
   // Return key if no translation found
   if (translation === null) {
-    console.warn(`Translation not found for key: ${key}`)
     return key
   }
   
@@ -141,10 +146,7 @@ export const isRTL = (lang) => {
  * @returns {string} Font family string
  */
 export const getFontFamily = (lang) => {
-  if (lang === 'fa') {
     return "'Vazir', 'Tahoma', 'Arial', sans-serif"
-  }
-  return "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif"
 }
 
 export default {

@@ -15,7 +15,45 @@ const csrfApi = axios.create({
 const csrfState = {
   token: null,
   initialized: false,
+  serverError: null, // Track server errors to prevent infinite loops
 }
+
+// Storage key for CSRF state persistence across HMR
+const CSRF_STORAGE_KEY = 'csrf_token';
+
+// Load CSRF token from localStorage if available
+const loadCsrfFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(CSRF_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Check if token is less than 1 hour old
+      if (parsed.timestamp && Date.now() - parsed.timestamp < 3600000) {
+        csrfState.token = parsed.token;
+        csrfState.initialized = true;
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn('[CSRF DEBUG] Failed to load CSRF from storage:', e);
+  }
+  return false;
+};
+
+// Save CSRF token to localStorage
+const saveCsrfToStorage = (token) => {
+  try {
+    localStorage.setItem(CSRF_STORAGE_KEY, JSON.stringify({
+      token,
+      timestamp: Date.now()
+    }));
+  } catch (e) {
+    console.warn('[CSRF DEBUG] Failed to save CSRF to storage:', e);
+  }
+};
+
+// Try to load from storage on module load
+loadCsrfFromStorage();
 
 // Function to get CSRF token from cookies
 const getCsrfToken = () => {
@@ -36,24 +74,52 @@ const getCsrfToken = () => {
 
 // Initialize CSRF token
 export const initCsrf = async () => {
-  if (csrfState.initialized) return
+
+  // Don't retry if previously failed with server error (prevent infinite loops)
+  if (csrfState.initialized && csrfState.token) {
+    return;
+  }
+  
+  // If we've already tried and failed with server error, don't retry immediately
+  if (csrfState.serverError && Date.now() - csrfState.serverError < 60000) {
+    csrfState.initialized = true;
+    return;
+  }
 
   try {
     // Make request to /sanctum/csrf-cookie (this gets proxied to Laravel)
-    await csrfApi.get('/sanctum/csrf-cookie')
-    csrfState.token = getCsrfToken()
-    csrfState.initialized = true
-    console.log('CSRF token initialized successfully')
+    await csrfApi.get('/sanctum/csrf-cookie');
+    csrfState.token = getCsrfToken();
+    csrfState.initialized = true;
+    csrfState.serverError = null; // Clear any previous server error
+    
+    // Save to localStorage for persistence across HMR
+    if (csrfState.token) {
+      saveCsrfToStorage(csrfState.token);
+    }
+    
   } catch (error) {
-    console.warn('Failed to initialize CSRF token:', error.message)
-    // Don't block the app if CSRF fails
-    csrfState.initialized = true
+    // Check if it's a server error (5xx)
+    const isServerError = error.response?.status >= 500;
+    
+    if (isServerError) {
+      csrfState.serverError = Date.now();
+    }
+    
+    // Don't block the app if CSRF fails (we're using token-based auth)
+    csrfState.initialized = true;
   }
 }
 
 // Add auth interceptor to include token in requests
 api.interceptors.request.use(
   async (config) => {
+    // Add XSRF token to header if available
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      config.headers['X-XSRF-TOKEN'] = csrfToken;
+    }
+    
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -73,8 +139,40 @@ api.interceptors.request.use(
 // Handle response errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // DEBUG: Log error details
+    const errorStatus = error.response?.status;
+    const errorMessage = error.message;
+    
+    // Handle network errors (backend unreachable)
+    if (!error.response && error.message === 'Network Error') {
+      console.error('[CSRF DEBUG] Network Error: Backend server is not reachable. Please ensure Laravel is running on port 8000.');
+      return Promise.reject(error);
+    }
+    
+    // Handle CSRF token mismatch (419) - refresh token and retry
+    if (errorStatus === 419 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Refresh CSRF token
+        await initCsrf();
+        
+        // Get fresh token and add to headers
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+          originalRequest.headers['X-XSRF-TOKEN'] = csrfToken;
+        }
+        
+        return api(originalRequest);
+      } catch (csrfError) {
+        console.error('[CSRF DEBUG] Failed to refresh CSRF token:', csrfError);
+      }
+    }
+    
+    if (errorStatus === 401) {
       localStorage.removeItem('auth_token')
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'

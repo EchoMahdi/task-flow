@@ -5,8 +5,8 @@
  * All styles use semantic tokens from the theme manager.
  */
 
-/* Vazir Font for Persian - Import once at the top */
-@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@latest/dist/font-face.css');
+/* Vazir Font for Persian - Local self-hosted font */
+@import '@fontsource/vazir/all.css';
 
 /* ============================================================================
    CSS CUSTOM PROPERTIES - DYNAMIC THEMING

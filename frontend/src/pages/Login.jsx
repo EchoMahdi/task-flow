@@ -50,15 +50,15 @@ const Login = () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = t('validation.required', { attribute: t('common.email') });
+      newErrors.email = t('required', { attribute: t('Email') });
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('validation.email', { attribute: t('common.email') });
+      newErrors.email = t('Email', { attribute: t('Email') });
     }
 
     if (!formData.password) {
-      newErrors.password = t('validation.required', { attribute: t('common.password') });
+      newErrors.password = t('Required', { attribute: t('Password') });
     } else if (formData.password.length < 6) {
-      newErrors.password = t('validation.min.string', { attribute: t('common.password'), min: 6 });
+      newErrors.password = t('Min', { attribute: t('Password'), min: 6 });
     }
 
     setErrors(newErrors);
@@ -77,7 +77,7 @@ const Login = () => {
       await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (error) {
-      setApiError(error.message || t('auth.login.failed'));
+      setApiError(error.message || t('Login failed. Please try again'));
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,7 @@ const Login = () => {
 
       // Check if popup was blocked
       if (!popup || popup.closed) {
-        throw new Error('Popup was blocked. Please allow popups for this site.');
+        throw new Error('Popup was blocked. Please allow popups for this site');
       }
 
       // Start polling for popup to close (indicates auth completed)
@@ -109,7 +109,7 @@ const Login = () => {
       }, 500);
 
     } catch (error) {
-      setApiError(error.message || t('auth.login.failed'));
+      setApiError(error.message || t('Login failed. Please try again'));
     } finally {
       setSocialLoading((prev) => ({ ...prev, [provider]: false }));
     }
@@ -147,10 +147,10 @@ const Login = () => {
             {/* Header */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                {t('auth.login.title')}
+                {t('Login to your account')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {t('auth.login.subtitle')}
+                {t("Enter your email and password to access your account")}
               </Typography>
             </Box>
 
@@ -168,12 +168,12 @@ const Login = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <TextField
-                label={t('common.email')}
+                label={t('Email')}
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder={"you@example.com"}
                 error={!!errors.email}
                 helperText={errors.email}
                 InputProps={{
@@ -190,12 +190,12 @@ const Login = () => {
 
               <Box>
                 <TextField
-                  label={t('common.password')}
+                  label={t('Password')}
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="••••••••"
+                  placeholder={t("••••••••")}
                   error={!!errors.password}
                   helperText={errors.password}
                   InputProps={{
@@ -226,7 +226,7 @@ const Login = () => {
                     sx={{ cursor: 'pointer' }}
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
+                    {showPassword ? t('Hide password') : t('Show password')}
                   </Typography>
                 </Box>
               </Box>
@@ -236,13 +236,13 @@ const Login = () => {
                   name="remember"
                   checked={formData.remember}
                   onChange={handleChange}
-                  label={t('common.remember_me')}
+                  label={t('Remember me')}
                 />
                 <Link
                   to="/forgot-password"
                   style={{ fontSize: '0.875rem', color: '#1976d2', textDecoration: 'none' }}
                 >
-                  {t('common.forgot_password')}
+                  {t('Forgot password')}
                 </Link>
               </Box>
 
@@ -252,7 +252,7 @@ const Login = () => {
                 fullWidth
                 disabled={loading}
               >
-                {t('common.login')}
+                {t('Login')}
               </Button>
             </form>
 
@@ -263,7 +263,7 @@ const Login = () => {
               </Box>
               <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
                 <Typography variant="caption" sx={{ px: 2, bgcolor: 'background.paper', color: 'text.secondary' }}>
-                  {t('auth.login.or_continue')}
+                  {t('Or continue with')}
                 </Typography>
               </Box>
             </Box>
@@ -277,7 +277,7 @@ const Login = () => {
                 disabled={socialLoading.google}
                 startIcon={<GoogleIcon />}
               >
-                Google
+                {t("Google")}
               </Button>
               <Button
                 variant="outlined"
@@ -286,7 +286,7 @@ const Login = () => {
                 disabled={socialLoading.github}
                 startIcon={<GitHubIcon />}
               >
-                GitHub
+                {t("GitHub")}
               </Button>
             </Box>
 
@@ -298,7 +298,7 @@ const Login = () => {
                   to="/register"
                   style={{ color: '#1976d2', fontWeight: 500, textDecoration: 'none' }}
                 >
-                  {t('auth.login.sign_up_link')}
+                  {t('Sign up')}
                 </Link>
               </Typography>
             </Box>
