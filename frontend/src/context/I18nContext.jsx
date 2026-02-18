@@ -123,6 +123,8 @@ function applyLanguageToDocument(language) {
  * - LocalStorage persistence
  */
 export function I18nProvider({ children }) {
+  // DEBUG: Log initialization
+  console.log('[I18nContext] Initializing I18nProvider...')
   const [language, setLanguageState] = useState(getCurrentLanguage());
   const [translations, setTranslations] = useState(
     loadTranslations(getCurrentLanguage()),

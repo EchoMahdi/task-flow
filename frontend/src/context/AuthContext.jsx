@@ -1,5 +1,6 @@
+// src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authService, initCsrf } from '../services/authService'
+import { authService } from '../services/authService'
 
 const AuthContext = createContext(null)
 
@@ -8,54 +9,35 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Check authentication status and initialize CSRF on mount
+  // DEBUG: Log provider initialization
+  console.log('[AuthContext] AuthProvider initialized, waiting for auth check...')
+
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        // First, initialize CSRF protection for Laravel Sanctum
-        await initCsrf()
-        
-        // Then check auth status
-        const userData = await authService.getUser()
-        setUser(userData)
-      } catch (err) {
-        console.warn('Auth initialization failed:', err)
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
+    let cancelled = false
 
-    initialize()
+    authService.getUser()
+      .then((userData) => {
+        if (!cancelled) setUser(userData)
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => { cancelled = true }
   }, [])
-
-  const checkAuth = async () => {
-    setLoading(true)
-    try {
-      await initCsrf() // Re-initialize CSRF
-      const userData = await authService.getUser()
-      setUser(userData)
-    } catch (err) {
-      console.warn('Auth check failed:', err)
-      setUser(null)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const login = async (email, password) => {
     setError(null)
     setLoading(true)
     try {
-      // Ensure CSRF is initialized before login
-      await initCsrf()
       const response = await authService.login(email, password)
       setUser(response.user)
       return response
     } catch (err) {
-      const message = err.response?.data?.message || 
-                     err.response?.data?.error || 
-                     'Login failed. Please check your credentials.'
+      const message = err.response?.data?.message || 'Login failed.'
       setError(message)
       throw err
     } finally {
@@ -67,15 +49,13 @@ export function AuthProvider({ children }) {
     setError(null)
     setLoading(true)
     try {
-      // Ensure CSRF is initialized before registration
-      await initCsrf()
-      const response = await authService.register(name, email, password, passwordConfirmation)
+      const response = await authService.register(
+        name, email, password, passwordConfirmation
+      )
       setUser(response.user)
       return response
     } catch (err) {
-      const message = err.response?.data?.message || 
-                     err.response?.data?.error || 
-                     'Registration failed. Please try again.'
+      const message = err.response?.data?.message || 'Registration failed.'
       setError(message)
       throw err
     } finally {
@@ -87,8 +67,6 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       await authService.logout()
-    } catch (err) {
-      console.warn('Logout error:', err)
     } finally {
       setUser(null)
       setLoading(false)
@@ -99,28 +77,25 @@ export function AuthProvider({ children }) {
     try {
       const userData = await authService.getUser()
       setUser(userData)
-    } catch (err) {
-      console.warn('Failed to refresh user:', err)
+    } catch {
+      console.warn('Failed to refresh user')
     }
   }, [])
 
-  const clearError = useCallback(() => {
-    setError(null)
-  }, [])
+  const clearError = useCallback(() => setError(null), [])
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        loading, 
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
         error,
-        login, 
-        register, 
+        login,
+        register,
         logout,
         refreshUser,
         clearError,
         isAuthenticated: !!user,
-        checkAuth
       }}
     >
       {children}
@@ -130,7 +105,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
+  // DEBUG: Log where useAuth is being called from
+  // console.log('[AuthContext] useAuth called, context exists:', !!context) // Commented out - working now
   if (!context) {
+    console.error('[AuthContext] useAuth called without AuthProvider! Call stack:', new Error().stack)
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context

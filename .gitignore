@@ -3,7 +3,7 @@ vendor/
 frontend/node_modules/
 .idea/
 .venv/
-storage/logs/
+storage/
 public/uploads/
 /dist/
 /build/

@@ -20,6 +20,8 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    {/* DEBUG: Log provider wrapper order */}
+    {console.log('[main.jsx] Rendering providers in order: StyledEngineProvider -> ThemeProvider -> MUIThemeProvider -> QueryClientProvider -> BrowserRouter -> AuthProvider -> ToastProvider -> App') || true}
     <StyledEngineProvider injectFirst>
       <ThemeProvider persistToAPI={true}>
         <MUIThemeProvider>

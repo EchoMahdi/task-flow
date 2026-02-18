@@ -4,11 +4,11 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
-    'name'  => env('APP_NAME', 'Laravel'),
+    'name'  => env('APP_NAME'),
     'env'   => env('APP_ENV', 'local'),
     'debug' => (bool) env('APP_DEBUG', false),
     'url'   => env('APP_URL', 'http://localhost'),
-    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+    'frontend_url' => env('FRONTEND_URL'),
     'asset_url'    => env('ASSET_URL'),
     'timezone'     => 'UTC',
     'locale'       => 'en',
