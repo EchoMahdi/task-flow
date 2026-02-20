@@ -75,6 +75,10 @@ export const routeConfig = [
       description: 'Access your tasks'
     }
   },
+  // ==========================================================================
+  // Auth Routes - Guest Only (redirect if authenticated)
+  // Both email/password and OAuth authentication available
+  // ==========================================================================
   {
     path: '/app/login',
     name: 'login',
@@ -102,7 +106,7 @@ export const routeConfig = [
     type: 'guest',
     meta: {
       title: 'Forgot Password',
-      description: 'Reset your password'
+      description: 'Recover your account'
     }
   },
   {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/index';
 import { useTranslation } from '@/context/I18nContext';
@@ -9,6 +9,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { authService, initCsrf } from '@/services/authService';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Initialize CSRF on mount
+  useEffect(() => {
+    initCsrf();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,11 +74,15 @@ const ResetPassword = () => {
     setApiError('');
     
     try {
-      // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await authService.resetPassword(
+        token,
+        formData.password,
+        formData.password_confirmation
+      );
       setSuccess(true);
     } catch (error) {
-      setApiError(error.message || t('Failed to reset password. Please try again.'));
+      const message = error.response?.data?.message || error.message || t('Failed to reset password. Please try again.');
+      setApiError(message);
     } finally {
       setLoading(false);
     }
@@ -104,7 +114,7 @@ const ResetPassword = () => {
   const passwordStrength = getPasswordStrength();
 
   // Invalid token state
-  if (!token) {
+  if (!token || !email) {
     return (
       <AuthLayout>
         <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
@@ -129,7 +139,7 @@ const ResetPassword = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 {t('This password reset link is invalid or has expired. Please request a new one.')}
               </Typography>
-              <Link to="/forgot-password">
+              <Link to="/app/forgot-password">
                 <Button variant="contained" fullWidth>
                   {t('Request New Link')}
                 </Button>
@@ -167,7 +177,7 @@ const ResetPassword = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 {t('Your password has been successfully reset. You can now sign in with your new password.')}
               </Typography>
-              <Link to="/login">
+              <Link to="/app/login">
                 <Button variant="contained" fullWidth>
                   {t('Sign in')}
                 </Button>
@@ -320,7 +330,7 @@ const ResetPassword = () => {
             {/* Back to login */}
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Link
-                to="/login"
+                to="/app/login"
                 style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 

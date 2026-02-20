@@ -11,6 +11,8 @@
  * - Role-based access control
  * - Nested routes support
  * - Layout-based routing
+ * 
+ * Authentication: Uses /api/auth/me endpoint for checking auth status
  */
 
 import { 
@@ -21,7 +23,7 @@ import {
   useNavigate 
 } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
-import { authService } from '@/services/authService'
+import { authService, initCsrf } from '@/services/authService'
 import { hasAccess } from './accessControl'
 import AppLayout from '@/components/layout/AppLayout/AppLayout'
 import { LoadingPage, NotFound, Unauthorized, ServerError } from '@/pages/ErrorPages'
@@ -54,11 +56,15 @@ const createLazyComponent = (importFn, fallback = 'Loading...') => {
 /**
  * Authentication loader - checks if user is authenticated
  * Returns user data if authenticated, otherwise redirects to login
+ * Uses /api/auth/me endpoint
  */
 export async function authLoader({ request }) {
   const pathname = new URL(request.url).pathname
   
   try {
+    // Initialize CSRF first
+    await initCsrf();
+    
     const user = await authService.getUser()
     
     if (!user) {
@@ -69,7 +75,7 @@ export async function authLoader({ request }) {
     
     return { user, isAuthenticated: true }
   } catch (error) {
-    if (error.status === 401) {
+    if (error.status === 401 || error.status === 0) {
       const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
       throw redirect(loginUrl)
     }
@@ -85,6 +91,9 @@ export async function guestLoader({ request }) {
   const pathname = new URL(request.url).pathname
   
   try {
+    // Initialize CSRF first
+    await initCsrf();
+    
     const user = await authService.getUser()
     
     if (user) {
@@ -94,7 +103,7 @@ export async function guestLoader({ request }) {
     
     return { user: null, isAuthenticated: false }
   } catch (error) {
-    if (error.status === 401) {
+    if (error.status === 401 || error.status === 0) {
       return { user: null, isAuthenticated: false }
     }
     throw error
@@ -110,6 +119,9 @@ export function roleLoader(requiredRoles = []) {
     const pathname = new URL(request.url).pathname
     
     try {
+      // Initialize CSRF first
+      await initCsrf();
+      
       const user = await authService.getUser()
       
       if (!user) {
@@ -129,7 +141,7 @@ export function roleLoader(requiredRoles = []) {
       
       return { user, isAuthenticated: true }
     } catch (error) {
-      if (error.status === 401) {
+      if (error.status === 401 || error.status === 0) {
         const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
         throw redirect(loginUrl)
       }
@@ -147,6 +159,9 @@ export function permissionLoader(requiredPermissions = []) {
     const pathname = new URL(request.url).pathname
     
     try {
+      // Initialize CSRF first
+      await initCsrf();
+      
       const user = await authService.getUser()
       
       if (!user) {
@@ -168,7 +183,7 @@ export function permissionLoader(requiredPermissions = []) {
       
       return { user, isAuthenticated: true }
     } catch (error) {
-      if (error.status === 401) {
+      if (error.status === 401 || error.status === 0) {
         const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
         throw redirect(loginUrl)
       }

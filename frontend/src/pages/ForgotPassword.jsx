@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/index';
 import { useTranslation } from '@/context/I18nContext';
@@ -7,6 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyIcon from '@mui/icons-material/Key';
 import EmailIcon from '@mui/icons-material/Email';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { authService, initCsrf } from '@/services/authService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,11 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { t } = useTranslation();
+
+  // Initialize CSRF on mount
+  useEffect(() => {
+    initCsrf();
+  }, []);
 
   const validate = () => {
     if (!email) {
@@ -36,11 +42,11 @@ const ForgotPassword = () => {
     setLoading(true);
     
     try {
-      // API call would go here
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await authService.forgotPassword(email);
       setSuccess(true);
     } catch (err) {
-      setError(t('Failed to send reset link. Please try again'));
+      const message = err.response?.data?.message || err.message || t('Failed to send reset link. Please try again');
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -86,7 +92,7 @@ const ForgotPassword = () => {
                   try again
                 </Typography>
               </Typography>
-              <Link to="/login">
+              <Link to="/app/login">
                 <Button variant="outlined" fullWidth startIcon={<ArrowBackIcon />}>
                   {t('Back to sign in')}
                 </Button>
@@ -175,7 +181,7 @@ const ForgotPassword = () => {
             {/* Back to login */}
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Link
-                to="/login"
+                to="/app/login"
                 style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 

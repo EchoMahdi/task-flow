@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authService } from '@/services/authService'
+import { authService, initCsrf } from '@/services/authService'
 
 const AuthContext = createContext(null)
 
@@ -9,22 +9,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // DEBUG: Log provider initialization
-  console.log('[AuthContext] AuthProvider initialized, waiting for auth check...')
-
   useEffect(() => {
     let cancelled = false
 
-    authService.getUser()
-      .then((userData) => {
+    // Initialize CSRF and check user on mount
+    const initAuth = async () => {
+      await initCsrf();
+      try {
+        const userData = await authService.getUser()
         if (!cancelled) setUser(userData)
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setUser(null)
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false)
-      })
+      }
+    }
+
+    initAuth()
 
     return () => { cancelled = true }
   }, [])
@@ -37,7 +38,7 @@ export function AuthProvider({ children }) {
       setUser(response.user)
       return response
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed.'
+      const message = err.response?.data?.message || err.message || 'Login failed.'
       setError(message)
       throw err
     } finally {
@@ -49,13 +50,11 @@ export function AuthProvider({ children }) {
     setError(null)
     setLoading(true)
     try {
-      const response = await authService.register(
-        name, email, password, passwordConfirmation
-      )
+      const response = await authService.register(name, email, password, passwordConfirmation)
       setUser(response.user)
       return response
     } catch (err) {
-      const message = err.response?.data?.message || 'Registration failed.'
+      const message = err.response?.data?.message || err.message || 'Registration failed.'
       setError(message)
       throw err
     } finally {
@@ -105,8 +104,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  // DEBUG: Log where useAuth is being called from
-  // console.log('[AuthContext] useAuth called, context exists:', !!context) // Commented out - working now
   if (!context) {
     console.error('[AuthContext] useAuth called without AuthProvider! Call stack:', new Error().stack)
     throw new Error('useAuth must be used within an AuthProvider')

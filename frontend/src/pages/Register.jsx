@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/I18nContext';
 import { AuthLayout } from '@/components/layout/index';
-import { Button, TextField, Checkbox, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton, LinearProgress } from '@mui/material';
+import { 
+  Button, 
+  TextField, 
+  Checkbox, 
+  Alert, 
+  Card, 
+  CardContent, 
+  Box, 
+  Typography, 
+  InputAdornment, 
+  IconButton, 
+  LinearProgress,
+  CircularProgress 
+} from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -11,11 +24,16 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import { socialAuthService } from '@/services/socialAuthService';
+import { initCsrf, authService } from '@/services/authService';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { register, isAuthenticated } = useAuth();
   const { t } = useTranslation();
+  
+  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,6 +45,22 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [socialLoading, setSocialLoading] = useState({});
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get('redirect') || '/app/dashboard';
+
+  // Check if already authenticated - redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [isAuthenticated, navigate, redirectTo]);
+
+  // Initialize CSRF on mount
+  useEffect(() => {
+    initCsrf();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -88,12 +122,53 @@ const Register = () => {
     setApiError('');
     
     try {
-      await register(formData.name, formData.email, formData.password, formData.password_confirmation);
-      navigate('/dashboard');
+      await register(
+        formData.name, 
+        formData.email, 
+        formData.password, 
+        formData.password_confirmation
+      );
+      navigate(redirectTo);
     } catch (error) {
-      setApiError(error.message || t('Registration failed. Please try again.'));
+      const message = error.response?.data?.message || 
+                      error.message || 
+                      t('Registration failed. Please try again.');
+      setApiError(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle social login (which doubles as registration)
+  const handleSocialLogin = async (provider) => {
+    setSocialLoading((prev) => ({ ...prev, [provider]: true }));
+    setApiError('');
+
+    try {
+      const popup = await socialAuthService.loginWithProvider(provider);
+
+      // Check if popup was blocked
+      if (!popup || popup.closed) {
+        throw new Error("Popup was blocked. Please allow popups for this site");
+      }
+
+      // Start polling for popup to close (indicates auth/registration completed)
+      const popupCheckInterval = setInterval(async () => {
+        if (popup.closed) {
+          clearInterval(popupCheckInterval);
+          
+          // Initialize CSRF and check auth status
+          await initCsrf();
+          const user = await authService.getUser();
+          if (user) {
+            navigate(redirectTo, { replace: true });
+          }
+        }
+      }, 500);
+    } catch (error) {
+      setApiError(error.message || t("Registration failed. Please try again"));
+    } finally {
+      setSocialLoading((prev) => ({ ...prev, [provider]: false }));
     }
   };
 
@@ -148,8 +223,8 @@ const Register = () => {
               </Alert>
             )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Email/Password Registration Form */}
+            <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <TextField
                 label={t('Full name')}
                 type="text"
@@ -169,6 +244,7 @@ const Register = () => {
                 autoComplete="name"
                 autoFocus
                 fullWidth
+                disabled={loading}
               />
 
               <TextField
@@ -189,6 +265,7 @@ const Register = () => {
                 }}
                 autoComplete="email"
                 fullWidth
+                disabled={loading}
               />
 
               <Box>
@@ -198,7 +275,7 @@ const Register = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder={t('••••••••')}
+                  placeholder={t('Min 8 characters')}
                   error={!!errors.password}
                   helperText={errors.password}
                   InputProps={{
@@ -221,6 +298,7 @@ const Register = () => {
                   }}
                   autoComplete="new-password"
                   fullWidth
+                  disabled={loading}
                 />
                 {formData.password && (
                   <Box sx={{ mt: 1 }}>
@@ -252,7 +330,7 @@ const Register = () => {
                 name="password_confirmation"
                 value={formData.password_confirmation}
                 onChange={handleChange}
-                placeholder={t('••••••••')}
+                placeholder={t('Confirm your password')}
                 error={!!errors.password_confirmation}
                 helperText={errors.password_confirmation}
                 InputProps={{
@@ -264,6 +342,7 @@ const Register = () => {
                 }}
                 autoComplete="new-password"
                 fullWidth
+                disabled={loading}
               />
 
               <Box>
@@ -271,21 +350,20 @@ const Register = () => {
                   name="terms"
                   checked={formData.terms}
                   onChange={handleChange}
-                  label={
-                    <Typography variant="body2" color="text.secondary">
-                      {t('I agree to the')}{' '}
-                      <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                        {t('Terms of Service')}
-                      </Link>{' '}
-                      {t('and')}
-                      <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
-                        {t('Privacy Policy')}
-                      </Link>
-                    </Typography>
-                  }
+                  disabled={loading}
                 />
+                <Typography variant="body2" component="span" color="text.secondary">
+                  {t('I agree to the')}{' '}
+                  <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                    {t('Terms of Service')}
+                  </Link>{' '}
+                  {t('and')}
+                  <Link to="#" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                    {t('Privacy Policy')}
+                  </Link>
+                </Typography>
                 {errors.terms && (
-                  <Typography variant="caption" color="error" sx={{ ml: 4 }}>
+                  <Typography variant="caption" color="error" sx={{ ml: 4, display: 'block' }}>
                     {errors.terms}
                   </Typography>
                 )}
@@ -296,8 +374,9 @@ const Register = () => {
                 variant="contained"
                 fullWidth
                 disabled={loading}
+                sx={{ py: 1.5, mt: 1 }}
               >
-                {t('Create account')}
+                {loading ? <CircularProgress size={24} color="inherit" /> : t('Create account')}
               </Button>
             </form>
 
@@ -315,10 +394,22 @@ const Register = () => {
 
             {/* Social Login */}
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-              <Button variant="outlined" type="button" startIcon={<GoogleIcon />}>
+              <Button 
+                variant="outlined" 
+                type="button" 
+                startIcon={socialLoading.google ? <CircularProgress size={18} /> : <GoogleIcon />}
+                onClick={() => handleSocialLogin('google')}
+                disabled={socialLoading.google}
+              >
                 {t('Google')}
               </Button>
-              <Button variant="outlined" type="button" startIcon={<GitHubIcon />}>
+              <Button 
+                variant="outlined" 
+                type="button" 
+                startIcon={socialLoading.github ? <CircularProgress size={18} /> : <GitHubIcon />}
+                onClick={() => handleSocialLogin('github')}
+                disabled={socialLoading.github}
+              >
                 {t('GitHub')}
               </Button>
             </Box>

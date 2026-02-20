@@ -29,28 +29,83 @@ class AuthController extends Controller
 
     /**
      * Register a new user.
-     * NOTE: Registration is disabled. Users can only register via OAuth.
-     * This endpoint kept for API compatibility but returns error.
      */
     public function register(Request $request): JsonResponse
     {
-        return response()->json([
-            'success' => false,
-            'message' => 'Registration is only available through OAuth providers (Google/GitHub)',
-        ], 400);
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'timezone' => ['nullable', 'string', 'timezone'],
+                'locale' => ['nullable', 'string', 'in:en,fa'],
+            ]);
+
+            $user = $this->authService->register($validated);
+
+            // Create Sanctum token
+            $token = $user->createToken('auth-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration successful',
+                'data' => [
+                    'user' => new UserResource($user),
+                    'token' => $token,
+                ],
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Login user.
-     * NOTE: Email/password login is disabled. Users can only login via OAuth.
-     * This endpoint kept for API compatibility but returns error.
      */
     public function login(Request $request): JsonResponse
     {
-        return response()->json([
-            'success' => false,
-            'message' => 'Login is only available through OAuth providers (Google/GitHub)',
-        ], 400);
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'string', 'email'],
+                'password' => ['required', 'string'],
+            ]);
+
+            $result = $this->authService->login($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => new UserResource($result['user']),
+                    'token' => $result['token'],
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 401);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 401);
+        }
     }
 
     /**

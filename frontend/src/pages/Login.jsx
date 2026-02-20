@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTranslation } from "@/context/I18nContext";
 import { AuthLayout } from "@/components/layout/index";
@@ -14,10 +14,12 @@ import {
   Typography,
   InputAdornment,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import { socialAuthService } from "@/services/socialAuthService";
+import { initCsrf, authService } from "@/services/authService";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import GoogleIcon from "@mui/icons-material/Google";
@@ -25,8 +27,11 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { login, isAuthenticated } = useAuth();
   const { t } = useTranslation();
+  
+  // Form state
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -37,6 +42,21 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState("");
   const [socialLoading, setSocialLoading] = useState({});
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get('redirect') || '/app/dashboard';
+
+  // Check if already authenticated - redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [isAuthenticated, navigate, redirectTo]);
+
+  // Initialize CSRF on mount
+  useEffect(() => {
+    initCsrf();
+  }, []);
 
   // Popup reference for social login
   const popupRef = useRef(null);
@@ -61,15 +81,13 @@ const Login = () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = t("required", { attribute: t("Email") });
+      newErrors.email = t("Email is required");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t("Email", { attribute: t("Email") });
+      newErrors.email = t("Please enter a valid email address");
     }
 
     if (!formData.password) {
-      newErrors.password = t("Required", { attribute: t("Password") });
-    } else if (formData.password.length < 6) {
-      newErrors.password = t("Min", { attribute: t("Password"), min: 6 });
+      newErrors.password = t("Password is required");
     }
 
     setErrors(newErrors);
@@ -86,9 +104,12 @@ const Login = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate("/dashboard");
+      navigate(redirectTo);
     } catch (error) {
-      setApiError(error.message || t("Login failed. Please try again"));
+      const message = error.response?.data?.message || 
+                      error.message || 
+                      t("Login failed. Please try again");
+      setApiError(message);
     } finally {
       setLoading(false);
     }
@@ -109,31 +130,24 @@ const Login = () => {
       }
 
       // Start polling for popup to close (indicates auth completed)
-      popupCheckInterval.current = setInterval(() => {
+      popupCheckInterval.current = setInterval(async () => {
         if (popup.closed) {
           clearInterval(popupCheckInterval.current);
           popupCheckInterval.current = null;
           popupRef.current = null;
-          // Check if user is now logged in
-          checkAuthStatus();
+          
+          // Initialize CSRF and check auth status
+          await initCsrf();
+          const user = await authService.getUser();
+          if (user) {
+            navigate(redirectTo, { replace: true });
+          }
         }
       }, 500);
     } catch (error) {
       setApiError(error.message || t("Login failed. Please try again"));
     } finally {
       setSocialLoading((prev) => ({ ...prev, [provider]: false }));
-    }
-  };
-
-  // Check if user is authenticated after social login
-  const checkAuthStatus = async () => {
-    try {
-      const user = await useAuth.getState().getUser();
-      if (user) {
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
     }
   };
 
@@ -167,10 +181,10 @@ const Login = () => {
                 component="h1"
                 sx={{ fontWeight: 700, mb: 1 }}
               >
-                {t("Login to your account")}
+                {t("Welcome back")}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {t("Enter your email and password to access your account")}
+                {t("Sign in to your account to continue")}
               </Typography>
             </Box>
 
@@ -185,10 +199,10 @@ const Login = () => {
               </Alert>
             )}
 
-            {/* Form */}
+            {/* Email/Password Form */}
             <form
               onSubmit={handleSubmit}
-              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
             >
               <TextField
                 label={t("Email")}
@@ -196,7 +210,7 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder={"you@example.com"}
+                placeholder={t("you@example.com")}
                 error={!!errors.email}
                 helperText={errors.email}
                 InputProps={{
@@ -209,44 +223,44 @@ const Login = () => {
                 autoComplete="email"
                 autoFocus
                 fullWidth
+                disabled={loading}
               />
 
-              <Box>
-                <TextField
-                  label={t("Password")}
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  error={!!errors.password}
-                  helperText={errors.password}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockIcon sx={{ fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          size="small"
-                        >
-                          {showPassword ? (
-                            <VisibilityOffIcon />
-                          ) : (
-                            <VisibilityIcon />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  autoComplete="current-password"
-                  fullWidth
-                />
-              </Box>
+              <TextField
+                label={t("Password")}
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder={t("Enter your password")}
+                error={!!errors.password}
+                helperText={errors.password}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? (
+                          <VisibilityOffIcon />
+                        ) : (
+                          <VisibilityIcon />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                autoComplete="current-password"
+                fullWidth
+                disabled={loading}
+              />
 
               <Box
                 sx={{
@@ -259,16 +273,16 @@ const Login = () => {
                   name="remember"
                   checked={formData.remember}
                   onChange={handleChange}
-                  label={t("Remember me")}
+                  disabled={loading}
                 />
                 <Link
-                  to="/forgot-password"
+                  to="/app/forgot-password"
                   style={{
                     fontSize: "0.875rem",
                     textDecoration: "none",
                   }}
                 >
-                  {t("Forgot password")}
+                  {t("Forgot your password?")}
                 </Link>
               </Box>
 
@@ -277,8 +291,9 @@ const Login = () => {
                 variant="contained"
                 fullWidth
                 disabled={loading}
+                sx={{ py: 1.5, mt: 1 }}
               >
-                {t("Login")}
+                {loading ? <CircularProgress size={24} color="inherit" /> : t("Sign in")}
               </Button>
             </form>
 
@@ -329,7 +344,7 @@ const Login = () => {
                 type="button"
                 onClick={() => handleSocialLogin("google")}
                 disabled={socialLoading.google}
-                startIcon={<GoogleIcon />}
+                startIcon={socialLoading.google ? <CircularProgress size={18} /> : <GoogleIcon />}
               >
                 {t("Google")}
               </Button>
@@ -338,7 +353,7 @@ const Login = () => {
                 type="button"
                 onClick={() => handleSocialLogin("github")}
                 disabled={socialLoading.github}
-                startIcon={<GitHubIcon />}
+                startIcon={socialLoading.github ? <CircularProgress size={18} /> : <GitHubIcon />}
               >
                 {t("GitHub")}
               </Button>
@@ -347,7 +362,7 @@ const Login = () => {
             {/* Sign up link */}
             <Box sx={{ mt: 4, textAlign: "center" }}>
               <Typography variant="body2" color="text.secondary">
-                {t("Auth login no account")}{" "}
+                {t("Don't have an account?")}{" "}
                 <Link
                   to="/app/register"
                   style={{

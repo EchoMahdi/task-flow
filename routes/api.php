@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+require __DIR__.'/sanctum.php';
 require __DIR__.'/fortify-api.php';
 require __DIR__.'/api-notifications.php';
 require __DIR__.'/api-social.php';

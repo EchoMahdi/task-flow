@@ -1,146 +1,211 @@
 // src/services/authService.js
-import axios from 'axios'
+
+import axios from 'axios';
+
+// ─── Axios Instance ────────────────────────────────────────────────────────────
 
 const api = axios.create({
   baseURL: '/api',
-  withCredentials: true, // Required for Sanctum CSRF cookies
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   },
-})
+});
+
+// ─── CSRF Management ───────────────────────────────────────────────────────────
+
+let csrfInitialized = false;
+let csrfInitPromise = null;
+
+export const resetCsrf = () => {
+  csrfInitialized = false;
+  csrfInitPromise = null;
+};
+
+export const getCsrfToken = () => {
+  const matches = document.cookie.match(/(^| )XSRF-TOKEN=([^;]+)/);
+  return matches ? decodeURIComponent(matches[2]) : null;
+};
+
+export const initCsrf = () => {
+  if (csrfInitialized) return Promise.resolve();
+
+  // Prevent race condition: reuse in-flight promise
+  if (csrfInitPromise) return csrfInitPromise;
+
+  csrfInitPromise = api
+    .get('/sanctum/csrf-cookie')
+    .then(() => {
+      csrfInitialized = true;
+      csrfInitPromise = null;
+    })
+    .catch((err) => {
+      csrfInitPromise = null;
+      console.error('[CSRF] Failed to initialize:', err);
+    });
+
+  return csrfInitPromise;
+};
+
+// ─── Request Interceptor ──────────────────────────────────────────────────────
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
-  // Add CSRF token to requests if available
   const csrfToken = getCsrfToken();
   if (csrfToken) {
     config.headers['X-XSRF-TOKEN'] = csrfToken;
   }
 
-  const language = localStorage.getItem('app_language') || 'en'
-  config.headers['Accept-Language'] = language
+  config.headers['Accept-Language'] = localStorage.getItem('app_language') || 'en';
 
-  return config
-})
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+// ─── Response Interceptor ─────────────────────────────────────────────────────
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+    const status = error.response?.status;
+
+    if (status === 401) {
+      localStorage.removeItem('auth_token');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/app/login';
       }
     }
-    return Promise.reject(error)
-  }
-)
 
-// Track CSRF initialization status
-let csrfInitialized = false;
+    // Reset CSRF state on 419 so next request re-initializes it
+    if (status === 419) {
+      resetCsrf();
+    }
 
-/**
- * Initialize CSRF token for Laravel Sanctum
- * This must be called before making any state-changing requests
- */
-export const initCsrf = async () => {
-  // Skip if already initialized or if no token support
-  if (csrfInitialized) return;
-  
-  try {
-    // Fetch CSRF token from Laravel Sanctum
-    // This sets the XSRF-TOKEN cookie
-    await api.get('/sanctum/csrf-cookie', {
-      withCredentials: true // Important: send cookies for cross-site requests
-    });
-    csrfInitialized = true;
-    console.log('[CSRF] Token initialized successfully');
-  } catch (error) {
-    console.error('[CSRF] Failed to initialize CSRF token:', error);
-    // Don't throw - allow the app to continue, requests will fail anyway
+    return Promise.reject(error);
   }
-}
+);
 
-/**
- * Get the CSRF token from the cookie
- * Must be called after initCsrf()
- */
-export const getCsrfToken = () => {
-  const name = 'XSRF-TOKEN';
-  const matches = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  if (matches) {
-    return decodeURIComponent(matches[2]);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const extractData = (response) => {
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || 'Request failed');
   }
-  return null;
+  return response.data?.data ?? response.data;
 };
 
+const saveToken = (token) => {
+  if (token) localStorage.setItem('auth_token', token);
+};
+
+// ─── Auth Service ─────────────────────────────────────────────────────────────
+
 export const authService = {
+
+  /**
+   * Login with email and password
+   * @param {string} email
+   * @param {string} password
+   * @returns {Promise<{user: object, token: string}>}
+   */
   async login(email, password) {
-    // Initialize CSRF before login (required for Sanctum)
     await initCsrf();
-    
-    const response = await api.post('/auth/login', { email, password })
-    const { data } = response.data
-
-    if (data.token) {
-      localStorage.setItem('auth_token', data.token)
-    }
-
-    return {
-      user: data.user,
-      token: data.token,
-    }
+    const response = await api.post('/auth/login', { email, password });
+    const { user, token } = extractData(response);
+    saveToken(token);
+    return { user, token };
   },
 
+  /**
+   * Register a new user
+   * @param {string} name
+   * @param {string} email
+   * @param {string} password
+   * @param {string} passwordConfirmation
+   * @returns {Promise<{user: object, token: string}>}
+   */
   async register(name, email, password, passwordConfirmation) {
-    // Initialize CSRF before registration (required for Sanctum)
     await initCsrf();
-    
     const response = await api.post('/auth/register', {
       name,
       email,
       password,
       password_confirmation: passwordConfirmation,
-    })
-    const { data } = response.data
-
-    if (data.token) {
-      localStorage.setItem('auth_token', data.token)
-    }
-
-    return {
-      user: data.user,
-      token: data.token,
-    }
+    });
+    const { user, token } = extractData(response);
+    saveToken(token);
+    return { user, token };
   },
 
+  /**
+   * Logout the current user
+   */
   async logout() {
     try {
-      await api.post('/auth/logout')
+      await api.post('/auth/logout');
     } catch (error) {
-      console.warn('Logout error:', error)
+      console.warn('[Auth] Logout error:', error);
     } finally {
-      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_token');
+      resetCsrf();
     }
   },
 
+  /**
+   * Fetch the authenticated user
+   * @returns {Promise<object|null>}
+   */
   async getUser() {
-    const token = localStorage.getItem('auth_token')
-    if (!token) return null
-
     try {
-      const response = await api.get('/auth/me')
-      return response.data.data
-    } catch {
-      localStorage.removeItem('auth_token')
-      return null
+      const response = await api.get('/auth/me');
+      return extractData(response);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('auth_token');
+        return null;
+      }
+      throw error;
     }
   },
-}
 
-export { api }
+  /**
+   * Send a password reset email
+   * @param {string} email
+   */
+  async forgotPassword(email) {
+    await initCsrf();
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  /**
+   * Reset password using token from email
+   * @param {string} token
+   * @param {string} password
+   * @param {string} passwordConfirmation
+   */
+  async resetPassword(token, password, passwordConfirmation) {
+    await initCsrf();
+    const response = await api.post('/auth/reset-password', {
+      token,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
+    return response.data;
+  },
+
+  /**
+   * Check if a user is currently authenticated
+   * @returns {Promise<boolean>}
+   */
+  async isAuthenticated() {
+    const user = await this.getUser();
+    return !!user;
+  },
+};
+
+export { api };
