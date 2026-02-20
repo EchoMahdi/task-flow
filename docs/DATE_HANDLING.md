@@ -1,10 +1,10 @@
 # Date Handling Architecture
 
-This document describes the complete date handling system for TaskFlow, including Shamsi (Jalali) calendar support.
+This document describes the complete date handling system for Task Flow, including Shamsi (Jalali) calendar support.
 
 ## Overview
 
-TaskFlow uses a **presentation-layer date conversion** approach:
+Task Flow uses a **presentation-layer date conversion** approach:
 
 1. **All dates are stored in standard Gregorian/UTC format** in the database
 2. **Conversion to/from Jalali happens only at the frontend** (presentation layer)

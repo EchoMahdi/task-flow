@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AppLayout } from '../components/layout/index';
+import { AppLayout } from '@/components/layout/index';
 import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
-import { taskService } from '../services/taskService';
+import { useAuth } from '@/context/AuthContext';
+import { taskService } from '@/services/taskService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import AddIcon from '@mui/icons-material/Add';

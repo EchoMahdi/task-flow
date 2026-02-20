@@ -7,10 +7,10 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { taskService } from '../services/taskService';
-import requestCache from '../utils/requestCache';
-import { taskEventEmitter, TaskEvents } from '../utils/eventBus';
-import { TaskModel } from '../models/TaskModel';
+import { taskService } from '@/services/taskService';
+import requestCache from '@/utils/requestCache';
+import { taskEventEmitter, TaskEvents } from '@/utils/eventBus';
+import { TaskModel } from '@/models/TaskModel';
 
 // In-flight request promises for deduplication
 const pendingRequests = new Map();

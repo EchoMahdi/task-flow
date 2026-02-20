@@ -9,10 +9,10 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
-import Button from '@mui/material/Button';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import WarningIcon from '@mui/icons-material/Warning';
 import LoadingButton from '@/components/ui/LoadingButton';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * Error display component for navigation
@@ -25,41 +25,46 @@ const NavigationError = ({
   compact = false,
   loading = false,
 }) => {
-  const retryButton = onRetry && (
-    <LoadingButton
-      color="inherit"
-      size="small"
-      onClick={onRetry}
-      startIcon={<RefreshIcon />}
-      loading={loading}
-      loadingText="Retrying..."
-    >
-      Retry
-    </LoadingButton>
-  );
+  const { t } = useTranslation();
+
+  const retryButton =
+    onRetry &&
+    ((
+      <LoadingButton
+        onClick={onRetry}
+        loading={loading}
+        loadingText={t('Retrying...')}
+        startIcon={!loading ? <RefreshIcon /> : undefined}
+        size="small"
+        variant="outlined"
+      >
+        {t('Retry')}
+      </LoadingButton>
+    ) || null);
 
   if (compact) {
     return (
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ px: 1, py: 0.5 }}>
         <Alert
           severity={severity}
-          action={retryButton}
+          icon={<WarningIcon fontSize="inherit" />}
+          sx={{ alignItems: 'center' }}
         >
-          {message}
+          {t(message)}
         </Alert>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 1 }}>
       <Alert
         severity={severity}
-        icon={<WarningIcon />}
+        icon={<WarningIcon fontSize="inherit" />}
         action={retryButton}
       >
-        <AlertTitle>{title}</AlertTitle>
-        {message}
+        <AlertTitle>{t(title)}</AlertTitle>
+        {t(message)}
       </Alert>
     </Box>
   );

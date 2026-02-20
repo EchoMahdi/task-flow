@@ -37,7 +37,7 @@ const createLazyRoute = (importFn, fallback = 'Loading...') => {
 // Error Pages (Must be eagerly loaded)
 // ============================================================================
 
-import { NotFound, Unauthorized, ServerError, LoadingPage } from '../pages/ErrorPages.jsx'
+import { NotFound, Unauthorized, ServerError, LoadingPage } from '@/pages/ErrorPages.jsx'
 
 // ============================================================================
 // Route Configuration
@@ -53,22 +53,32 @@ import { NotFound, Unauthorized, ServerError, LoadingPage } from '../pages/Error
 
 export const routeConfig = [
   // ==========================================================================
-  // Public Routes - Accessible to everyone
+  // Redirect root to static landing page
   // ==========================================================================
   {
     path: '/',
-    name: 'landing',
-    component: createLazyRoute(() => import('../pages/Landing.jsx')),
+    name: 'home',
+    component: () => { window.location.href = '/landing.html'; return null; },
     type: 'public',
     meta: {
-      title: 'Welcome',
-      description: 'Task management made simple'
+      title: 'Task Flow',
+      description: 'Organize Your Life, Achieve Your Goals'
     }
   },
   {
-    path: '/login',
+    path: '/app',
+    name: 'app-root',
+    component: () => { window.location.href = '/app/'; return null; },
+    type: 'public',
+    meta: {
+      title: 'Task Flow App',
+      description: 'Access your tasks'
+    }
+  },
+  {
+    path: '/app/login',
     name: 'login',
-    component: createLazyRoute(() => import('../pages/Login.jsx')),
+    component: createLazyRoute(() => import('@/pages/Login.jsx')),
     type: 'guest',
     meta: {
       title: 'Login',
@@ -76,9 +86,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/register',
+    path: '/app/register',
     name: 'register',
-    component: createLazyRoute(() => import('../pages/Register.jsx')),
+    component: createLazyRoute(() => import('@/pages/Register.jsx')),
     type: 'guest',
     meta: {
       title: 'Register',
@@ -86,9 +96,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/forgot-password',
+    path: '/app/forgot-password',
     name: 'forgot-password',
-    component: createLazyRoute(() => import('../pages/ForgotPassword.jsx')),
+    component: createLazyRoute(() => import('@/pages/ForgotPassword.jsx')),
     type: 'guest',
     meta: {
       title: 'Forgot Password',
@@ -96,9 +106,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/reset-password',
+    path: '/app/reset-password',
     name: 'reset-password',
-    component: createLazyRoute(() => import('../pages/ResetPassword.jsx')),
+    component: createLazyRoute(() => import('@/pages/ResetPassword.jsx')),
     type: 'guest',
     meta: {
       title: 'Reset Password',
@@ -107,12 +117,12 @@ export const routeConfig = [
   },
 
   // ==========================================================================
-  // Private Routes - Requires authentication
+  // Private Routes - Requires authentication (under /app prefix)
   // ==========================================================================
   {
-    path: '/dashboard',
+    path: '/app/dashboard',
     name: 'dashboard',
-    component: createLazyRoute(() => import('../pages/Dashboard.jsx')),
+    component: createLazyRoute(() => import('@/pages/Dashboard.jsx')),
     type: 'private',
     meta: {
       title: 'Dashboard',
@@ -122,12 +132,12 @@ export const routeConfig = [
   },
 
   // ==========================================================================
-  // Task Routes
+  // Task Routes (under /app prefix)
   // ==========================================================================
   {
-    path: '/tasks',
+    path: '/app/tasks',
     name: 'tasks',
-    component: createLazyRoute(() => import('../pages/TaskList.jsx')),
+    component: createLazyRoute(() => import('@/pages/TaskList.jsx')),
     type: 'private',
     meta: {
       title: 'Tasks',
@@ -136,9 +146,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/tasks/new',
+    path: '/app/tasks/new',
     name: 'tasks.create',
-    component: createLazyRoute(() => import('../pages/TaskForm.jsx')),
+    component: createLazyRoute(() => import('@/pages/TaskForm.jsx')),
     type: 'private',
     parent: 'tasks',
     meta: {
@@ -147,9 +157,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/tasks/:id',
+    path: '/app/tasks/:id',
     name: 'tasks.show',
-    component: createLazyRoute(() => import('../pages/TaskDetails.jsx')),
+    component: createLazyRoute(() => import('@/pages/TaskDetails.jsx')),
     type: 'private',
     parent: 'tasks',
     meta: {
@@ -158,9 +168,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/tasks/:id/edit',
+    path: '/app/tasks/:id/edit',
     name: 'tasks.edit',
-    component: createLazyRoute(() => import('../pages/TaskForm.jsx')),
+    component: createLazyRoute(() => import('@/pages/TaskForm.jsx')),
     type: 'private',
     parent: 'tasks',
     meta: {
@@ -170,12 +180,12 @@ export const routeConfig = [
   },
 
   // ==========================================================================
-  // User Routes
+  // User Routes (under /app prefix)
   // ==========================================================================
   {
-    path: '/notifications',
+    path: '/app/notifications',
     name: 'notifications',
-    component: createLazyRoute(() => import('../pages/Notifications.jsx')),
+    component: createLazyRoute(() => import('@/pages/Notifications.jsx')),
     type: 'private',
     meta: {
       title: 'Notifications',
@@ -184,9 +194,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/profile',
+    path: '/app/profile',
     name: 'profile',
-    component: createLazyRoute(() => import('../pages/Profile.jsx')),
+    component: createLazyRoute(() => import('@/pages/Profile.jsx')),
     type: 'private',
     meta: {
       title: 'Profile',
@@ -195,9 +205,9 @@ export const routeConfig = [
     }
   },
   {
-    path: '/settings',
+    path: '/app/settings',
     name: 'settings',
-    component: createLazyRoute(() => import('../pages/Settings.jsx')),
+    component: createLazyRoute(() => import('@/pages/Settings.jsx')),
     type: 'private',
     meta: {
       title: 'Settings',
@@ -207,10 +217,10 @@ export const routeConfig = [
   },
 
   // ==========================================================================
-  // Error Routes
+  // Error Routes (under /app prefix)
   // ==========================================================================
   {
-    path: '/unauthorized',
+    path: '/app/unauthorized',
     name: 'unauthorized',
     component: Unauthorized,
     type: 'public',
@@ -220,7 +230,7 @@ export const routeConfig = [
     }
   },
   {
-    path: '/error',
+    path: '/app/error',
     name: 'error',
     component: ServerError,
     type: 'public',
@@ -234,7 +244,17 @@ export const routeConfig = [
   // 404 Catch-all (Must be last)
   // ==========================================================================
   {
-    path: '*',
+    path: '/app/',
+    name: 'app-index',
+    component: () => { window.location.href = '/app/dashboard'; return null; },
+    type: 'private',
+    meta: {
+      title: 'Dashboard',
+      description: 'Your task overview'
+    }
+  },
+  {
+    path: '/app/*',
     name: 'not-found',
     component: NotFound,
     type: 'public',

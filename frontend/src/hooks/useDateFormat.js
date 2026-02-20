@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import dateService from '../services/dateService';
-import datePreferenceService from '../services/datePreferenceService';
+import dateService from '@/services/dateService';
+import datePreferenceService from '@/services/datePreferenceService';
 
 /**
  * Detect if the user's timezone is Iran (Asia/Tehran)

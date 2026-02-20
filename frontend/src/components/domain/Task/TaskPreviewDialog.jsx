@@ -21,24 +21,8 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
-
-/**
- * Priority badge colors
- */
-const priorityConfig = {
-  high: { color: '#d32f2f', bgColor: '#ffebee', label: 'High Priority' },
-  medium: { color: '#f57c00', bgColor: '#fff3e0', label: 'Medium Priority' },
-  low: { color: '#388e3c', bgColor: '#e8f5e9', label: 'Low Priority' },
-};
-
-/**
- * Status badge colors
- */
-const statusConfig = {
-  pending: { color: '#757575', bgColor: '#f5f5f5', label: 'Pending' },
-  in_progress: { color: '#1976d2', bgColor: '#e3f2fd', label: 'In Progress' },
-  completed: { color: '#388e3c', bgColor: '#e8f5e9', label: 'Completed' },
-};
+import { taskConfig } from './config';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * TaskPreviewDialog Component
@@ -57,6 +41,7 @@ export const TaskPreviewDialog = ({
   tags = [],
   onEdit,
 }) => {
+  const { t } = useTranslation();
   const focusRef = useRef(null);
 
   // Focus first element when dialog opens
@@ -73,12 +58,10 @@ export const TaskPreviewDialog = ({
         onClose();
       }
     };
-
     if (open) {
       document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
-
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
@@ -86,14 +69,18 @@ export const TaskPreviewDialog = ({
   }, [open, onClose]);
 
   // Get priority config
-  const priorityInfo = priorityConfig[taskData?.priority] || priorityConfig.medium;
+  const priorityInfo =
+    taskConfig.priorityConfig[taskData?.priority] ||
+    taskConfig.priorityConfig.medium;
 
   // Get status config
-  const statusInfo = statusConfig[taskData?.status] || statusConfig.pending;
+  const statusInfo =
+    taskConfig.statusConfig[taskData?.status] ||
+    taskConfig.statusConfig.pending;
 
   // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not set';
+    if (!dateString) return t('Not set');
     const date = new Date(dateString);
     return date.toLocaleDateString(undefined, {
       weekday: 'long',
@@ -117,7 +104,6 @@ export const TaskPreviewDialog = ({
       );
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
-
       if (e.shiftKey && document.activeElement === firstElement) {
         e.preventDefault();
         lastElement.focus();
@@ -134,173 +120,115 @@ export const TaskPreviewDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
+      onKeyDown={handleKeyDown}
       maxWidth="sm"
       fullWidth
-      aria-labelledby="preview-dialog-title"
-      aria-describedby="preview-dialog-description"
-      onKeyDown={handleKeyDown}
-      sx={{
-        '& .MuiDialog-paper': {
-          borderRadius: 2,
-        },
-      }}
     >
-      <DialogTitle
-        id="preview-dialog-title"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: 1,
-          borderColor: 'divider',
-          pb: 2,
-        }}
-      >
-        <Typography variant="h6" component="div">
-          Task Preview
-        </Typography>
-        <Button
-          ref={focusRef}
-          onClick={onClose}
-          aria-label="Close preview"
-          sx={{ minWidth: 'auto', p: 1 }}
-        >
-          <CloseIcon />
-        </Button>
+      <DialogTitle ref={focusRef} tabIndex={-1}>
+        {t('Task Preview')}
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <DialogContent dividers>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+          {/* Title */}
           <Box>
-            <Typography
-              variant="overline"
-              sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
-            >
-              Title
+            <Typography variant="caption" color="text.secondary" gutterBottom>
+              {t('Title')}
             </Typography>
-            <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-              {taskData.title || 'Untitled Task'}
+            <Typography variant="h6">
+              {taskData.title || t('Untitled Task')}
             </Typography>
           </Box>
-
-          {taskData.description && (
-            <Box>
-              <Typography
-                variant="overline"
-                sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
-              >
-                Description
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  whiteSpace: 'pre-wrap',
-                  bgcolor: 'action.hover',
-                  p: 2,
-                  borderRadius: 1,
-                }}
-              >
-                {taskData.description}
-              </Typography>
-            </Box>
-          )}
 
           <Divider />
 
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Chip
-              label={statusInfo.label}
-              sx={{
-                bgcolor: statusInfo.bgColor,
-                color: statusInfo.color,
-                fontWeight: 500,
-              }}
-            />
-            <Chip
-              label={priorityInfo.label}
-              sx={{
-                bgcolor: priorityInfo.bgColor,
-                color: priorityInfo.color,
-                fontWeight: 500,
-              }}
-            />
+          {/* Description */}
+          {taskData.description && (
+            <Box>
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                {t('Description')}
+              </Typography>
+              <Typography variant="body2">{taskData.description}</Typography>
+            </Box>
+          )}
+
+          {/* Priority & Status */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                {t('Priority')}
+              </Typography>
+              <Chip
+                size="small"
+                label={t(priorityInfo.label)}
+                sx={{ bgcolor: priorityInfo.bgColor, color: priorityInfo.color }}
+              />
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                {t('Status')}
+              </Typography>
+              <Chip
+                size="small"
+                label={t(statusInfo.label)}
+                sx={{ bgcolor: statusInfo.bgColor, color: statusInfo.color }}
+              />
+            </Box>
           </Box>
 
+          <Divider />
+
+          {/* Due Date */}
           <Box>
-            <Typography
-              variant="overline"
-              sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
-            >
-              Due Date
+            <Typography variant="caption" color="text.secondary" gutterBottom>
+              {t('Due Date')}
             </Typography>
-            <Typography variant="body1">
+            <Typography variant="body2">
               {formatDate(taskData.dueDate)}
               {taskData.dueTime && (
-                <Typography component="span" sx={{ color: 'text.secondary', ml: 1 }}>
-                  at {taskData.dueTime}
+                <Typography component="span" variant="body2" color="text.secondary">
+                  {' '}{t('at')} {taskData.dueTime}
                 </Typography>
               )}
             </Typography>
           </Box>
 
+          {/* Tags */}
           {selectedTags.length > 0 && (
             <Box>
-              <Typography
-                variant="overline"
-                sx={{ color: 'text.secondary', fontSize: '0.75rem', mb: 1 }}
-              >
-                Tags
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                {t('Tags')}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                 {selectedTags.map((tag) => (
                   <Chip
                     key={tag.id}
                     label={tag.name}
                     size="small"
-                    sx={{
-                      bgcolor: `${tag.color}20`,
-                      color: tag.color,
-                      border: `1px solid ${tag.color}`,
-                    }}
+                    sx={{ bgcolor: tag.color + '22', color: tag.color }}
                   />
                 ))}
               </Box>
             </Box>
           )}
 
+          {/* Notes */}
           {taskData.notes && (
             <Box>
-              <Typography
-                variant="overline"
-                sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
-              >
-                Additional Notes
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                {t('Additional Notes')}
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  whiteSpace: 'pre-wrap',
-                  color: 'text.secondary',
-                  fontStyle: 'italic',
-                }}
-              >
-                {taskData.notes}
-              </Typography>
+              <Typography variant="body2">{taskData.notes}</Typography>
             </Box>
           )}
+
         </Box>
       </DialogContent>
 
-      <DialogActions
-        sx={{
-          borderTop: 1,
-          borderColor: 'divider',
-          px: 3,
-          py: 2,
-        }}
-      >
-        <Button onClick={onClose} variant="text">
-          Close
+      <DialogActions>
+        <Button onClick={onClose} startIcon={<CloseIcon />}>
+          {t('Close')}
         </Button>
         {onEdit && (
           <Button
@@ -311,7 +239,7 @@ export const TaskPreviewDialog = ({
             variant="contained"
             startIcon={<EditIcon />}
           >
-            Edit Task
+            {t('Edit Task')}
           </Button>
         )}
       </DialogActions>
@@ -320,5 +248,4 @@ export const TaskPreviewDialog = ({
 };
 
 TaskPreviewDialog.displayName = 'TaskPreviewDialog';
-
 export default TaskPreviewDialog;

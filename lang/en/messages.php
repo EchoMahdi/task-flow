@@ -10,7 +10,7 @@ return [
     // General Messages
     // ============================================
     'app' => [
-        'name' => 'TaskFlow',
+        'name' => 'Task Flow',
         'description' => 'Your personal task management solution',
     ],
 
@@ -27,7 +27,7 @@ return [
         ],
         'register' => [
             'title' => 'Create Account',
-            'success' => 'Account created successfully! Welcome to TaskFlow.',
+            'success' => 'Account created successfully! Welcome to Task Flow.',
             'failed' => 'Registration failed. Please try again.',
             'name_required' => 'The name is required.',
             'email_required' => 'The email address is required.',

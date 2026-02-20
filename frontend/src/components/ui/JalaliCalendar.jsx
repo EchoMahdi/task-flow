@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import dateService from '../../services/dateService';
-import { toPersianNumerals } from '../../utils/persianNumerals';
+import dateService from '@/services/dateService';
+import { toPersianNumerals } from '@/utils/persianNumerals';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';

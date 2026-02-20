@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import LabelIcon from '@mui/icons-material/Label';
 import LoadingButton from '@/components/ui/LoadingButton';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * Available tag colors
@@ -44,34 +45,28 @@ interface AddTagModalProps {
 /**
  * AddTagModal Component
  */
-const AddTagModal: React.FC<AddTagModalProps> = ({
-  open,
-  onClose,
-  onSubmit,
-}) => {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState(TAG_COLORS[0]);
+const AddTagModal: React.FC<AddTagModalProps> = ({ open, onClose, onSubmit }) => {
+  const { t } = useTranslation();
+
+  const [name, setName]       = useState('');
+  const [color, setColor]     = useState(TAG_COLORS[0]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!name.trim()) {
-      setError('Tag name is required');
+      setError(t('Tag name is required'));
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       await onSubmit({ name: name.trim(), color });
-      // Reset form on success
       setName('');
       setColor(TAG_COLORS[0]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create tag');
+      setError(err instanceof Error ? err.message : t('Failed to create tag'));
     } finally {
       setLoading(false);
     }
@@ -87,54 +82,46 @@ const AddTagModal: React.FC<AddTagModalProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="xs"
-      fullWidth
-      aria-labelledby="add-tag-dialog-title"
-    >
-      <form onSubmit={handleSubmit}>
-        <DialogTitle id="add-tag-dialog-title">
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LabelIcon color="primary" />
-            <Typography variant="h6">Create New Tag</Typography>
-          </Box>
-        </DialogTitle>
-        
-        <DialogContent>
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+      <DialogTitle>{t('Create New Tag')}</DialogTitle>
+
+      <DialogContent>
+        <Box component="form" onSubmit={handleSubmit} sx={{ pt: 1 }}>
+
+          {/* Error message */}
           {error && (
-            <Typography
-              color="error"
-              variant="body2"
-              sx={{ mb: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}
-            >
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
               {error}
             </Typography>
           )}
-          
+
+          {/* Tag Name */}
           <TextField
-            autoFocus
-            fullWidth
-            label="Tag Name"
-            placeholder="Enter tag name"
+            label={t('Tag Name')}
+            placeholder={t('Enter tag name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             margin="normal"
             disabled={loading}
             error={error?.includes('name') ?? false}
+            helperText={error?.includes('name') ? error : undefined}
+            fullWidth
+            autoFocus
           />
 
-          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
-            Color
+          {/* Color Picker */}
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            {t('Color')}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {TAG_COLORS.map((c) => (
-              <button
+              <Box
                 key={c}
+                component="button"
                 type="button"
                 onClick={() => setColor(c)}
-                aria-label={`Select color ${c}`}
+                aria-label={t('selectColor', { color: c })}
+                aria-pressed={color === c}
                 style={{
                   width: 32,
                   height: 32,
@@ -150,54 +137,46 @@ const AddTagModal: React.FC<AddTagModalProps> = ({
           </Box>
 
           {/* Preview */}
-          <Box
-            sx={{
-              mt: 3,
-              p: 2,
-              bgcolor: 'grey.100',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            {t('Preview')}
+          </Typography>
+          <Box>
             <Box
+              component="span"
               sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                bgcolor: color,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                gap: 0.5,
+                px: 1.5,
+                py: 0.5,
+                borderRadius: '9999px',
+                backgroundColor: color + '22',
+                color: color,
+                fontSize: '0.875rem',
+                fontWeight: 500,
               }}
-            />
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Preview
-              </Typography>
-              <Typography variant="body1" fontWeight={500}>
-                {name || 'Tag Name'}
-              </Typography>
+            >
+              <LabelIcon sx={{ fontSize: 14 }} />
+              {name || t('Tag Name')}
             </Box>
           </Box>
-        </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} disabled={loading}>
-            Cancel
-          </Button>
-          <LoadingButton
-            type="submit"
-            variant="contained"
-            loading={loading}
-            loadingText="Creating..."
-            disabled={!name.trim()}
-          >
-            Create Tag
-          </LoadingButton>
-        </DialogActions>
-      </form>
+        </Box>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={handleClose} disabled={loading}>
+          {t('Cancel')}
+        </Button>
+        <LoadingButton
+          onClick={handleSubmit}
+          loading={loading}
+          variant="contained"
+          type="submit"
+        >
+          {t('Create Tag')}
+        </LoadingButton>
+      </DialogActions>
     </Dialog>
   );
 };

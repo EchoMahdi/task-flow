@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useTranslation } from '../../context/I18nContext';
-import { useDateFormat } from '../../hooks/useDateFormat';
-import calendarService from '../../services/calendarService';
-import dateService from '../../services/dateService';
+import { useTranslation } from '@/context/I18nContext';
+import { useDateFormat } from '@/hooks/useDateFormat';
+import calendarService from '@/services/calendarService';
+import dateService from '@/services/dateService';
 import CalendarTaskItem from './CalendarTaskItem';
 import CalendarFilters from './CalendarFilters';
 import Box from '@mui/material/Box';

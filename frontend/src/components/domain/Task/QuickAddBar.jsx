@@ -8,7 +8,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Add, Close, ArrowForward } from '@mui/icons-material';
-import { TaskModel, createQuickTask, ValidationError } from '../../../models/TaskModel';
+import { TaskModel, createQuickTask, ValidationError } from '@/models/TaskModel';
+import { useTranslation } from '@/context/I18nContext';
 import './QuickAddBar.css';
 
 /**
@@ -35,6 +36,7 @@ const QuickAddBar = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
+  const { t } = useTranslation();
 
   // Auto-focus when expanded
   useEffect(() => {
@@ -79,9 +81,9 @@ const QuickAddBar = ({
     } catch (error) {
       // Handle validation errors
       if (error instanceof ValidationError) {
-        setError(error.validationErrors?.title || 'Invalid task data');
+        setError(error.validationErrors?.title || t('Invalid task data'));
       } else {
-        setError(error.message || 'Failed to create task');
+        setError(error.message || t('An error occurred while creating the task'));
       }
       
       // Notify parent of error
@@ -147,7 +149,7 @@ const QuickAddBar = ({
               onKeyDown={handleKeyDown}
               className={`quick-add-bar__input ${error ? 'quick-add-bar__input--error' : ''}`}
               placeholder="What needs to be done?"
-              aria-label="Task title"
+              aria-label={t('Task title')}
               disabled={isLoading}
             />
 
@@ -157,7 +159,7 @@ const QuickAddBar = ({
                 type="button"
                 className="quick-add-bar__cancel"
                 onClick={handleCancel}
-                aria-label="Cancel"
+                aria-label={t('Cancel')}
                 disabled={isLoading}
               >
                 <Close className="quick-add-bar__action-icon" />
@@ -166,7 +168,7 @@ const QuickAddBar = ({
                 type="submit"
                 className="quick-add-bar__submit"
                 disabled={!title.trim() || isLoading}
-                aria-label="Add task"
+                aria-label={t('Add task')}
               >
                 {isLoading ? (
                   <span className="quick-add-bar__spinner" />

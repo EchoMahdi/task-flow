@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\SavedViewController;
 use App\Http\Controllers\Api\NavigationController;
 use App\Http\Controllers\Api\SubtaskController;
 use App\Http\Controllers\Api\ThemeController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-require __DIR__.'/api-auth.php';
+require __DIR__.'/fortify-api.php';
 require __DIR__.'/api-notifications.php';
 require __DIR__.'/api-social.php';
 

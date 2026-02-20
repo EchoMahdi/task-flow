@@ -11,17 +11,14 @@ import { Box, Typography, Button, Stack, Divider, Paper } from "@mui/material";
 import { Add, Search, Assignment } from "@mui/icons-material";
 import { TaskRow } from "./TaskRow";
 import { QuickAddBar } from "./QuickAddBar";
+import { useTranslation } from "@/context/I18nContext";
 
 /**
  * Sort tasks by date
- * @param {Array} tasks - Array of task objects
- * @param {string} sortBy - Sort field
- * @param {string} sortOrder - Sort order (asc|desc)
  */
 const sortTasks = (tasks, sortBy, sortOrder) => {
   const sorted = [...tasks].sort((a, b) => {
     let comparison = 0;
-
     switch (sortBy) {
       case "dueDate":
         if (!a.dueDate && !b.dueDate) comparison = 0;
@@ -42,10 +39,8 @@ const sortTasks = (tasks, sortBy, sortOrder) => {
         comparison = new Date(a.createdAt) - new Date(b.createdAt);
         break;
     }
-
     return sortOrder === "desc" ? -comparison : comparison;
   });
-
   return sorted;
 };
 
@@ -75,32 +70,29 @@ const TaskList = ({
   sortOrder = "asc",
   onFilterChange,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Filter tasks based on current filters
   const filteredTasks = useMemo(() => {
     let result = [...tasks];
 
-    // Filter by completed status
     if (filters.showCompleted === false) {
       result = result.filter((task) => !task.completed);
     } else if (filters.showCompleted === true) {
       result = result.filter((task) => task.completed);
     }
 
-    // Filter by priority
     if (filters.priority && filters.priority !== "all") {
       result = result.filter((task) => task.priority === filters.priority);
     }
 
-    // Filter by tags
     if (filters.tags && filters.tags.length > 0) {
       result = result.filter((task) =>
         task.tags?.some((tag) => filters.tags.includes(tag.id)),
       );
     }
 
-    // Filter by search query
     if (filters.search) {
       const query = filters.search.toLowerCase();
       result = result.filter(
@@ -110,39 +102,28 @@ const TaskList = ({
       );
     }
 
-    // Sort tasks
     result = sortTasks(result, sortBy, sortOrder);
-
     return result;
   }, [tasks, filters, sortBy, sortOrder]);
 
   // Group tasks by date if needed
   const groupedTasks = useMemo(() => {
     if (!filters.groupBy) return { all: filteredTasks };
-
     const groups = {};
     filteredTasks.forEach((task) => {
       const key = task.dueDate
         ? new Date(task.dueDate).toDateString()
         : "no-date";
-
-      if (!groups[key]) {
-        groups[key] = [];
-      }
+      if (!groups[key]) groups[key] = [];
       groups[key].push(task);
     });
-
     return groups;
   }, [filteredTasks, filters.groupBy]);
 
-  // Handle add task
   const handleAddTask = (taskData) => {
-    if (onAddTask) {
-      onAddTask(taskData);
-    }
+    if (onAddTask) onAddTask(taskData);
   };
 
-  // Handle toggle show completed
   const handleToggleShowCompleted = () => {
     if (onFilterChange) {
       onFilterChange({
@@ -152,152 +133,121 @@ const TaskList = ({
     }
   };
 
-  // Empty state
+  // ─── Empty State ───────────────────────────────────────────────────────────
   if (tasks.length === 0) {
     return (
-      <Box>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 8,
-            textAlign: "center",
-            bgcolor: "background.default",
-          }}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 8,
+          gap: 2,
+        }}
+      >
+        <Assignment sx={{ fontSize: 48, color: "text.disabled" }} />
+        <Typography variant="h6" color="text.secondary">
+          {t("No tasks yet")}
+        </Typography>
+        <Typography variant="body2" color="text.disabled">
+          {t("Create your first task to get started")}
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setIsExpanded(true)}
         >
-          <Assignment
-            sx={{
-              fontSize: 64,
-              color: "text.disabled",
-              mb: 2,
-            }}
-          />
-          <Typography variant="h6" gutterBottom>
-            No tasks yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Create your first task to get started
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setIsExpanded(true)}
-          >
-            Add your first task
-          </Button>
-        </Paper>
-
-        {isExpanded && (
-          <Box sx={{ mt: 3 }}>
-            <QuickAddBar onAddTask={handleAddTask} autoFocus />
-          </Box>
-        )}
+          {t("Add your first task")}
+        </Button>
+        {isExpanded && <QuickAddBar onAdd={handleAddTask} autoFocus />}
       </Box>
     );
   }
 
+  // ─── Main View ─────────────────────────────────────────────────────────────
   return (
-    <Box>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
       {/* Quick Add Bar */}
-      <Box sx={{ mb: 3 }}>
-        <QuickAddBar onAddTask={handleAddTask} autoFocus={false} />
-      </Box>
+      <QuickAddBar onAdd={handleAddTask} />
 
       {/* Task List */}
-      <Stack spacing={2}>
-        {filteredTasks.length === 0 ? (
-          // No results
-          <Paper
-            elevation={0}
-            sx={{
-              p: 6,
-              textAlign: "center",
-              bgcolor: "background.default",
-            }}
-          >
-            <Search
-              sx={{
-                fontSize: 48,
-                color: "text.disabled",
-                mb: 2,
-              }}
-            />
-            <Typography variant="body1" color="text.secondary">
-              No tasks match your filters
-            </Typography>
-          </Paper>
-        ) : filters.groupBy ? (
-          // Grouped view
-          <Stack spacing={3}>
-            {Object.entries(groupedTasks).map(([groupDate, groupTasks]) => (
-              <Box key={groupDate}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ mb: 1.5, textTransform: "uppercase", fontSize: 12 }}
-                >
-                  {groupDate === "no-date" ? "No due date" : groupDate}
-                </Typography>
-                <Stack spacing={1}>
-                  {groupTasks.map((task, index) => (
+      {filteredTasks.length === 0 ? (
+        // No results
+        <Box sx={{ py: 4, textAlign: "center" }}>
+          <Search sx={{ fontSize: 36, color: "text.disabled", mb: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            {t("No tasks match your filters")}
+          </Typography>
+        </Box>
+      ) : filters.groupBy ? (
+        // Grouped view
+        <Stack spacing={2}>
+          {Object.entries(groupedTasks).map(([groupDate, groupTasks]) => (
+            <Box key={groupDate}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ px: 1, mb: 0.5, display: "block" }}
+              >
+                {groupDate === "no-date" ? t("No due date") : groupDate}
+              </Typography>
+              <Paper variant="outlined">
+                {groupTasks.map((task, index) => (
+                  <React.Fragment key={task.id}>
                     <TaskRow
-                      key={task.id}
                       task={task}
-                      index={index}
                       onToggle={onToggleTask}
-                      onEdit={onUpdateTask}
+                      onUpdate={onUpdateTask}
                       onDelete={onDeleteTask}
                       onOpenDetail={onOpenDetail}
                     />
-                  ))}
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
-        ) : (
-          // Flat view
-          <Stack spacing={1}>
-            {filteredTasks.map((task, index) => (
+                    {index < groupTasks.length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </Paper>
+            </Box>
+          ))}
+        </Stack>
+      ) : (
+        // Flat view
+        <Paper variant="outlined">
+          {filteredTasks.map((task, index) => (
+            <React.Fragment key={task.id}>
               <TaskRow
-                key={task.id}
                 task={task}
-                index={index}
                 onToggle={onToggleTask}
-                onEdit={onUpdateTask}
+                onUpdate={onUpdateTask}
                 onDelete={onDeleteTask}
                 onOpenDetail={onOpenDetail}
               />
-            ))}
-          </Stack>
-        )}
-      </Stack>
+              {index < filteredTasks.length - 1 && <Divider />}
+            </React.Fragment>
+          ))}
+        </Paper>
+      )}
 
-      {/* Footer with task count */}
+      {/* Footer */}
       {filteredTasks.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            pt: 2,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderTop: 1,
-            borderColor: "divider",
-          }}
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ px: 1, pt: 0.5 }}
         >
-          <Typography variant="body2" color="text.secondary">
-            {filteredTasks.length} task{filteredTasks.length !== 1 ? "s" : ""}
+          <Typography variant="caption" color="text.secondary">
+            {t("taskCount", { count: filteredTasks.length })}
           </Typography>
           {filters.showCompleted === false && (
             <Button size="small" onClick={handleToggleShowCompleted}>
-              Show completed
+              {t("Show completed")}
             </Button>
           )}
-        </Box>
+        </Stack>
       )}
     </Box>
   );
 };
 
 TaskList.displayName = "TaskList";
-
 export default TaskList;

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { AppLayout } from '../components/layout/index';
+import { AppLayout } from '@/components/layout/index';
 import {
   Card, CardContent, Button, TextField, Alert, Avatar,
   Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem ,Tab
 } from '@mui/material';
-import PageHeader from '../components/ui/PageHeader';
-import { useAuth } from '../context/AuthContext';
-import { preferenceService } from '../services/preferenceService';
-import { useTheme } from '../theme/ThemeProvider';
+import PageHeader from '@/components/ui/PageHeader';
+import { useAuth } from '@/context/AuthContext';
+import { preferenceService } from '@/services/preferenceService';
+import { useTheme } from '@/theme/ThemeProvider';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import MapIcon from '@mui/icons-material/Map';
 import LanguageIcon from '@mui/icons-material/Language';

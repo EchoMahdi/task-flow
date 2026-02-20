@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AppLayout } from '../components/layout/index';
-import { useTranslation } from '../context/I18nContext';
+import { AppLayout } from '@/components/layout/index';
+import { useTranslation } from '@/context/I18nContext';
 import {
   Card, 
   CardContent, 
@@ -29,9 +29,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import useTasks from '../hooks/useTasks';
-import { taskOptionsService } from '../services/taskOptionsService';
-import { useTheme } from '../theme/ThemeProvider';
+import useTasks from '@/hooks/useTasks';
+import { taskOptionsService } from '@/services/taskOptionsService';
+import { useTheme } from '@/theme/ThemeProvider';
 
 const TaskList = () => {
   const [searchParams, setSearchParams] = useSearchParams();

@@ -15,7 +15,6 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { useTheme as useMUITheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import StarIcon from '@mui/icons-material/Star';
@@ -23,10 +22,15 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ProjectItem, { ProjectItemData } from './ProjectItem';
 import AddProjectModal from './AddProjectModal';
 import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
+import { useTranslation } from '@/context/I18nContext';
 
 interface ProjectsSectionProps {
   collapsed: boolean;
-  onNavigate: (navigation: { type: string; id: string; params: Record<string, unknown> }) => void;
+  onNavigate: (navigation: {
+    type: string;
+    id: string;
+    params: Record<string, unknown>;
+  }) => void;
 }
 
 /**
@@ -58,7 +62,7 @@ const saveCollapsedState = (key: string, value: boolean): void => {
 const fetchProjects = async (): Promise<ProjectItemData[]> => {
   const response = await fetch('/api/projects', {
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       'Content-Type': 'application/json',
     },
   });
@@ -68,7 +72,6 @@ const fetchProjects = async (): Promise<ProjectItemData[]> => {
   }
 
   const data = await response.json();
-  // Ensure we always return an array
   const projects = Array.isArray(data) ? data : (data.data || []);
   return projects;
 };
@@ -76,11 +79,11 @@ const fetchProjects = async (): Promise<ProjectItemData[]> => {
 /**
  * Toggle project favorite
  */
-const toggleFavorite = async (projectId: number): Promise<ProjectItemData> => {
+const toggleFavorite = async (projectId: number): Promise<unknown> => {
   const response = await fetch(`/api/projects/${projectId}/favorite`, {
     method: 'PATCH',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       'Content-Type': 'application/json',
     },
   });
@@ -95,11 +98,15 @@ const toggleFavorite = async (projectId: number): Promise<ProjectItemData> => {
 /**
  * Create new project
  */
-const createProject = async (project: { name: string; color: string; icon: string }): Promise<ProjectItemData> => {
+const createProject = async (project: {
+  name: string;
+  color: string;
+  icon: string;
+}): Promise<ProjectItemData> => {
   const response = await fetch('/api/projects', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(project),
@@ -120,20 +127,24 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   collapsed,
   onNavigate,
 }): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [projects, setProjects] = useState<ProjectItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [favoritesExpanded, setFavoritesExpanded] = useState(() =>
     loadCollapsedState('nav_favorites_expanded', true)
   );
+
   const [allProjectsExpanded, setAllProjectsExpanded] = useState(() =>
     loadCollapsedState('nav_all_projects_expanded', true)
   );
+
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch projects on mount
   const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
@@ -141,17 +152,16 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       const data = await fetchProjects();
       setProjects(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load projects');
+      setError(err instanceof Error ? err.message : t('Failed to load projects'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
 
-  // Save collapsed state when it changes
   useEffect(() => {
     saveCollapsedState('nav_favorites_expanded', favoritesExpanded);
   }, [favoritesExpanded]);
@@ -164,56 +174,48 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   useEffect(() => {
     const handleTaskCreated = (data: unknown) => {
       const taskData = data as TaskEventData;
-      // Update counts locally instead of refetching entire list
       if (taskData.project_id) {
-        setProjects(prev => prev.map(p => 
-          p.id === taskData.project_id 
-            ? { ...p, task_count: (p.task_count || 0) + 1 }
-            : p
-        ));
-      }
-      // Increment total count for inbox if task has no project
-      if (!taskData.project_id) {
-        // Optionally update inbox count if tracked
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === taskData.project_id
+              ? { ...p, task_count: (p.task_count || 0) + 1 }
+              : p
+          )
+        );
       }
     };
 
     const handleTaskDeleted = (data: unknown) => {
       const taskData = data as TaskEventData;
-      // Update counts locally
       if (taskData.project_id) {
-        setProjects(prev => prev.map(p => 
-          p.id === taskData.project_id 
-            ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
-            : p
-        ));
-      }
-      // Decrement total count if task was not completed
-      if (!taskData.is_completed && !taskData.project_id) {
-        // Optionally update inbox count
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === taskData.project_id
+              ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
+              : p
+          )
+        );
       }
     };
 
     const handleTaskCompleted = (data: unknown) => {
       const taskData = data as TaskEventData;
-      // For completed tasks, decrement the incomplete count
       if (taskData.project_id) {
-        setProjects(prev => prev.map(p => 
-          p.id === taskData.project_id 
-            ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
-            : p
-        ));
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === taskData.project_id
+              ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
+              : p
+          )
+        );
       }
     };
 
     const handleRefreshCounts = () => {
-      // Only refetch if really needed (e.g., after page reload)
-      // This should rarely be triggered since we update counts locally
       setRefreshing(true);
       loadProjects().finally(() => setRefreshing(false));
     };
 
-    // Subscribe to events
     const unsubscribers = [
       eventBus.on(TaskEvents.TASK_CREATED, handleTaskCreated),
       eventBus.on(TaskEvents.TASK_DELETED, handleTaskDeleted),
@@ -222,66 +224,54 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       eventBus.on(TaskEvents.REFRESH_COUNTS, handleRefreshCounts),
     ];
 
-    // Cleanup
-    return () => {
-      unsubscribers.forEach((unsub) => unsub());
-    };
+    return () => unsubscribers.forEach((unsub) => unsub());
   }, [loadProjects]);
 
-  // Get favorites and non-favorites
   const favorites = projects.filter((p) => p.is_favorite);
   const nonFavorites = projects.filter((p) => !p.is_favorite);
 
-  // Handle project click
-  const handleProjectClick = useCallback((project: ProjectItemData) => {
-    setActiveProjectId(project.id);
-    onNavigate({
-      type: 'project',
-      id: `project-${project.id}`,
-      params: { project_id: project.id },
-    });
-  }, [onNavigate]);
+  const handleProjectClick = useCallback(
+    (project: ProjectItemData) => {
+      setActiveProjectId(project.id);
+      onNavigate({
+        type: 'project',
+        id: `project-${project.id}`,
+        params: { project_id: project.id },
+      });
+    },
+    [onNavigate]
+  );
 
-  // Handle favorite toggle
   const handleToggleFavorite = useCallback(async (projectId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Optimistic update
+
+    // optimistic update
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId ? { ...p, is_favorite: !p.is_favorite } : p
-      )
+      prev.map((p) => (p.id === projectId ? { ...p, is_favorite: !p.is_favorite } : p))
     );
 
     try {
       await toggleFavorite(projectId);
     } catch (err) {
-      // Revert on error
+      // revert on error
       setProjects((prev) =>
-        prev.map((p) =>
-          p.id === projectId ? { ...p, is_favorite: !p.is_favorite } : p
-        )
+        prev.map((p) => (p.id === projectId ? { ...p, is_favorite: !p.is_favorite } : p))
       );
-      setError(err instanceof Error ? err.message : 'Failed to update favorite');
+      setError(err instanceof Error ? err.message : t('Failed to update favorite'));
     }
-  }, []);
+  }, [t]);
 
-  // Handle add project
   const handleAddProject = useCallback(async (project: { name: string; color: string; icon: string }) => {
-    console.log('[ProjectsSection] handleAddProject called with:', project);
     try {
       const newProject = await createProject(project);
-      console.log('[ProjectsSection] Project created successfully:', newProject);
       setProjects((prev) => [...prev, newProject]);
       setAddModalOpen(false);
-      console.log('[ProjectsSection] Modal closed, addModalOpen set to false');
     } catch (err) {
-      console.error('[ProjectsSection] Failed to create project:', err);
-      throw err; // Let the modal handle the error
+      // Let the modal handle the error message
+      throw err;
     }
   }, []);
 
-  // Section header component
   const SectionHeader: React.FC<{
     title: string;
     icon: React.ReactNode;
@@ -290,29 +280,28 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     count?: number;
   }> = ({ title, icon, expanded, onToggle, count }) => (
     <Box
+      onClick={onToggle}
+      onKeyDown={(e) => e.key === 'Enter' && onToggle()}
+      role="button"
+      tabIndex={0}
+      aria-label={title}
+      aria-expanded={expanded}
       sx={{
         display: 'flex',
         alignItems: 'center',
-        px: collapsed ? 1 : 0,
-        py: 0.5,
-        cursor: 'pointer',
-        '&:hover': { bgcolor: 'action.hover' },
+        gap: 1,
+        px: 1.5,
+        py: 0.75,
         borderRadius: 1,
-        opacity: refreshing ? 0.6 : 1,
-        transition: 'opacity 0.2s',
+        cursor: 'pointer',
+        userSelect: 'none',
+        '&:hover': { bgcolor: 'action.hover' },
       }}
-      onClick={onToggle}
-      role="button"
-      tabIndex={0}
-      onKeyPress={(e) => e.key === 'Enter' && onToggle()}
     >
-      <Box sx={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
-        <ExpandMoreIcon sx={{ fontSize: 'var(--theme-nav-section-icon-size, 18px)', color: 'text.secondary' }} />
-      </Box>
       {icon}
       {!collapsed && (
         <>
-          <Typography variant="body2" sx={{ flex: 1, ml: 0.5, fontWeight: 500 }}>
+          <Typography variant="subtitle2" sx={{ flex: 1 }} noWrap>
             {title}
           </Typography>
           {count !== undefined && (
@@ -320,6 +309,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
               {count}
             </Typography>
           )}
+          <ExpandMoreIcon
+            sx={{
+              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 150ms ease',
+            }}
+          />
         </>
       )}
     </Box>
@@ -328,8 +323,15 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   // Loading state
   if (loading) {
     return (
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-        <CircularProgress size={24} />
+      <Box sx={{ px: collapsed ? 0.5 : 1.5, py: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CircularProgress size={18} />
+          {!collapsed && (
+            <Typography variant="body2" color="text.secondary">
+              {t('Loading projects')}
+            </Typography>
+          )}
+        </Box>
       </Box>
     );
   }
@@ -337,10 +339,8 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   // Error state
   if (error && projects.length === 0) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Alert severity="error" sx={{ fontSize: 12 }}>
-          {error}
-        </Alert>
+      <Box sx={{ px: collapsed ? 0.5 : 1.5, py: 1 }}>
+        <Alert severity="error">{t(error)}</Alert>
       </Box>
     );
   }
@@ -348,26 +348,23 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   // Empty state
   if (projects.length === 0) {
     return (
-      <Box sx={{ px: collapsed ? 1 : 2, py: 2 }}>
-        <Typography variant="body2" color="text.secondary" align="center">
-          {collapsed ? 'No projects' : 'Create your first project'}
+      <Box sx={{ px: collapsed ? 0.5 : 1.5, py: 1 }}>
+        <Typography variant="body2" color="text.secondary">
+          {collapsed ? t('No projects') : t('Create your first project')}
         </Typography>
+
         {!collapsed && (
           <Button
-            variant="outlined"
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              console.log('[ProjectsSection] Create Project button clicked');
-              setAddModalOpen(true);
-              console.log('[ProjectsSection] addModalOpen set to true');
-            }}
+            variant="contained"
+            onClick={() => setAddModalOpen(true)}
             sx={{ mt: 1 }}
             fullWidth
+            startIcon={<AddIcon />}
           >
-            Create Project
+            {t('Create Project')}
           </Button>
         )}
+
         <AddProjectModal
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}
@@ -378,19 +375,20 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   }
 
   return (
-    <Box>
-      {/* Favorites Section */}
+    <Box sx={{ px: collapsed ? 0.5 : 0 }}>
+      {/* Favorites */}
       {favorites.length > 0 && (
-        <Box sx={{ mb: 1 }}>
+        <Box>
           <SectionHeader
-            title="Favorites"
-            icon={<StarIcon sx={{ fontSize: 'var(--theme-font-size-sm, 16px)', color: 'warning.main', ml: 0.5 }} />}
+            title={t('Favorites')}
+            icon={<StarIcon fontSize="small" />}
             expanded={favoritesExpanded}
             onToggle={() => setFavoritesExpanded(!favoritesExpanded)}
             count={favorites.length}
           />
-          <Collapse in={favoritesExpanded}>
-            <Box sx={{ pl: collapsed ? 0 : 2 }}>
+
+          <Collapse in={favoritesExpanded} timeout="auto" unmountOnExit>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
               {favorites.map((project) => (
                 <ProjectItem
                   key={project.id}
@@ -405,17 +403,18 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
         </Box>
       )}
 
-      {/* All Projects Section */}
-      <Box>
+      {/* All Projects */}
+      <Box sx={{ mt: favorites.length > 0 ? 1 : 0 }}>
         <SectionHeader
-          title="All Projects"
-          icon={<FolderIcon sx={{ fontSize: 'var(--theme-font-size-sm, 16px)', color: 'text.secondary', ml: 0.5 }} />}
+          title={t('Projects')}
+          icon={<FolderIcon fontSize="small" />}
           expanded={allProjectsExpanded}
           onToggle={() => setAllProjectsExpanded(!allProjectsExpanded)}
           count={nonFavorites.length}
         />
-        <Collapse in={allProjectsExpanded}>
-          <Box sx={{ pl: collapsed ? 0 : 2 }}>
+
+        <Collapse in={allProjectsExpanded} timeout="auto" unmountOnExit>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
             {nonFavorites.map((project) => (
               <ProjectItem
                 key={project.id}
@@ -426,30 +425,20 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
               />
             ))}
           </Box>
+
+          {/* Add Project Button */}
+          {!collapsed && (
+            <Button
+              onClick={() => setAddModalOpen(true)}
+              fullWidth
+              sx={{ justifyContent: 'flex-start', mt: 0.5 }}
+              startIcon={<AddIcon />}
+            >
+              {t('Add Project')}
+            </Button>
+          )}
         </Collapse>
       </Box>
-
-      {/* Add Project Button */}
-      {/* Debug: Added red border to verify button visibility */}
-      {!collapsed && (
-        <Box sx={{ px: 2, mt: 1, position: 'relative', zIndex: 1001, border: '2px solid red' }}>
-          <Button
-            id="add-project-button"
-            variant="text"
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              console.log('[ProjectsSection] Add Project button clicked');
-              setAddModalOpen(true);
-              console.log('[ProjectsSection] addModalOpen set to true');
-            }}
-            fullWidth
-            sx={{ justifyContent: 'flex-start', border: '2px solid blue' }}
-          >
-            Add Project
-          </Button>
-        </Box>
-      )}
 
       {/* Add Project Modal */}
       <AddProjectModal

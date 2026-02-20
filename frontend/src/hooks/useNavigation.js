@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api, initCsrf } from '../services/authService';
+import { api, initCsrf } from '@/services/authService';
 
 /**
  * Error handling helper - extracts user-friendly message

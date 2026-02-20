@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AuthLayout } from '../components/layout/index';
-import { useTranslation } from '../context/I18nContext';
+import { AuthLayout } from '@/components/layout/index';
+import { useTranslation } from '@/context/I18nContext';
 import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton, LinearProgress } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LockIcon from '@mui/icons-material/Lock';

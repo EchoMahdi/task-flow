@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import LoadingButton from '@/components/ui/LoadingButton';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * Available project colors
@@ -39,17 +40,21 @@ const PROJECT_COLORS = [
  * Available project icons (as emoji for simplicity)
  */
 const PROJECT_ICONS = [
-  { name: 'Folder', value: 'folder' },
-  { name: 'Star', value: 'star' },
-  { name: 'Heart', value: 'heart' },
-  { name: 'Work', value: 'work' },
-  { name: 'Home', value: 'home' },
-  { name: 'Code', value: 'code' },
-  { name: 'Book', value: 'book' },
-  { name: 'Plane', value: 'plane' },
-  { name: 'Music', value: 'music' },
-  { name: 'Game', value: 'game' },
+  { name: 'Folder', value: 'folder', emoji: '📁' },
+  { name: 'Star',   value: 'star',   emoji: '⭐' },
+  { name: 'Heart',  value: 'heart',  emoji: '❤️' },
+  { name: 'Work',   value: 'work',   emoji: '💼' },
+  { name: 'Home',   value: 'home',   emoji: '🏠' },
+  { name: 'Code',   value: 'code',   emoji: '💻' },
+  { name: 'Book',   value: 'book',   emoji: '📚' },
+  { name: 'Plane',  value: 'plane',  emoji: '✈️' },
+  { name: 'Music',  value: 'music',  emoji: '🎵' },
+  { name: 'Game',   value: 'game',   emoji: '🎮' },
 ];
+
+// Helper: get emoji by icon value
+const getEmoji = (value: string): string =>
+  PROJECT_ICONS.find((i) => i.value === value)?.emoji ?? '📁';
 
 interface AddProjectModalProps {
   open: boolean;
@@ -65,25 +70,22 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  console.log('[AddProjectModal] Rendering, open:', open);
-  console.log('[AddProjectModal] Modal DOM structure check');
-  const [name, setName] = useState('');
-  const [color, setColor] = useState(PROJECT_COLORS[0]);
-  const [icon, setIcon] = useState(PROJECT_ICONS[0].value);
+  const { t } = useTranslation();
+
+  const [name, setName]       = useState('');
+  const [color, setColor]     = useState(PROJECT_COLORS[0]);
+  const [icon, setIcon]       = useState(PROJECT_ICONS[0].value);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!name.trim()) {
-      setError('Project name is required');
+      setError(t('Project name is required'));
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       await onSubmit({ name: name.trim(), color, icon });
       // Reset form on success
@@ -91,7 +93,9 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
       setColor(PROJECT_COLORS[0]);
       setIcon(PROJECT_ICONS[0].value);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create project');
+      setError(
+        err instanceof Error ? err.message : t('Failed to create project')
+      );
     } finally {
       setLoading(false);
     }
@@ -108,54 +112,46 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="xs"
-      fullWidth
-      aria-labelledby="add-project-dialog-title"
-    >
-      <form onSubmit={handleSubmit}>
-        <DialogTitle id="add-project-dialog-title">
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FolderIcon color="primary" />
-            <Typography variant="h6">Create New Project</Typography>
-          </Box>
-        </DialogTitle>
-        
-        <DialogContent>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('Create New Project')}</DialogTitle>
+
+      <DialogContent>
+        <Box component="form" onSubmit={handleSubmit} sx={{ pt: 1 }}>
+
+          {/* Error message */}
           {error && (
-            <Typography
-              color="error"
-              variant="body2"
-              sx={{ mb: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}
-            >
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
               {error}
             </Typography>
           )}
-          
+
+          {/* Project Name */}
           <TextField
-            autoFocus
-            fullWidth
-            label="Project Name"
-            placeholder="Enter project name"
+            label={t('Project Name')}
+            placeholder={t('Enter project name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             margin="normal"
             disabled={loading}
             error={error?.includes('name') ?? false}
+            helperText={error?.includes('name') ? error : undefined}
+            fullWidth
+            autoFocus
           />
 
-          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
-            Color
+          {/* Color Picker */}
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            {t('Color')}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {PROJECT_COLORS.map((c) => (
-              <button
+              <Box
                 key={c}
+                component="button"
                 type="button"
                 onClick={() => setColor(c)}
-                aria-label={`Select color ${c}`}
+                aria-label={t('selectColor', { color: c })}
+                aria-pressed={color === c}
                 style={{
                   width: 32,
                   height: 32,
@@ -170,16 +166,19 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
             ))}
           </Box>
 
-          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
-            Icon
+          {/* Icon Picker */}
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            {t('Icon')}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {PROJECT_ICONS.map((item) => (
-              <button
+              <Box
                 key={item.value}
+                component="button"
                 type="button"
                 onClick={() => setIcon(item.value)}
-                aria-label={`Select icon ${item.name}`}
+                aria-label={t('selectIcon', { name: t(item.name) })}
+                aria-pressed={icon === item.value}
                 style={{
                   width: 40,
                   height: 40,
@@ -194,80 +193,61 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
                   transition: 'all 0.2s ease',
                 }}
               >
-                {item.value === 'folder' && '📁'}
-                {item.value === 'star' && '⭐'}
-                {item.value === 'heart' && '❤️'}
-                {item.value === 'work' && '💼'}
-                {item.value === 'home' && '🏠'}
-                {item.value === 'code' && '💻'}
-                {item.value === 'book' && '📚'}
-                {item.value === 'plane' && '✈️'}
-                {item.value === 'music' && '🎵'}
-                {item.value === 'game' && '🎮'}
-              </button>
+                {item.emoji}
+              </Box>
             ))}
           </Box>
 
           {/* Preview */}
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            {t('Preview')}
+          </Typography>
           <Box
             sx={{
-              mt: 3,
-              p: 2,
-              bgcolor: 'grey.100',
-              borderRadius: 2,
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
+              gap: 1,
+              p: 1.5,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           >
             <Box
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                bgcolor: color,
+                width: 36,
+                height: 36,
+                borderRadius: 1,
+                backgroundColor: color,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 20,
               }}
             >
-              {icon === 'folder' && '📁'}
-              {icon === 'star' && '⭐'}
-              {icon === 'heart' && '❤️'}
-              {icon === 'work' && '💼'}
-              {icon === 'home' && '🏠'}
-              {icon === 'code' && '💻'}
-              {icon === 'book' && '📚'}
-              {icon === 'plane' && '✈️'}
-              {icon === 'music' && '🎵'}
-              {icon === 'game' && '🎮'}
+              {getEmoji(icon)}
             </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Preview
-              </Typography>
-              <Typography variant="body1" fontWeight={500}>
-                {name || 'Project Name'}
-              </Typography>
-            </Box>
+            <Typography variant="body1">
+              {name || t('Project Name')}
+            </Typography>
           </Box>
-        </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} disabled={loading}>
-            Cancel
-          </Button>
-          <LoadingButton
-            variant="contained"
-            loading={loading}
-            loadingText="Creating..."
-            disabled={!name.trim() || loading}
-          >
-            Create Project
-          </LoadingButton>
-        </DialogActions>
-      </form>
+        </Box>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={handleClose} disabled={loading}>
+          {t('Cancel')}
+        </Button>
+        <LoadingButton
+          onClick={handleSubmit}
+          loading={loading}
+          variant="contained"
+          type="submit"
+        >
+          {t('Create Project')}
+        </LoadingButton>
+      </DialogActions>
     </Dialog>
   );
 };

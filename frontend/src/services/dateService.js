@@ -5,7 +5,7 @@
  * All dates are stored in Gregorian format, conversion happens only for display.
  */
 
-import { toPersianNumerals } from '../utils/persianNumerals';
+import { toPersianNumerals } from '@/utils/persianNumerals';
 
 const JALALI_EPOCH = 1948321; // Julian day for 622-03-19 (Islamic New Year)
 const GREGORIAN_EPOCH = 1721426; // Julian day for 1-01-01 (Gregorian)

@@ -29,71 +29,45 @@ class AuthController extends Controller
 
     /**
      * Register a new user.
+     * NOTE: Registration is disabled. Users can only register via OAuth.
+     * This endpoint kept for API compatibility but returns error.
      */
     public function register(Request $request): JsonResponse
     {
-        try {
-            $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-                'timezone' => ['sometimes', 'timezone'],
-                'locale' => ['sometimes', 'string', 'size:2'],
-            ]);
-
-            $user = $this->authService->register($validated);
-            $token = $user->createToken('auth-token')->plainTextToken;
-
-            return response()->json([
-                'success' => true,
-                'message' => $this->translator->get('auth.register.success'),
-                'data' => [
-                    'user' => new UserResource($user),
-                    'token' => $token,
-                ],
-            ], 201);
-        } catch (ValidationException $e) {
-            return $this->translator->validationErrorResponse($e);
-        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Registration is only available through OAuth providers (Google/GitHub)',
+        ], 400);
     }
 
     /**
      * Login user.
+     * NOTE: Email/password login is disabled. Users can only login via OAuth.
+     * This endpoint kept for API compatibility but returns error.
      */
     public function login(Request $request): JsonResponse
     {
-        try {
-
-            $credentials = $request->validate([
-                'email' => ['required', 'string', 'email'],
-                'password' => ['required', 'string'],
-            ]);
-
-            $result = $this->authService->login($credentials);
-
-            return response()->json([
-                'success' => true,
-                'message' => $this->translator->get('auth.login.success'),
-                'data' => new AuthResource($result),
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $this->translator->get('auth.login.failed'),
-                'errors' => $e->errors(),
-            ], 401);
-        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Login is only available through OAuth providers (Google/GitHub)',
+        ], 400);
     }
 
     /**
      * Logout user.
+     * Uses Laravel Fortify for session invalidation.
      */
     public function logout(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        $tokenId = $request->user()->currentAccessToken()?->id;
-
-        $this->authService->logout($user, $tokenId);
+        // Revoke all Sanctum tokens
+        $request->user()->tokens()->delete();
+        
+        // Logout from session (Fortify)
+        Auth::guard('web')->logout();
+        
+        // Invalidate session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,

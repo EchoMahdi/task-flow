@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { AppLayout } from '../components/layout/index';
+import { AppLayout } from '@/components/layout/index';
 import {
   Card, CardContent, Button, Switch, Alert,
   Box, Typography, FormControl, InputLabel, Select, MenuItem,
   Divider, Container
 } from '@mui/material';
-import PageHeader from '../components/ui/PageHeader';
+import PageHeader from '@/components/ui/PageHeader';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { preferenceService } from '../services/preferenceService';
-import { useAuth } from '../context/AuthContext';
-import { useI18n } from '../context/I18nContext';
-import { useTheme } from '../theme/ThemeProvider';
+import { preferenceService } from '@/services/preferenceService';
+import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
+import { useTheme } from '@/theme/ThemeProvider';
 
 const Settings = () => {
   const { user, refreshUser } = useAuth();

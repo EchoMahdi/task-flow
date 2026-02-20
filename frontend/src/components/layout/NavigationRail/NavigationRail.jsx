@@ -1,31 +1,45 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Avatar, IconButton, Menu, MenuItem, Button, Tooltip, CircularProgress, Snackbar, Alert, Box } from '@mui/material';
-import { useTheme as useMUITheme } from '@mui/material/styles';
-import { useAuth } from '../../../context/AuthContext';
-import { useNavigation } from '../../../hooks/useNavigation';
-import { navigationStorage, NAV_STORAGE_KEYS } from '../../../utils/navigationStorage';
-import NavigationSkeleton from './NavigationSkeleton';
-import NavigationError from './NavigationError';
-import ProjectsSection from './ProjectsSection';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import InboxIcon from '@mui/icons-material/Inbox';
-import ScheduleIcon from '@mui/icons-material/Schedule';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-import StarIcon from '@mui/icons-material/Star';
-import FolderIcon from '@mui/icons-material/Folder';
-import LabelIcon from '@mui/icons-material/Label';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AddIcon from '@mui/icons-material/Add';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import PersonIcon from '@mui/icons-material/Person';
-import LogoutIcon from '@mui/icons-material/Logout';
-import './NavigationRail.css';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {
+  Avatar,
+  IconButton,
+  Menu,
+  MenuItem,
+  Tooltip,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Box,
+} from "@mui/material";
+import { useTheme as useMUITheme } from "@mui/material/styles";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigation } from "@/hooks/useNavigation";
+import {
+  navigationStorage,
+  NAV_STORAGE_KEYS,
+} from "@/utils/navigationStorage";
+import NavigationSkeleton from "./NavigationSkeleton";
+import NavigationError from "./NavigationError";
+import ProjectsSection from "./ProjectsSection";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import InboxIcon from "@mui/icons-material/Inbox";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import DateRangeIcon from "@mui/icons-material/DateRange";
+import StarIcon from "@mui/icons-material/Star";
+import FolderIcon from "@mui/icons-material/Folder";
+import LabelIcon from "@mui/icons-material/Label";
+import SettingsIcon from "@mui/icons-material/Settings";
+import AddIcon from "@mui/icons-material/Add";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
+import "./NavigationRail.css";
+import { useTranslation } from "@/context/I18nContext";
 
 /**
  * Navigation item sub-component
@@ -43,25 +57,33 @@ const NavItem = ({
   onToggleFavorite,
   loading = false,
 }) => {
+  const { t } = useTranslation();
   const muiTheme = useMUITheme();
   const favoriteColor = muiTheme.palette.warning.main;
   const secondaryColor = muiTheme.palette.text.secondary;
-  
+
+  const translatedLabel = t(label);
+
   const itemContent = (
     <div
-      className={['nav-item', active && 'nav-item--active'].filter(Boolean).join(' ')}
+      className={["nav-item", active && "nav-item--active"]
+        .filter(Boolean)
+        .join(" ")}
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyPress={(e) => e.key === 'Enter' && onClick()}
-      aria-label={label}
-      style={color ? { '--item-color': color } : {}}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      aria-label={translatedLabel}
+      style={color ? { "--item-color": color } : undefined}
     >
-      {Icon && <Icon className="nav-item__icon" style={color ? { color } : {}} />}
-      {!collapsed && <span className="nav-item__label">{label}</span>}
+      <Icon className="nav-item__icon" style={color ? { color } : undefined} />
+
+      {!collapsed && <span className="nav-item__label">{translatedLabel}</span>}
+
       {badge !== undefined && badge !== null && badge > 0 && (
         <span className="nav-item__badge">{badge}</span>
       )}
+
       {!collapsed && showFavorite && (
         <IconButton
           size="small"
@@ -71,13 +93,19 @@ const NavItem = ({
             onToggleFavorite?.();
           }}
           disabled={loading}
+          aria-label={
+            isFavorite ? t("Remove from favorites") : t("Add to favorites")
+          }
         >
           {loading ? (
             <CircularProgress size={16} />
           ) : isFavorite ? (
             <FavoriteIcon fontSize="small" sx={{ color: favoriteColor }} />
           ) : (
-            <FavoriteBorderIcon fontSize="small" sx={{ color: secondaryColor }} />
+            <FavoriteBorderIcon
+              fontSize="small"
+              sx={{ color: secondaryColor }}
+            />
           )}
         </IconButton>
       )}
@@ -86,7 +114,7 @@ const NavItem = ({
 
   if (collapsed) {
     return (
-      <Tooltip title={label} placement="right">
+      <Tooltip title={translatedLabel} placement="right">
         {itemContent}
       </Tooltip>
     );
@@ -105,36 +133,32 @@ const NavSection = ({
   collapsed,
   defaultExpanded = true,
   onAdd,
-  addLabel = 'Add',
+  addLabel = "Add",
   storageKey,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const initialized = useRef(false);
 
-  // Load expanded state from localStorage on mount
   useEffect(() => {
     if (storageKey && !initialized.current) {
       initialized.current = true;
       const saved = navigationStorage.get(storageKey);
-      if (typeof saved === 'boolean') {
-        setIsExpanded(saved);
-      }
+      if (typeof saved === "boolean") setIsExpanded(saved);
     }
   }, [storageKey]);
 
-  // Save expanded state to localStorage when it changes
   useEffect(() => {
     if (storageKey && initialized.current) {
       navigationStorage.set(storageKey, isExpanded);
     }
   }, [isExpanded, storageKey]);
 
+  const translatedTitle = t(title);
+  const translatedAddLabel = t(addLabel);
+
   if (collapsed) {
-    return (
-      <div className="nav-section">
-        {children}
-      </div>
-    );
+    return <div className="nav-section">{children}</div>;
   }
 
   return (
@@ -143,26 +167,27 @@ const NavSection = ({
         className="nav-section__header"
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
+        aria-label={translatedTitle}
       >
-        {Icon && <Icon className="nav-section__icon" />}
-        <span className="nav-section__title">{title}</span>
+        <Icon className="nav-section__icon" />
+        <span className="nav-section__title">{translatedTitle}</span>
         <ExpandMoreIcon
           className={[
-            'nav-section__chevron',
-            isExpanded && 'nav-section__chevron--expanded',
-          ].filter(Boolean).join(' ')}
+            "nav-section__chevron",
+            isExpanded && "nav-section__chevron--expanded",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         />
       </button>
-      {isExpanded && (
-        <div className="nav-section__content">
-          {children}
-          {onAdd && (
-            <button className="nav-item nav-item--add" onClick={onAdd}>
-              <AddIcon className="nav-item__icon" />
-              <span className="nav-item__label">{addLabel}</span>
-            </button>
-          )}
-        </div>
+
+      {isExpanded && <div className="nav-section__content">{children}</div>}
+
+      {onAdd && (
+        <button className="nav-item nav-item--add" onClick={onAdd}>
+          <AddIcon className="nav-item__icon" />
+          <span className="nav-item__label">{translatedAddLabel}</span>
+        </button>
       )}
     </div>
   );
@@ -174,14 +199,14 @@ const NavSection = ({
 const getIconByName = (iconName) => {
   const icons = {
     inbox: InboxIcon,
-    format_list_bulleted: FormatListBulletedIcon,
-    calendar_today: CalendarTodayIcon,
-    check_circle: CheckCircleIcon,
+    formatlistbulleted: FormatListBulletedIcon,
+    calendartoday: CalendarTodayIcon,
+    checkcircle: CheckCircleIcon,
     schedule: ScheduleIcon,
-    date_range: DateRangeIcon,
+    daterange: DateRangeIcon,
     folder: FolderIcon,
     label: LabelIcon,
-    view_list: ViewListIcon,
+    viewlist: ViewListIcon,
   };
   return icons[iconName] || FormatListBulletedIcon;
 };
@@ -189,22 +214,15 @@ const getIconByName = (iconName) => {
 /**
  * Get count for a filter type
  */
-const getCount = (counts, filterId) => {
-  return counts[filterId] || 0;
-};
+const getCount = (counts, filterId) => counts?.[filterId] || 0;
 
 /**
  * NavigationRail Component
- * 
- * @param {Object} props
- * @param {boolean} props.collapsed - Whether the nav is collapsed
- * @param {Function} props.onNavigate - Callback when navigation item is clicked
  */
-const NavigationRail = ({
-  collapsed = false,
-  onNavigate = () => {},
-}) => {
+const NavigationRail = ({ collapsed = false, onNavigate }) => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
+
   const {
     systemFilters,
     projects,
@@ -218,73 +236,67 @@ const NavigationRail = ({
     addProject,
     toggleProjectFavorite,
     sectionLoading,
+    on401,
+    onError,
   } = useNavigation({
     on401: () => {
-      // Handle 401 - redirect to login
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
     },
     onError: (message) => {
-      // Show error toast
       setErrorMessage(message);
       setShowError(true);
     },
   });
 
-  const [activeItem, setActiveItem] = useState('inbox');
-  
+  const [activeItem, setActiveItem] = useState("inbox");
+  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   // Restore active view from localStorage on mount
   useEffect(() => {
     const savedView = navigationStorage.get(NAV_STORAGE_KEYS.ACTIVE_VIEW);
-    if (savedView) {
-      setActiveItem(savedView);
-    }
+    if (savedView) setActiveItem(savedView);
   }, []);
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
-  // Handle navigation item click
-  const handleItemClick = useCallback((itemId, filterData = null) => {
-    setActiveItem(itemId);
-    navigationStorage.set(NAV_STORAGE_KEYS.ACTIVE_VIEW, itemId);
-    onNavigate(itemId, filterData);
-  }, [onNavigate]);
+  const handleItemClick = useCallback(
+    (itemId, filterData = null) => {
+      setActiveItem(itemId);
+      navigationStorage.set(NAV_STORAGE_KEYS.ACTIVE_VIEW, itemId);
+      onNavigate?.(itemId, filterData);
+    },
+    [onNavigate],
+  );
 
-  // Handle user menu
   const handleUserMenuOpen = useCallback((event) => {
     setUserMenuAnchor(event.currentTarget);
   }, []);
 
-  const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
-  };
+  const handleUserMenuClose = () => setUserMenuAnchor(null);
 
-  // Handle logout
   const handleLogout = async () => {
     handleUserMenuClose();
     await logout();
   };
 
-  // Projects are now handled by ProjectsSection component
-
   // Loading state with skeleton
-  if (loading && !(systemFilters || []).length) {
+  if (loading && !systemFilters?.length) {
     return (
-      <nav className="navigation-rail" aria-label="Main navigation">
+      <nav className="navigation-rail" aria-label={t("Main navigation")}>
         <NavigationSkeleton collapsed={collapsed} />
       </nav>
     );
   }
 
   // Critical error state
-  if (error && !(systemFilters || []).length) {
+  if (error && !systemFilters?.length) {
     return (
-      <nav className="navigation-rail" aria-label="Main navigation">
+      <nav className="navigation-rail" aria-label={t("Main navigation")}>
         <NavigationError
-          message={error}
-          title="Failed to load navigation"
+          message={t("Failed to load navigation")}
+          title={t("Error")}
           onRetry={refetch}
         />
       </nav>
@@ -292,7 +304,8 @@ const NavigationRail = ({
   }
 
   return (
-    <nav className="navigation-rail" aria-label="Main navigation">
+    <nav className="navigation-rail" aria-label={t("Main navigation")}>
+      {/* Filters */}
       <NavSection
         title="Filters"
         icon={FilterListIcon}
@@ -300,7 +313,7 @@ const NavigationRail = ({
         defaultExpanded={true}
         storageKey={NAV_STORAGE_KEYS.SECTION_FILTERS_EXPANDED}
       >
-        {(systemFilters || []).map((filter) => {
+        {systemFilters?.map((filter) => {
           const Icon = getIconByName(filter.icon);
           return (
             <NavItem
@@ -316,8 +329,8 @@ const NavigationRail = ({
         })}
       </NavSection>
 
-      {/* Favorites Section (if there are favorites) */}
-      {(favorites || []).length > 0 && !collapsed && (
+      {/* Favorites */}
+      {favorites?.length > 0 && !collapsed && (
         <NavSection
           title="Favorites"
           icon={StarIcon}
@@ -325,29 +338,37 @@ const NavigationRail = ({
           defaultExpanded={true}
           storageKey={NAV_STORAGE_KEYS.SECTION_FAVORITES_EXPANDED}
         >
-          {(favorites || []).map((project) => (
+          {favorites.map((project) => (
             <NavItem
               key={`fav-${project.id}`}
               icon={FolderIcon}
               label={project.name}
-              badge={project.task_count > 0 ? project.task_count : null}
+              badge={project.taskcount > 0 ? project.taskcount : null}
               active={activeItem === `project-${project.id}`}
               collapsed={collapsed}
               color={project.color}
-              onClick={() => handleItemClick(`project-${project.id}`, { project_id: project.id })}
+              showFavorite={true}
+              isFavorite={true}
+              loading={sectionLoading?.favorites === true}
+              onToggleFavorite={() => toggleProjectFavorite?.(project.id)}
+              onClick={() =>
+                handleItemClick(`project-${project.id}`, {
+                  projectId: project.id,
+                })
+              }
             />
           ))}
         </NavSection>
       )}
 
-      {/* Projects Section - delegated to ProjectsSection component */}
+      {/* Projects (delegated) */}
       <ProjectsSection
         collapsed={collapsed}
-        onNavigate={({ type, id, params }) => handleItemClick(id, params)}
+        onNavigate={(type, id, params) => handleItemClick(id, params)}
       />
 
-      {/* Saved Views Section */}
-      {(savedViews || []).length > 0 && (
+      {/* Saved Views */}
+      {savedViews?.length > 0 && (
         <NavSection
           title="Saved Views"
           icon={ViewListIcon}
@@ -355,7 +376,7 @@ const NavigationRail = ({
           defaultExpanded={false}
           storageKey={NAV_STORAGE_KEYS.SECTION_VIEWS_EXPANDED}
         >
-          {(savedViews || []).map((view) => {
+          {savedViews.map((view) => {
             const Icon = getIconByName(view.icon);
             return (
               <NavItem
@@ -371,8 +392,8 @@ const NavigationRail = ({
         </NavSection>
       )}
 
-      {/* Tags Section */}
-      {(tags || []).length > 0 && (
+      {/* Tags */}
+      {tags?.length > 0 && (
         <NavSection
           title="Tags"
           icon={LabelIcon}
@@ -380,7 +401,7 @@ const NavigationRail = ({
           defaultExpanded={false}
           storageKey={NAV_STORAGE_KEYS.SECTION_TAGS_EXPANDED}
         >
-          {(tags || []).map((tag) => (
+          {tags.map((tag) => (
             <NavItem
               key={tag.id}
               icon={LabelIcon}
@@ -388,29 +409,72 @@ const NavigationRail = ({
               active={activeItem === `tag-${tag.id}`}
               collapsed={collapsed}
               color={tag.color}
-              onClick={() => handleItemClick(`tag-${tag.id}`, { tag_id: tag.id })}
+              onClick={() =>
+                handleItemClick(`tag-${tag.id}`, { tagId: tag.id })
+              }
             />
           ))}
         </NavSection>
       )}
 
-     
+      {/* User menu (avatar) */}
+      <Box className="nav-user">
+        <Tooltip title={t("User menu")} placement="right">
+          <IconButton onClick={handleUserMenuOpen} aria-label={t("User menu")}>
+            <Avatar src={user?.avatar} alt={user?.name}>
+              {!user?.avatar && (user?.name?.[0] || "U")}
+            </Avatar>
+          </IconButton>
+        </Tooltip>
+
+        <Menu
+          anchorEl={userMenuAnchor}
+          open={Boolean(userMenuAnchor)}
+          onClose={handleUserMenuClose}
+        >
+          <MenuItem
+            onClick={() => {
+              handleUserMenuClose();
+              onNavigate?.("profile");
+            }}
+          >
+            <PersonIcon fontSize="small" style={{ marginRight: 8 }} />
+            {t("Profile")}
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleUserMenuClose();
+              onNavigate?.("settings");
+            }}
+          >
+            <SettingsIcon fontSize="small" style={{ marginRight: 8 }} />
+            {t("Settings")}
+          </MenuItem>
+          <MenuItem onClick={handleLogout}>
+            <LogoutIcon fontSize="small" style={{ marginRight: 8 }} />
+            {t("Logout")}
+          </MenuItem>
+        </Menu>
+      </Box>
 
       {/* Error Snackbar */}
-      <Snackbar 
-        open={showError} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={showError}
+        autoHideDuration={6000}
         onClose={() => setShowError(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
-        <Alert onClose={() => setShowError(false)} severity="error" sx={{ width: '100%' }}>
-          {errorMessage}
+        <Alert
+          onClose={() => setShowError(false)}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {t(errorMessage)}
         </Alert>
       </Snackbar>
     </nav>
   );
 };
 
-NavigationRail.displayName = 'NavigationRail';
-
+NavigationRail.displayName = "NavigationRail";
 export default NavigationRail;

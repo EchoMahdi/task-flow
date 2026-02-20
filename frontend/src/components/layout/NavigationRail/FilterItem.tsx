@@ -10,7 +10,8 @@ import { Box, Typography, Tooltip } from '@mui/material';
 import InboxIcon from '@mui/icons-material/Inbox';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useNavigation } from '../../../context/NavigationContext';
+import { useNavigation } from '@/context/NavigationContext';
+import { useTranslation } from '@/context/I18nContext';
 
 export interface FilterData {
   id: string;
@@ -29,7 +30,7 @@ interface FilterItemProps {
  * Get icon component by name
  */
 const getIconByName = (iconName: string) => {
-  const icons: Record<string, React.ComponentType<{ sx?: React.CSSProperties }>> = {
+  const icons: Record<string, React.ElementType> = {
     inbox: InboxIcon,
     list: FormatListBulletedIcon,
     check: CheckCircleIcon,
@@ -47,57 +48,36 @@ const FilterItem: React.FC<FilterItemProps> = ({
   onClick,
 }): React.ReactNode => {
   const { isActive } = useNavigation();
-  
-  // Determine if this filter is currently active
-  const active = isActive('filter', filter.id);
+  const { t } = useTranslation();
 
+  const active = isActive('filter', filter.id);
   const Icon = getIconByName(filter.icon);
+  const label = t(filter.name);
 
   const content = (
     <Box
+      onClick={onClick}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      aria-label={label}
+      role="button"
+      tabIndex={0}
+      aria-current={active ? 'page' : undefined}
       sx={{
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        px: collapsed ? 1 : 0,
+        px: 1.5,
         py: 0.75,
-        cursor: 'pointer',
         borderRadius: 1,
-        transition: 'all 0.15s ease',
+        cursor: 'pointer',
         bgcolor: active ? 'action.selected' : 'transparent',
-        borderLeft: active ? '3px solid' : '3px solid transparent',
-        borderLeftColor: active ? 'primary.main' : 'transparent',
-        '&:hover': {
-          bgcolor: active ? 'action.selected' : 'action.hover',
-        },
-        '&:active': {
-          bgcolor: 'action.selected',
-        },
+        '&:hover': { bgcolor: 'action.hover' },
       }}
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyPress={(e) => e.key === 'Enter' && onClick()}
-      aria-label={filter.name}
     >
-      <Icon
-        sx={{
-          fontSize: 'var(--theme-nav-icon-size, 20px)',
-          color: active ? 'primary.main' : 'text.secondary',
-          flexShrink: 0,
-        }}
-      />
+      <Icon fontSize="small" />
       {!collapsed && (
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: active ? 600 : 400,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {filter.name}
+        <Typography variant="body2" noWrap>
+          {label}
         </Typography>
       )}
     </Box>
@@ -105,10 +85,8 @@ const FilterItem: React.FC<FilterItemProps> = ({
 
   if (collapsed) {
     return (
-      <Tooltip title={filter.name} placement="right">
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 0.5 }}>
-          {content}
-        </Box>
+      <Tooltip title={label} placement="right">
+        {content}
       </Tooltip>
     );
   }

@@ -1,7 +1,7 @@
 /**
  * Theme Manager - Main Export
  * 
- * Centralized theming system for the TaskFlow application.
+ * Centralized theming system for the Task Flow application.
  * All components should import from this module.
  */
 

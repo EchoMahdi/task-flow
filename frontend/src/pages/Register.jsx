@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTranslation } from '../context/I18nContext';
-import { AuthLayout } from '../components/layout/index';
+import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/context/I18nContext';
+import { AuthLayout } from '@/components/layout/index';
 import { Button, TextField, Checkbox, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton, LinearProgress } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
@@ -328,7 +328,7 @@ const Register = () => {
               <Typography variant="body2" color="text.secondary">
                 {t('Already have an account?')}{' '}
                 <Link
-                  to="/login"
+                  to="/app/login"
                   style={{ color: '#1976d2', fontWeight: 500, textDecoration: 'none' }}
                 >
                   {t('Sign in')}

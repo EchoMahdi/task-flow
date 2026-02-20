@@ -11,19 +11,19 @@ import CheckIcon from '@mui/icons-material/CheckIcon';
 import CloseIcon from '@mui/icons-material/CloseIcon';
 import DeleteIcon from '@mui/icons-material/DeleteIcon';
 import CircularProgress from '@mui/material/CircularProgress';
-
-import { Input,  TextField, Select } from '../../ui/index';
-import DateDisplay from '../../ui/DateDisplay';
+import { useTranslation } from '@/context/I18nContext';
+import { Input, TextField, Select } from '@/components/ui/index';
+import DateDisplay from '@/components/ui/DateDisplay';
 import './TaskDetailPanel.css';
 
 /**
  * Priority options
  */
 const priorityOptions = [
-  { value: 'none', label: 'None' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
+  { value: 'none', label: t('None') },
+  { value: 'low', label: t('Low') },
+  { value: 'medium', label: t('Medium') },
+  { value: 'high', label: t('High') },
 ];
 
 /**
@@ -66,6 +66,7 @@ export const TaskDetailPanel = ({
   const [isDirty, setIsDirty] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   // Initialize form data when task changes
   useEffect(() => {
@@ -185,7 +186,7 @@ export const TaskDetailPanel = ({
                 task.completed && 'task-detail-panel__complete--checked',
               ].filter(Boolean).join(' ')}
               onClick={() => onToggle && onToggle(task.id)}
-              aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+              aria-label={task.completed ? t('Mark as incomplete') : t('Mark as complete')}
             >
               {task.completed && (
                 <CheckIcon />
@@ -199,7 +200,7 @@ export const TaskDetailPanel = ({
                   {formData.title}
                 </span>
               ) : (
-                formData.title || 'Untitled Task'
+                formData.title || t('Untitled Task')
               )}
             </h2>
           </div>
@@ -208,7 +209,7 @@ export const TaskDetailPanel = ({
           <button
             className="task-detail-panel__close"
             onClick={handleCancel}
-            aria-label="Close panel"
+            aria-label={t('Close task details')}
           >
             <CloseIcon  />
           </button>
@@ -219,11 +220,11 @@ export const TaskDetailPanel = ({
           {/* Title Input */}
           <div className="task-detail-panel__field">
             <Input
-              label="Title"
+              label={t('Title')}
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="What needs to be done?"
+              placeholder={t('What needs to be done?')}
               disabled={task.completed}
             />
           </div>
@@ -232,11 +233,11 @@ export const TaskDetailPanel = ({
           <div className="task-detail-panel__field">
             < TextField
              multiline
-              label="Description"
+              label={t('Description')}
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Add more details..."
+              placeholder={t('Add more details...')}
               rows={4}
               disabled={task.completed}
             />
@@ -245,7 +246,7 @@ export const TaskDetailPanel = ({
           {/* Due Date */}
           <div className="task-detail-panel__field">
             <Input
-              label="Due Date"
+              label={t('Due Date')}
               name="dueDate"
               type="date"
               value={formData.dueDate}
@@ -257,7 +258,7 @@ export const TaskDetailPanel = ({
           {/* Priority */}
           <div className="task-detail-panel__field">
             <Select
-              label="Priority"
+              label={t('Priority')}
               name="priority"
               value={formData.priority}
               onChange={handleChange}
@@ -281,7 +282,7 @@ export const TaskDetailPanel = ({
               ))}
               {(!formData.tags || formData.tags.length === 0) && (
                 <span className="task-detail-panel__tags-empty">
-                  No tags
+                  {t('No tags')}
                 </span>
               )}
             </div>
@@ -290,7 +291,7 @@ export const TaskDetailPanel = ({
           {/* Metadata */}
           <div className="task-detail-panel__meta">
             <div className="task-detail-panel__meta-item">
-              <span className="task-detail-panel__meta-label">Created</span>
+              <span className="task-detail-panel__meta-label">{t('Created')}</span>
               <span className="task-detail-panel__meta-value">
                 {task.createdAt 
                   ? <DateDisplay date={task.createdAt} variant="compact" />
@@ -300,7 +301,7 @@ export const TaskDetailPanel = ({
             </div>
             {task.updatedAt && (
               <div className="task-detail-panel__meta-item">
-                <span className="task-detail-panel__meta-label">Updated</span>
+                <span className="task-detail-panel__meta-label">{t('Updated')}</span>
                 <span className="task-detail-panel__meta-value">
                   <DateDisplay date={task.updatedAt} variant="compact" />
                 </span>
@@ -314,7 +315,7 @@ export const TaskDetailPanel = ({
           {showDeleteConfirm ? (
             <div className="task-detail-panel__delete-confirm">
               <span className="task-detail-panel__delete-question">
-                Delete this task?
+                {t('Are you sure you want to delete this task?')}
               </span>
               <div className="task-detail-panel__delete-actions">
                 <button
@@ -322,7 +323,7 @@ export const TaskDetailPanel = ({
                   onClick={() => !loading && setShowDeleteConfirm(false)}
                   disabled={loading}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button
                   className="task-detail-panel__delete-confirm-btn"
@@ -332,10 +333,10 @@ export const TaskDetailPanel = ({
                   {loading ? (
                     <>
                       <CircularProgress size={16} sx={{ mr: 1 }} color="inherit" />
-                      Processing...
+                      {t('Processing...')}
                     </>
                   ) : (
-                    'Delete'
+                    t('Delete')
                   )}
                 </button>
               </div>
@@ -348,7 +349,7 @@ export const TaskDetailPanel = ({
                 disabled={loading}
               >
                 <DeleteIcon />
-                Delete
+                {t('Delete')}
               </button>
 
               <div className="task-detail-panel__actions">
@@ -357,7 +358,7 @@ export const TaskDetailPanel = ({
                   onClick={handleCancel}
                   disabled={loading}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button
                   className="task-detail-panel__save"
@@ -367,10 +368,10 @@ export const TaskDetailPanel = ({
                   {loading ? (
                     <>
                       <CircularProgress size={16} sx={{ mr: 1 }} color="inherit" />
-                      Processing...
+                      {t('Saving...')}
                     </>
                   ) : (
-                    'Save Changes'
+                    t('Save Changes')
                   )}
                 </button>
               </div>

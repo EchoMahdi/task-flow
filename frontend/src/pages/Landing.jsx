@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PublicLayout } from '../components/layout/index';
+import { PublicLayout } from '@/components/layout/index';
 import { Button, Card, CardContent, Chip, Box, Typography, Container, Grid } from '@mui/material';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -51,14 +51,14 @@ const Landing = () => {
       name: 'Sarah Johnson',
       role: 'Product Manager',
       company: 'TechCorp',
-      content: 'TaskFlow has transformed how our team manages projects. The intuitive interface and powerful features make it indispensable.',
+      content: 'Task Flow has transformed how our team manages projects. The intuitive interface and powerful features make it indispensable.',
       avatar: 'SJ',
     },
     {
       name: 'Michael Chen',
       role: 'Freelance Designer',
       company: 'Self-employed',
-      content: 'As a freelancer, staying organized is crucial. TaskFlow helps me juggle multiple clients and deadlines effortlessly.',
+      content: 'As a freelancer, staying organized is crucial. Task Flow helps me juggle multiple clients and deadlines effortlessly.',
       avatar: 'MC',
     },
     {
@@ -149,7 +149,7 @@ const Landing = () => {
             </Typography>
             
             <Typography variant="h6" component="p" color="text.secondary" sx={{ mx: 'auto', mb: 3, maxWidth: 600 }}>
-              TaskFlow helps you organize your work, track progress, and achieve your goals. 
+              Task Flow helps you organize your work, track progress, and achieve your goals. 
               Simple, powerful, and designed for the way you work.
             </Typography>
             
@@ -246,7 +246,7 @@ const Landing = () => {
               Loved by thousands of users
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mx: 'auto', maxWidth: 600 }}>
-              See what our users have to say about their experience with TaskFlow.
+              See what our users have to say about their experience with Task Flow.
             </Typography>
           </Box>
 
@@ -309,7 +309,7 @@ const Landing = () => {
               Ready to boost your productivity?
             </Typography>
             <Typography variant="body1" sx={{ mb: 4, color: 'rgba(255,255,255,0.8)', mx: 'auto', maxWidth: 500 }}>
-              Join thousands of users who have transformed their workflow with TaskFlow.
+              Join thousands of users who have transformed their workflow with Task Flow.
               Start your free trial today.
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center' }}>

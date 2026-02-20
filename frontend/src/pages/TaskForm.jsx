@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AppLayout } from "../components/layout/index";
+import { AppLayout } from "@/components/layout/index";
 import {
   Card,
   CardContent,
@@ -16,13 +16,13 @@ import {
   MenuItem,
   Skeleton,
 } from "@mui/material";
-import PageHeader from "../components/ui/PageHeader";
+import PageHeader from "@/components/ui/PageHeader";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { tagService } from "../services/tagService";
-import { taskOptionsService } from "../services/taskOptionsService";
-import { TaskModel, ValidationError } from "../models/TaskModel";
-import TaskPreviewDialog from "../components/domain/Task/TaskPreviewDialog";
+import { tagService } from "@/services/tagService";
+import { taskOptionsService } from "@/services/taskOptionsService";
+import { TaskModel, ValidationError } from "@/models/TaskModel";
+import TaskPreviewDialog from "@/components/domain/Task/TaskPreviewDialog";
 
 const TaskForm = () => {
   const navigate = useNavigate();

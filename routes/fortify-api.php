@@ -1,40 +1,45 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SocialAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Authentication API Routes
+| Fortify API Authentication Routes
 |--------------------------------------------------------------------------
 |
-| These routes handle user authentication, registration, and password management.
-| All routes are stateless and use token-based authentication.
+| These routes provide API authentication using Laravel Fortify with
+| Social OAuth (Google/GitHub) for user authentication.
+| 
+| IMPORTANT: Email/password authentication has been removed.
+| Users can only authenticate via OAuth providers.
 |
 */
 
-// Public routes (no authentication required)
-Route::prefix('auth')->middleware('guest')->group(function () {
-    // Registration
-    Route::post('/register', [AuthController::class, 'register']);
-    
-    // Login
-    Route::post('/login', [AuthController::class, 'login']);
-    
-    // Password recovery
+// Include social auth routes
+require __DIR__.'/api-social.php';
+
+// Public routes (guest only) - Password reset only (no login/register)
+Route::middleware('guest')->group(function () {
+    // Password recovery (for account recovery)
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     
     // Email verification (using signed URLs)
-    Route::get('/verify/{id}', [AuthController::class, 'verifyEmail'])
+    Route::get('/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
         ->middleware('signed')
         ->name('verification.verify');
 });
 
 // Protected routes (authentication required)
-Route::prefix('auth')->middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // User info
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/preferences', [AuthController::class, 'updatePreferences']);
@@ -43,7 +48,7 @@ Route::prefix('auth')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/export-data', [AuthController::class, 'exportData']);
     Route::delete('/account', [AuthController::class, 'deleteAccount']);
     
-    // Password management
+    // Password management (for users who have password set)
     Route::put('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
     
@@ -51,27 +56,7 @@ Route::prefix('auth')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/sessions', [AuthController::class, 'sessions']);
     Route::delete('/sessions/{sessionId}', [AuthController::class, 'revokeSession']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-});
-
-// Simple user endpoints (shortcut routes)
-Route::middleware(['auth:sanctum'])->group(function () {
-    // GET /api/user - Get current user (simplified)
-    Route::get('/user', function (Request $request) {
-        $user = $request->user();
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'avatar_url' => $user->avatar_url,
-        ]);
-    });
-
-    // POST /api/logout - Logout user (simplified)
-    Route::post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully',
-        ]);
-    });
+    
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
 });

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTranslation } from '../../context/I18nContext';
-import { useDateFormat } from '../../hooks/useDateFormat';
+import { useTranslation } from '@/context/I18nContext';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';

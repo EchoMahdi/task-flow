@@ -1,8 +1,8 @@
-# TaskFlow Internationalization (i18n) Architecture Document
+# Task Flow Internationalization (i18n) Architecture Document
 
 ## Executive Summary
 
-This document outlines the comprehensive internationalization system implemented for the TaskFlow task management application. The system supports dynamic runtime language switching between Persian (RTL) and English (LTR) with full backend synchronization, proper locale formatting, and production-ready reliability.
+This document outlines the comprehensive internationalization system implemented for the Task Flow task management application. The system supports dynamic runtime language switching between Persian (RTL) and English (LTR) with full backend synchronization, proper locale formatting, and production-ready reliability.
 
 ### Key Design Decisions
 
@@ -555,7 +555,7 @@ Accept-Language: fa,en-US;q=0.9
 ```json
 {
   "common": {
-    "app_name": "TaskFlow",
+    "app_name": "Task Flow",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -799,4 +799,4 @@ export function getLanguageConfig(code) {
 
 ## Conclusion
 
-The TaskFlow internationalization system provides production-ready support for dynamic language switching with full RTL/LTR adaptation, backend synchronization, and Persian typography. The architecture is designed for extensibility, allowing additional languages to be added with minimal configuration changes. All acceptance criteria have been met, ensuring a seamless multilingual experience for users.
+The Task Flow internationalization system provides production-ready support for dynamic language switching with full RTL/LTR adaptation, backend synchronization, and Persian typography. The architecture is designed for extensibility, allowing additional languages to be added with minimal configuration changes. All acceptance criteria have been met, ensuring a seamless multilingual experience for users.

@@ -6,9 +6,9 @@
  * ============================================================================
  */
 
-import { taskService } from '../services/taskService';
-import requestCache from '../utils/requestCache';
-import { taskEventEmitter, TaskEvents } from '../utils/eventBus';
+import { taskService } from '@/services/taskService';
+import requestCache from '@/utils/requestCache';
+import { taskEventEmitter, TaskEvents } from '@/utils/eventBus';
 
 /**
  * Default values for task creation

@@ -6,8 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import {  useThemeMode, useDirection } from '../hooks';
-import { useColors } from '../hooks';
+import {  useThemeMode, useDirection,useColors } from '../hooks';
 import '../theme.css';
 
 /**

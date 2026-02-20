@@ -1,4 +1,4 @@
-# TaskFlow Application Architecture
+# Task Flow Application Architecture
 
 ## Overview
 This is a full-stack To-Do List application built with Laravel (backend) and React (frontend).

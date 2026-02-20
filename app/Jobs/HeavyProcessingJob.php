@@ -24,8 +24,7 @@ abstract class HeavyProcessingJob implements ShouldQueue
 {
     use Dispatchable, Queueable, SerializesModels;
     
-    // حل تداخل trait: از fail متعلق به InteractsWithQueue استفاده می‌کنیم
-    // و fail از JobTracking را با نام trackJobFailure در دسترس قرار می‌دهیم
+   
     use InteractsWithQueue, JobTracking {
         InteractsWithQueue::fail insteadof JobTracking;
         JobTracking::fail as trackJobFailure;
@@ -137,7 +136,6 @@ abstract class HeavyProcessingJob implements ShouldQueue
      */
     protected function handleFailure(Throwable $e): void
     {
-        // استفاده از متد tracking که نام آن را تغییر داده‌ایم
         $this->trackJobFailure($e->getMessage(), $e->getTraceAsString());
         
         Log::channel('heavy')->error('Heavy processing job failed', [
@@ -184,8 +182,6 @@ abstract class HeavyProcessingJob implements ShouldQueue
      */
     protected function getExecutionTime(): float
     {
-        // این متد باید در JobTracking trait پیاده‌سازی شده باشد
-        // یا می‌توانید اینجا پیاده‌سازی کنید
         return 0; // Placeholder
     }
 

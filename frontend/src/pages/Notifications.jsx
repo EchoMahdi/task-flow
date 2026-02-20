@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AppLayout } from '../components/layout/index';
+import { AppLayout } from '@/components/layout/index';
 import { Card, Button, Tabs, Box, Skeleton, Typography, IconButton,Tab } from '@mui/material';
-import PageHeader from '../components/ui/PageHeader';
-import { useAuth } from '../context/AuthContext';
-import { api } from '../services/authService';
+import PageHeader from '@/components/ui/PageHeader';
+import { useAuth } from '@/context/AuthContext';
+import { api } from '@/services/authService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import M_Notifications   from '@mui/icons-material/Notifications';

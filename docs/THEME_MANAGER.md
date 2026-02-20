@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Central Theme Manager is a robust, extensible theming system designed to control all visual aspects of the TaskFlow application from a single, unified source of truth. It ensures visual consistency, supports light/dark modes, handles RTL/LTR direction switching, and provides comprehensive accessibility support.
+The Central Theme Manager is a robust, extensible theming system designed to control all visual aspects of the Task Flow application from a single, unified source of truth. It ensures visual consistency, supports light/dark modes, handles RTL/LTR direction switching, and provides comprehensive accessibility support.
 
 ## Architecture Principles
 

@@ -6,15 +6,11 @@
  */
 
 import React from 'react';
-import {
-  Box,
-  Typography,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
+import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { useTranslation } from '@/context/I18nContext';
 
 export interface SavedViewItemData {
   id: number;
@@ -49,79 +45,67 @@ const SavedViewItem: React.FC<SavedViewItemProps> = ({
   onClick,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const Icon = getIconByMode(view.display_mode);
 
   const content = (
     <Box
+      onClick={onClick}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      role="button"
+      tabIndex={0}
+      aria-current={active ? 'page' : undefined}
+      aria-label={view.name}
       sx={{
         display: 'flex',
         alignItems: 'center',
         gap: 1,
-        px: collapsed ? 1 : 0,
+        px: 1.5,
         py: 0.75,
-        cursor: 'pointer',
         borderRadius: 1,
-        transition: 'all 0.15s ease',
+        cursor: 'pointer',
         bgcolor: active ? 'action.selected' : 'transparent',
         '&:hover': {
-          bgcolor: active ? 'action.selected' : 'action.hover',
+          bgcolor: 'action.hover',
+          '& .delete-btn': { opacity: 1 },
         },
       }}
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyPress={(e) => e.key === 'Enter' && onClick()}
-      aria-label={view.name}
     >
       {/* Display mode icon */}
-      <Icon
-        sx={{
-          fontSize: 20,
-          color: active ? 'primary.main' : 'text.secondary',
-          flexShrink: 0,
-        }}
-      />
+      <Icon fontSize="small" aria-hidden="true" />
 
       {/* View name */}
       {!collapsed && (
-        <Typography
-          variant="body2"
-          sx={{
-            flex: 1,
-            fontWeight: active ? 600 : 400,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <Typography variant="body2" noWrap sx={{ flex: 1 }}>
           {view.name}
         </Typography>
       )}
 
       {/* Delete button (visible on hover) */}
       {!collapsed && (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          sx={{
-            width: 24,
-            height: 24,
-            opacity: 0,
-            '&:hover': {
-              opacity: 1,
-              bgcolor: 'error.light',
-              '& .MuiSvgIcon-root': {
-                color: 'error.main',
+        <Tooltip title={t('deleteViewTooltip', { name: view.name })} placement="top">
+          <IconButton
+            className="delete-btn"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            aria-label={t('deleteViewAriaLabel', { name: view.name })}
+            sx={{
+              width: 24,
+              height: 24,
+              opacity: 0,
+              transition: 'opacity 150ms ease',
+              '&:hover': {
+                bgcolor: 'error.light',
+                '& .MuiSvgIcon-root': { color: 'error.main' },
               },
-            },
-          }}
-          aria-label={`Delete ${view.name}`}
-        >
-          <DeleteIcon sx={{ fontSize: 16 }} />
-        </IconButton>
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       )}
     </Box>
   );
@@ -129,9 +113,7 @@ const SavedViewItem: React.FC<SavedViewItemProps> = ({
   if (collapsed) {
     return (
       <Tooltip title={view.name} placement="right">
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 0.5 }}>
-          {content}
-        </Box>
+        {content}
       </Tooltip>
     );
   }

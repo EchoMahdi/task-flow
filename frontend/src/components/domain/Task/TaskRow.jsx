@@ -12,12 +12,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import DateDisplay from '../../ui/DateDisplay';
+import DateDisplay from '@/components/ui/DateDisplay';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * Check if date is overdue
- * @param {string} dateString - ISO date string
- * @returns {boolean}
  */
 const isOverdue = (dateString) => {
   if (!dateString) return false;
@@ -26,8 +25,6 @@ const isOverdue = (dateString) => {
 
 /**
  * Check if date is due today
- * @param {string} dateString - ISO date string
- * @returns {boolean}
  */
 const isDueToday = (dateString) => {
   if (!dateString) return false;
@@ -38,7 +35,7 @@ const isDueToday = (dateString) => {
 
 /**
  * TaskRow Component
- * 
+ *
  * @param {Object} props
  * @param {Object} props.task - Task object with id, title, completed, dueDate, priority, tags
  * @param {Function} props.onToggle - Callback when task is toggled
@@ -53,6 +50,7 @@ export const TaskRow = ({
   onOpenDetail,
   index = 0,
 }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -75,15 +73,18 @@ export const TaskRow = ({
   }, [title, task, onEdit]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setTitle(task.title);
-      setIsEditing(false);
-    }
-  }, [handleSave, task.title]);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSave();
+      } else if (e.key === 'Escape') {
+        setTitle(task.title);
+        setIsEditing(false);
+      }
+    },
+    [handleSave, task.title]
+  );
 
   // Handle checkbox click with animation
   const handleToggle = useCallback(() => {
@@ -99,16 +100,20 @@ export const TaskRow = ({
   }, [task.id, task.completed, onToggle]);
 
   // Handle row click
-  const handleRowClick = useCallback((e) => {
-    // Don't trigger if clicking on checkbox or actions
-    if (e.target.closest('.task-row__checkbox') || 
-        e.target.closest('.task-row__actions')) {
-      return;
-    }
-    if (!isEditing) {
-      onOpenDetail(task);
-    }
-  }, [task, isEditing, onOpenDetail]);
+  const handleRowClick = useCallback(
+    (e) => {
+      if (
+        e.target.closest('.task-row__checkbox') ||
+        e.target.closest('.task-row__actions')
+      ) {
+        return;
+      }
+      if (!isEditing) {
+        onOpenDetail(task);
+      }
+    },
+    [task, isEditing, onOpenDetail]
+  );
 
   // Handle double click to edit
   const handleDoubleClick = useCallback(() => {
@@ -116,25 +121,26 @@ export const TaskRow = ({
   }, []);
 
   // Handle keyboard navigation for accessibility
-  const handleRowKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onOpenDetail(task);
-    }
-  }, [task, onOpenDetail]);
+  const handleRowKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onOpenDetail(task);
+      }
+    },
+    [task, onOpenDetail]
+  );
 
   // Priority class
-  const priorityClass = task.priority
-    ? `task-row--priority-${task.priority}`
-    : '';
+  const priorityClass = task.priority ? `task-row--priority-${task.priority}` : '';
 
   // Due date status
   const dueDateStatus = task.dueDate
-    ? (isOverdue(task.dueDate)
-        ? 'task-row--overdue'
-        : isDueToday(task.dueDate)
-          ? 'task-row--due-today'
-          : '')
+    ? isOverdue(task.dueDate)
+      ? 'task-row--overdue'
+      : isDueToday(task.dueDate)
+      ? 'task-row--due-today'
+      : ''
     : '';
 
   // Animation delay based on index
@@ -152,26 +158,34 @@ export const TaskRow = ({
         isCompleting && 'task-row--completing',
         priorityClass,
         dueDateStatus,
-      ].filter(Boolean).join(' ')}
+      ]
+        .filter(Boolean)
+        .join(' ')}
       style={animationStyle}
       onClick={handleRowClick}
       onDoubleClick={handleDoubleClick}
       role="button"
       tabIndex={0}
       onKeyDown={handleRowKeyDown}
-      aria-label={`Task: ${task.title}. ${task.completed ? 'Completed' : 'Not completed'}. Press Enter to open details.`}
+      aria-label={t('taskRowAriaLabel', {
+        title: task.title,
+        status: task.completed ? t('Completed') : t('Not completed'),
+      })}
       aria-expanded={false}
     >
       {/* Checkbox */}
       <button
         className="task-row__checkbox"
-        onClick={(e) => { e.stopPropagation(); handleToggle(); }}
-        aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleToggle();
+        }}
+        aria-label={task.completed ? t('Mark as incomplete') : t('Mark as complete')}
         aria-checked={task.completed}
         role="checkbox"
       >
         {task.completed ? (
-          <CheckCircleIcon/>
+          <CheckCircleIcon className="task-row__checkbox-icon" aria-hidden="true" />
         ) : (
           <RadioButtonUncheckedIcon className="task-row__checkbox-icon" aria-hidden="true" />
         )}
@@ -189,72 +203,89 @@ export const TaskRow = ({
             onKeyDown={handleKeyDown}
             onClick={(e) => e.stopPropagation()}
             className="task-row__input"
-            aria-label="Edit task title"
-            aria-describedby="task-title-edit-hint"
+            aria-label={t('Edit task title')}
           />
         ) : (
           <span
             className="task-row__title"
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setIsEditing(true); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                setIsEditing(true);
+              }
+            }}
           >
             {task.title}
           </span>
         )}
-      </div>
 
-      {/* Metadata */}
-      <div className="task-row__meta" role="group" aria-label="Task metadata">
-        {/* Due Date */}
-        {task.dueDate && (
-          <span
-            className={[
-              'task-row__due-date',
-              isOverdue(task.dueDate) && 'task-row__due-date--overdue',
-              isDueToday(task.dueDate) && 'task-row__due-date--today',
-            ].filter(Boolean).join(' ')}
-          >
-            <CalendarTodayIcon className="task-row__icon" aria-hidden="true" />
-            <span className="sr-only">Due: </span>
-            <DateDisplay date={task.dueDate} variant="compact" />
-          </span>
-        )}
+        {/* Metadata */}
+        <div
+          className="task-row__meta"
+          role="group"
+          aria-label={t('Task metadata')}
+        >
+          {/* Due Date */}
+          {task.dueDate && (
+            <span
+              className={[
+                'task-row__due-date',
+                isOverdue(task.dueDate) && 'task-row__due-date--overdue',
+                isDueToday(task.dueDate) && 'task-row__due-date--today',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <CalendarTodayIcon className="task-row__icon" aria-hidden="true" />
+              <span className="sr-only">{t('Due')}</span>
+              <DateDisplay date={task.dueDate} variant="compact" />
+            </span>
+          )}
 
-        {/* Priority Chip */}
-        {task.priority && task.priority !== 'none' && (
-          <span
-            className={[
-              'task-row__priority',
-              `task-row__priority--${task.priority}`,
-            ].filter(Boolean).join(' ')}
-            aria-label={`Priority: ${task.priority}`}
-          >
-            {task.priority === 'high' && '!'}
-            {task.priority === 'medium' && '!!'}
-            {task.priority === 'low' && '↓'}
-          </span>
-        )}
+          {/* Priority Chip */}
+          {task.priority && task.priority !== 'none' && (
+            <span
+              className={[
+                'task-row__priority',
+                `task-row__priority--${task.priority}`,
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              aria-label={t('priorityAriaLabel', { priority: t(task.priority) })}
+            >
+              {t(task.priority)}
+            </span>
+          )}
 
-        {/* Tags */}
-        {task.tags?.map((tag) => (
-          <span
-            key={tag.id}
-            className="task-row__tag"
-            style={{ '--tag-color': tag.color }}
-            aria-label={`Tag: ${tag.name}`}
-          >
-            {tag.name}
-          </span>
-        ))}
+          {/* Tags */}
+          {task.tags?.map((tag) => (
+            <span
+              key={tag.id}
+              className="task-row__tag"
+              style={{ '--tag-color': tag.color }}
+              aria-label={t('tagAriaLabel', { name: tag.name })}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="task-row__actions" role="group" aria-label="Task actions">
+      <div
+        className="task-row__actions"
+        role="group"
+        aria-label={t('Task actions')}
+      >
         <button
           className="task-row__action"
-          onClick={(e) => { e.stopPropagation(); onOpenDetail(task); }}
-          aria-label="Open task details"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenDetail(task);
+          }}
+          aria-label={t('Open task details')}
         >
           <ChevronRightIcon className="task-row__action-icon" aria-hidden="true" />
         </button>
@@ -264,5 +295,4 @@ export const TaskRow = ({
 };
 
 TaskRow.displayName = 'TaskRow';
-
 export default TaskRow;

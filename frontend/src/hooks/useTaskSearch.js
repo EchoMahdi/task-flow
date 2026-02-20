@@ -12,7 +12,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { taskSearchService } from '../services/taskSearchService';
+import { taskSearchService } from '@/services/taskSearchService';
 
 /**
  * Custom hook for task search with debouncing and cancellation

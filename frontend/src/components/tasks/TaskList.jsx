@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DateDisplay from '../../ui/DateDisplay';
+import DateDisplay from '@/components/ui/DateDisplay';
 
 
 function TaskList({ tasks, onToggleComplete, onEdit, onDelete, loading }) {

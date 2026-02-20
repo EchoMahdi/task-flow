@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { useTranslation } from '../context/I18nContext';
-import { TaskCalendar, CalendarTaskItem } from '../components/tasks';
-import TaskModal from '../components/tasks/TaskModal';
-import toastService from '../services/toastService';
+import { useTranslation } from '@/context/I18nContext';
+import { TaskCalendar, CalendarTaskItem } from '@/components/tasks';
+import TaskModal from '@/components/tasks/TaskModal';
+import toastService from '@/services/toastService';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 

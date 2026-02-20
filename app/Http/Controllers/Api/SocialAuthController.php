@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthResource;
 use App\Models\SocialAccount;
 use App\Models\User;
-use App\Services\AuthService;
 use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,16 +16,13 @@ use App\Http\Controllers\Api\SocialAuth\SocialAuthHandlerInterface;
 
 class SocialAuthController extends Controller
 {
-    protected AuthService $authService;
     protected TranslationService $translator;
     protected SocialAuthHandlerFactory $handlerFactory;
 
     public function __construct(
-        AuthService $authService,
         TranslationService $translator,
         SocialAuthHandlerFactory $handlerFactory
     ) {
-        $this->authService = $authService;
         $this->translator = $translator;
         $this->handlerFactory = $handlerFactory;
     }
@@ -56,6 +52,7 @@ class SocialAuthController extends Controller
 
     /**
      * Handle provider callback and authenticate user.
+     * Uses Laravel Fortify for session authentication.
      */
     public function callback(string $provider): JsonResponse
     {
@@ -70,6 +67,14 @@ class SocialAuthController extends Controller
             $handler = $this->handlerFactory->getHandler($provider);
             $socialUser = $handler->getUser();
 
+            // Validate OAuth response
+            if (!$socialUser->getEmail()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to retrieve email from provider',
+                ], 400);
+            }
+
             $result = DB::transaction(function () use ($handler, $socialUser) {
                 return $this->handleSocialAuth($handler, $socialUser);
             });
@@ -77,7 +82,10 @@ class SocialAuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $this->translator->get('auth.login.success'),
-                'data' => new AuthResource($result),
+                'data' => [
+                    'user' => new \App\Http\Resources\UserResource($result['user']),
+                    'token' => $result['token'],
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -89,20 +97,24 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Handle social authentication and create session.
+     * Handle social authentication and create session using Fortify.
      */
     protected function handleSocialAuth(SocialAuthHandlerInterface $handler, $socialUser): array
     {
         $user = $handler->handleUser($socialUser);
 
-        // Create session and token
-        $session = $this->authService->createSession($user);
-        $token = $user->createToken('auth-token', ['*'], $session->expires_at)->plainTextToken;
+        // Use Fortify to authenticate user via session
+        Auth::login($user);
+
+        // Regenerate session to prevent session fixation
+        request()->session()->regenerate();
+
+        // Create Sanctum token for API access
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return [
             'user' => $user,
             'token' => $token,
-            'session' => $session,
         ];
     }
 

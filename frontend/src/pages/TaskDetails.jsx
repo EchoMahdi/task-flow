@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { AppLayout } from '../components/layout/index';
+import { AppLayout } from '@/components/layout/index';
 import { 
   Card, 
   CardContent, 
@@ -22,9 +22,9 @@ import {
   IconButton,
   TextField
 } from '@mui/material';
-import PageHeader from '../components/ui/PageHeader';
-import DateDisplay from '../components/ui/DateDisplay';
-import { subtaskService } from '../services/subtaskService';
+import PageHeader from '@/components/ui/PageHeader';
+import DateDisplay from '@/components/ui/DateDisplay';
+import { subtaskService } from '@/services/subtaskService';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

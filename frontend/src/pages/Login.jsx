@@ -1,30 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTranslation } from '../context/I18nContext';
-import { AuthLayout } from '../components/layout/index';
-import { Button, TextField, Checkbox, Alert, Card, CardContent, Box, Typography, InputAdornment, IconButton } from '@mui/material';
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import { socialAuthService } from '../services/socialAuthService';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import GoogleIcon from '@mui/icons-material/Google';
-import GitHubIcon from '@mui/icons-material/GitHub';
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/context/I18nContext";
+import { AuthLayout } from "@/components/layout/index";
+import {
+  Button,
+  TextField,
+  Checkbox,
+  Alert,
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import { socialAuthService } from "@/services/socialAuthService";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import GoogleIcon from "@mui/icons-material/Google";
+import GitHubIcon from "@mui/icons-material/GitHub";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     remember: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [apiError, setApiError] = useState("");
   const [socialLoading, setSocialLoading] = useState({});
 
   // Popup reference for social login
@@ -35,14 +46,14 @@ const Login = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
     // Clear error when user types
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     if (apiError) {
-      setApiError('');
+      setApiError("");
     }
   };
 
@@ -50,15 +61,15 @@ const Login = () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = t('required', { attribute: t('Email') });
+      newErrors.email = t("required", { attribute: t("Email") });
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('Email', { attribute: t('Email') });
+      newErrors.email = t("Email", { attribute: t("Email") });
     }
 
     if (!formData.password) {
-      newErrors.password = t('Required', { attribute: t('Password') });
+      newErrors.password = t("Required", { attribute: t("Password") });
     } else if (formData.password.length < 6) {
-      newErrors.password = t('Min', { attribute: t('Password'), min: 6 });
+      newErrors.password = t("Min", { attribute: t("Password"), min: 6 });
     }
 
     setErrors(newErrors);
@@ -71,13 +82,13 @@ const Login = () => {
     if (!validate()) return;
 
     setLoading(true);
-    setApiError('');
+    setApiError("");
 
     try {
       await login(formData.email, formData.password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error) {
-      setApiError(error.message || t('Login failed. Please try again'));
+      setApiError(error.message || t("Login failed. Please try again"));
     } finally {
       setLoading(false);
     }
@@ -86,7 +97,7 @@ const Login = () => {
   // Handle social login
   const handleSocialLogin = async (provider) => {
     setSocialLoading((prev) => ({ ...prev, [provider]: true }));
-    setApiError('');
+    setApiError("");
 
     try {
       const popup = await socialAuthService.loginWithProvider(provider);
@@ -94,7 +105,7 @@ const Login = () => {
 
       // Check if popup was blocked
       if (!popup || popup.closed) {
-        throw new Error('Popup was blocked. Please allow popups for this site');
+        throw new Error("Popup was blocked. Please allow popups for this site");
       }
 
       // Start polling for popup to close (indicates auth completed)
@@ -107,9 +118,8 @@ const Login = () => {
           checkAuthStatus();
         }
       }, 500);
-
     } catch (error) {
-      setApiError(error.message || t('Login failed. Please try again'));
+      setApiError(error.message || t("Login failed. Please try again"));
     } finally {
       setSocialLoading((prev) => ({ ...prev, [provider]: false }));
     }
@@ -120,10 +130,10 @@ const Login = () => {
     try {
       const user = await useAuth.getState().getUser();
       if (user) {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
     }
   };
 
@@ -141,13 +151,23 @@ const Login = () => {
 
   return (
     <AuthLayout>
-      <Box sx={{ width: '100%', maxWidth: 432, animation: 'fadeIn 0.3s ease-in-out' }}>
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 432,
+          animation: "fadeIn 0.3s ease-in-out",
+        }}
+      >
         <Card sx={{ boxShadow: 4 }}>
           <CardContent sx={{ p: 4 }}>
             {/* Header */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                {t('Login to your account')}
+            <Box sx={{ textAlign: "center", mb: 4 }}>
+              <Typography
+                variant="h5"
+                component="h1"
+                sx={{ fontWeight: 700, mb: 1 }}
+              >
+                {t("Login to your account")}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t("Enter your email and password to access your account")}
@@ -156,19 +176,22 @@ const Login = () => {
 
             {/* Error Alert */}
             {apiError && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity="error"
                 sx={{ mb: 3 }}
-                onClose={() => setApiError('')}
+                onClose={() => setApiError("")}
               >
                 {apiError}
               </Alert>
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <form
+              onSubmit={handleSubmit}
+              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+            >
               <TextField
-                label={t('Email')}
+                label={t("Email")}
                 type="email"
                 name="email"
                 value={formData.email}
@@ -190,12 +213,12 @@ const Login = () => {
 
               <Box>
                 <TextField
-                  label={t('Password')}
-                  type={showPassword ? 'text' : 'password'}
+                  label={t("Password")}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder={t("••••••••")}
+                  placeholder="••••••••"
                   error={!!errors.password}
                   helperText={errors.password}
                   InputProps={{
@@ -211,7 +234,11 @@ const Login = () => {
                           edge="end"
                           size="small"
                         >
-                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPassword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -219,30 +246,29 @@ const Login = () => {
                   autoComplete="current-password"
                   fullWidth
                 />
-                <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary"
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? t('Hide password') : t('Show password')}
-                  </Typography>
-                </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Checkbox
                   name="remember"
                   checked={formData.remember}
                   onChange={handleChange}
-                  label={t('Remember me')}
+                  label={t("Remember me")}
                 />
                 <Link
                   to="/forgot-password"
-                  style={{ fontSize: '0.875rem', color: '#1976d2', textDecoration: 'none' }}
+                  style={{
+                    fontSize: "0.875rem",
+                    textDecoration: "none",
+                  }}
                 >
-                  {t('Forgot password')}
+                  {t("Forgot password")}
                 </Link>
               </Box>
 
@@ -252,28 +278,56 @@ const Login = () => {
                 fullWidth
                 disabled={loading}
               >
-                {t('Login')}
+                {t("Login")}
               </Button>
             </form>
 
             {/* Divider */}
-            <Box sx={{ position: 'relative', my: 3 }}>
-              <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ width: '100%', borderTop: '1px solid', borderColor: 'divider' }} />
+            <Box sx={{ position: "relative", my: 3 }}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderTop: "1px solid",
+                    borderColor: "divider",
+                  }}
+                />
               </Box>
-              <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-                <Typography variant="caption" sx={{ px: 2, bgcolor: 'background.paper', color: 'text.secondary' }}>
-                  {t('Or continue with')}
+              <Box
+                sx={{
+                  position: "relative",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    px: 2,
+                    bgcolor: "background.paper",
+                    color: "text.secondary",
+                  }}
+                >
+                  {t("Or continue with")}
                 </Typography>
               </Box>
             </Box>
 
             {/* Social Login */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+            >
               <Button
                 variant="outlined"
                 type="button"
-                onClick={() => handleSocialLogin('google')}
+                onClick={() => handleSocialLogin("google")}
                 disabled={socialLoading.google}
                 startIcon={<GoogleIcon />}
               >
@@ -282,7 +336,7 @@ const Login = () => {
               <Button
                 variant="outlined"
                 type="button"
-                onClick={() => handleSocialLogin('github')}
+                onClick={() => handleSocialLogin("github")}
                 disabled={socialLoading.github}
                 startIcon={<GitHubIcon />}
               >
@@ -291,14 +345,17 @@ const Login = () => {
             </Box>
 
             {/* Sign up link */}
-            <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Box sx={{ mt: 4, textAlign: "center" }}>
               <Typography variant="body2" color="text.secondary">
-                {t('auth.login.no_account')}{' '}
+                {t("Auth login no account")}{" "}
                 <Link
-                  to="/register"
-                  style={{ color: '#1976d2', fontWeight: 500, textDecoration: 'none' }}
+                  to="/app/register"
+                  style={{
+                    fontWeight: 500,
+                    textDecoration: "none",
+                  }}
                 >
-                  {t('Sign up')}
+                  {t("Sign up")}
                 </Link>
               </Typography>
             </Box>

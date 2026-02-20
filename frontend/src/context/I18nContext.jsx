@@ -14,7 +14,7 @@ import {
   translate,
   isRTL,
   getSupportedLanguages,
-} from "../services/i18nService";
+} from "@/services/i18nService";
 
 /**
  * API service for user preferences

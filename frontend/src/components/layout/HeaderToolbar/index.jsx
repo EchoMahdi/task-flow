@@ -1,42 +1,31 @@
 /**
  * ============================================================================
  * HeaderToolbar Component
- * 
+ *
  * Professional application header with navigation, search, actions, and controls.
  * Fully integrated with theme, language, notifications, and user state.
  * ============================================================================
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useTranslation } from '@/context/I18nContext';
-import LanguageSwitcher from '@/components/ui/LanguageSwitcher/LanguageSwitcher';
-import { api } from '@/services/authService';
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/context/I18nContext";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher/LanguageSwitcher";
+import { api } from "@/services/authService";
+import { useThemeMode, useColors, useSpacing } from "@/theme";
+import HeaderToolbarStyles from "./HeaderToolbar.module.css";
+import SearchInput from "@/components/ui/SearchInput";
+import useTaskSearch from "@/hooks/useTaskSearch";
 import {
-  useThemeMode,
-  useDirection,
-  useColors,
-  useSpacing,
-  useBorderRadius,
-  useFocusRing,
-} from '@/theme';
-import HeaderToolbarStyles from './HeaderToolbar.module.css';
-import SearchInput from '@/components/ui/SearchInput';
-import useTaskSearch from '@/hooks/useTaskSearch';
-
-// MUI Icons - Replacing inline SVG icons
-import {
-  CheckBox  as LogoIcon,
+  CheckBox as LogoIcon,
   Search as SearchIcon,
   Add as AddTaskIcon,
   Notifications as NotificationsIcon,
-  Person as UserIcon,
   LightMode as ThemeLightIcon,
   DarkMode as ThemeDarkIcon,
   Computer as ThemeSystemIcon,
   KeyboardArrowDown as ChevronDownIcon,
-  Close as CloseIcon,
   ViewList as ViewListIcon,
   Dashboard as ViewBoardIcon,
   FilterList as FilterIcon,
@@ -49,49 +38,40 @@ import {
   AccountCircle as ProfileIcon,
   Menu as MenuIcon,
   Check as CheckIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 // ============================================================================
 // Search Component
 // ============================================================================
-
 function SearchSection({ onSearch }) {
   const { t } = useTranslation();
   const colors = useColors();
   const navigate = useNavigate();
 
-  // Use the production-ready search hook
   const {
     query,
     results,
     loading,
     suggestions,
-    suggestionsLoading,
     setQuery,
     clearSearch,
     fetchSuggestions,
-    performSearch,
-  } = useTaskSearch({
-    debounceMs: 300,
-    autoSearch: false,
-  });
+  } = useTaskSearch({ debounceMs: 300, autoSearch: false });
 
-  // Navigate to search results page when search is submitted
   const handleSubmit = useCallback(
     (searchValue) => {
       if (searchValue.trim()) {
         navigate(`/tasks?search=${encodeURIComponent(searchValue.trim())}`);
       }
     },
-    [navigate]
+    [navigate],
   );
 
-  // Handle suggestion selection
   const handleSuggestionSelect = useCallback(
     (suggestion) => {
       navigate(`/tasks?search=${encodeURIComponent(suggestion)}`);
     },
-    [navigate]
+    [navigate],
   );
 
   return (
@@ -101,35 +81,37 @@ function SearchSection({ onSearch }) {
         onChange={setQuery}
         onSubmit={handleSubmit}
         onClear={clearSearch}
-        placeholder={t('Search') }
+        placeholder={t("Search tasks")}
         loading={loading}
         suggestions={suggestions}
         showSuggestions={true}
         onSuggestionSelect={fetchSuggestions}
         size="medium"
         fullWidth={true}
-        ariaLabel={t('Search')}
+        ariaLabel={t("Search tasks")}
         style={{
-          '--search-bg': colors.background.secondary,
-          '--search-border': colors.border.default,
-          '--search-placeholder': colors.text.muted,
-          '--search-text': colors.text.primary,
-          '--search-focus': colors.primary[500],
-          '--search-focus-ring': `${colors.primary[500]}20`,
-          '--search-icon': colors.text.muted,
+          "--search-bg": colors.background.secondary,
+          "--search-border": colors.border.default,
+          "--search-placeholder": colors.text.muted,
+          "--search-text": colors.text.primary,
+          "--search-focus": colors.primary500,
+          "--search-focus-ring": colors.primary50020,
+          "--search-icon": colors.text.muted,
         }}
       />
-      
+
       {/* Quick search results dropdown */}
       {results.length > 0 && query && (
         <div className={HeaderToolbarStyles.searchResultsDropdown}>
           <div className={HeaderToolbarStyles.searchResultsHeader}>
-            <span>{t('Results', { count: results.length })}</span>
+            <span>{t("resultsCount", { count: results.length })}</span>
             <button
-              onClick={() => navigate(`/tasks?search=${encodeURIComponent(query)}`)}
+              onClick={() =>
+                navigate(`/tasks?search=${encodeURIComponent(query)}`)
+              }
               className={HeaderToolbarStyles.viewAllLink}
             >
-              {t('View all results')}
+              {t("View all results")}
             </button>
           </div>
           {results.slice(0, 5).map((task) => (
@@ -138,7 +120,9 @@ function SearchSection({ onSearch }) {
               className={HeaderToolbarStyles.searchResultItem}
               onClick={() => navigate(`/tasks/${task.id}`)}
             >
-              <span className={HeaderToolbarStyles.resultTitle}>{task.title}</span>
+              <span className={HeaderToolbarStyles.resultTitle}>
+                {task.title}
+              </span>
               {task.project && (
                 <span className={HeaderToolbarStyles.resultProject}>
                   {task.project.name}
@@ -155,24 +139,18 @@ function SearchSection({ onSearch }) {
 // ============================================================================
 // Theme Toggle Component
 // ============================================================================
-
-function ThemeToggle({ variant = 'dropdown' }) {
-  const { mode, setThemeMode, toggleThemeMode, availableModes } = useThemeMode();
+function ThemeToggle({ variant = "dropdown" }) {
+  const { t } = useTranslation();
+  const { mode, setThemeMode, toggleThemeMode, availableModes } =
+    useThemeMode();
   const colors = useColors();
-  const spacing = useSpacing();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const modeIcons = {
-    light: <ThemeLightIcon />,
-    dark: <ThemeDarkIcon />,
-    system: <ThemeSystemIcon />,
-  };
-
-  const modeLabels = {
-    light: 'Light',
-    dark: 'Dark',
-    system: 'System',
+    light: ThemeLightIcon,
+    dark: ThemeDarkIcon,
+    system: ThemeSystemIcon,
   };
 
   // Close dropdown on outside click
@@ -182,23 +160,33 @@ function ThemeToggle({ variant = 'dropdown' }) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (variant === 'toggle') {
+  const modeLabels = {
+    light: t("Light"),
+    dark: t("Dark"),
+    system: t("System"),
+  };
+
+  if (variant === "toggle") {
+    const Icon = mode === "dark" ? ThemeLightIcon : ThemeDarkIcon;
     return (
       <button
         onClick={toggleThemeMode}
         className={HeaderToolbarStyles.iconButton}
-        aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-        title={`Current mode: ${mode}`}
+        aria-label={t("switchToMode", {
+          mode: mode === "dark" ? t("light") : t("dark"),
+        })}
+        title={t("currentMode", { mode })}
       >
-        {mode === 'dark' ? <ThemeLightIcon /> : <ThemeDarkIcon />}
+        <Icon />
       </button>
     );
   }
+
+  const CurrentIcon = modeIcons[mode];
 
   return (
     <div ref={dropdownRef} className={HeaderToolbarStyles.dropdown}>
@@ -207,10 +195,10 @@ function ThemeToggle({ variant = 'dropdown' }) {
         className={HeaderToolbarStyles.dropdownTrigger}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        aria-label="Theme settings"
+        aria-label={t("Theme settings")}
       >
         <span className={HeaderToolbarStyles.triggerIcon}>
-          {modeIcons[mode]}
+          <CurrentIcon />
         </span>
         <span className={HeaderToolbarStyles.triggerLabel}>
           {modeLabels[mode]}
@@ -227,32 +215,33 @@ function ThemeToggle({ variant = 'dropdown' }) {
           <div
             className={HeaderToolbarStyles.dropdownMenu}
             style={{
-              '--dropdown-bg': colors.surface.default,
-              '--dropdown-border': colors.border.default,
+              "--dropdown-bg": colors.surface.default,
+              "--dropdown-border": colors.border.default,
             }}
           >
-            {availableModes.map((m) => (
-              <button
-                key={m}
-                onClick={() => {
-                  setThemeMode(m);
-                  setIsOpen(false);
-                }}
-                className={`${HeaderToolbarStyles.dropdownItem} ${
-                  mode === m ? HeaderToolbarStyles.active : ''
-                }`}
-              >
-                <span className={HeaderToolbarStyles.dropdownItemIcon}>
-                  {modeIcons[m]}
-                </span>
-                <span>{modeLabels[m]}</span>
-                {mode === m && (
-                  <span className={HeaderToolbarStyles.checkmark}>
-                    <CheckIcon />
+            {availableModes.map((m) => {
+              const ModeIcon = modeIcons[m];
+              return (
+                <button
+                  key={m}
+                  onClick={() => {
+                    setThemeMode(m);
+                    setIsOpen(false);
+                  }}
+                  className={`${HeaderToolbarStyles.dropdownItem} ${mode === m ? HeaderToolbarStyles.active : ""}`}
+                >
+                  <span className={HeaderToolbarStyles.dropdownItemIcon}>
+                    <ModeIcon />
                   </span>
-                )}
-              </button>
-            ))}
+                  <span>{modeLabels[m]}</span>
+                  {mode === m && (
+                    <span className={HeaderToolbarStyles.checkmark}>
+                      <CheckIcon />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </>
       )}
@@ -261,13 +250,8 @@ function ThemeToggle({ variant = 'dropdown' }) {
 }
 
 // ============================================================================
-// Language Switcher Component
-// ============================================================================
-
-// ============================================================================
 // Notification Panel Component
 // ============================================================================
-
 function NotificationPanel({ onClose }) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -275,40 +259,9 @@ function NotificationPanel({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch notifications from real API
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await api.get('/notifications/history');
-        const data = response.data.data || [];
-        // Transform API data to match component format
-        const transformedNotifications = data.slice(0, 5).map(notification => ({
-          id: notification.id,
-          title: notification.title,
-          message: notification.message,
-          time: formatTimestamp(notification.created_at || notification.timestamp),
-          read: notification.read,
-          type: notification.type,
-        }));
-        setNotifications(transformedNotifications);
-      } catch (err) {
-        console.error('Failed to fetch notifications:', err);
-        setError('Failed to load notifications');
-        // Fallback to empty on error
-        setNotifications([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
   // Format timestamp helper
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
+    if (!timestamp) return "...";
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now - date;
@@ -316,51 +269,78 @@ function NotificationPanel({ onClose }) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
+    if (diffMins < 1) return t("Just now");
+    if (diffMins < 60) return t("minutesAgo", { count: diffMins });
+    if (diffHours < 24) return t("hoursAgo", { count: diffHours });
+    if (diffDays < 7) return t("daysAgo", { count: diffDays });
     return date.toLocaleDateString();
   };
+
+  // Fetch notifications from real API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.get("notifications/history");
+        const data = response.data.data;
+        const transformedNotifications = data
+          .slice(0, 5)
+          .map((notification) => ({
+            id: notification.id,
+            title: notification.title,
+            message: notification.message,
+            time: formatTimestamp(
+              notification.createdat || notification.timestamp,
+            ),
+            read: notification.read,
+            type: notification.type,
+          }));
+        setNotifications(transformedNotifications);
+      } catch (err) {
+        console.error("Failed to fetch notifications", err);
+        setError(t("Failed to load notifications"));
+        setNotifications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   // Mark all as read via API
   const handleMarkAllRead = async () => {
     try {
-      await api.post('/notifications/mark-all-read');
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      await api.post("notifications/mark-all-read");
     } catch (err) {
-      console.error('Failed to mark all as read:', err);
-      // Optimistic update even on error
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      console.error("Failed to mark all as read", err);
     }
+    // Optimistic update
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <>
-      <div
-        className={HeaderToolbarStyles.dropdownBackdrop}
-        onClick={onClose}
-      />
+      <div className={HeaderToolbarStyles.dropdownBackdrop} onClick={onClose} />
       <div
         className={HeaderToolbarStyles.notificationPanel}
         style={{
-          '--panel-bg': colors.surface.default,
-          '--panel-border': colors.border.default,
+          "--panel-bg": colors.surface.default,
+          "--panel-border": colors.border.default,
         }}
         role="dialog"
-        aria-label="Notifications"
+        aria-label={t("Notifications")}
       >
         <div className={HeaderToolbarStyles.panelHeader}>
-          <h3>{t('Notifications')}</h3>
+          <h3>{t("Notifications")}</h3>
           {unreadCount > 0 && (
             <button
               className={HeaderToolbarStyles.markAllRead}
               onClick={handleMarkAllRead}
             >
-              {t('Mark all as read')}
+              {t("Mark all as read")}
             </button>
           )}
         </div>
@@ -368,19 +348,17 @@ function NotificationPanel({ onClose }) {
         <div className={HeaderToolbarStyles.notificationList}>
           {loading ? (
             <div className={HeaderToolbarStyles.loadingState}>
-              {t('Loading notifications')}
+              {t("Loading notifications")}
             </div>
           ) : notifications.length === 0 ? (
             <div className={HeaderToolbarStyles.emptyState}>
-              {t('No notifications')}
+              {t("No notifications")}
             </div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`${HeaderToolbarStyles.notificationItem} ${
-                  !notification.read ? HeaderToolbarStyles.unread : ''
-                }`}
+                className={`${HeaderToolbarStyles.notificationItem} ${!notification.read ? HeaderToolbarStyles.unread : ""}`}
               >
                 <div className={HeaderToolbarStyles.notificationContent}>
                   <strong>{notification.title}</strong>
@@ -405,7 +383,7 @@ function NotificationPanel({ onClose }) {
               onClose();
             }}
           >
-            {t('View all notifications')}
+            {t("View all notifications")}
           </a>
         </div>
       </div>
@@ -416,7 +394,6 @@ function NotificationPanel({ onClose }) {
 // ============================================================================
 // User Menu Component
 // ============================================================================
-
 function UserMenu({ user, onLogout }) {
   const { t } = useTranslation();
   const colors = useColors();
@@ -429,19 +406,18 @@ function UserMenu({ user, onLogout }) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const userInitials = user?.name
     ? user.name
-        .split(' ')
+        .split(" ")
         .map((n) => n[0])
-        .join('')
+        .join("")
         .toUpperCase()
         .slice(0, 2)
-    : 'U';
+    : "U";
 
   return (
     <div ref={dropdownRef} className={HeaderToolbarStyles.userMenu}>
@@ -450,11 +426,11 @@ function UserMenu({ user, onLogout }) {
         className={HeaderToolbarStyles.userMenuTrigger}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        aria-label="User menu"
+        aria-label={t("User menu")}
       >
         <div
           className={HeaderToolbarStyles.userAvatar}
-          style={{ backgroundColor: colors.primary[500] }}
+          style={{ backgroundColor: colors.primary500 }}
         >
           {user?.avatar ? (
             <img src={user.avatar} alt={user.name} />
@@ -464,7 +440,7 @@ function UserMenu({ user, onLogout }) {
         </div>
         <div className={HeaderToolbarStyles.userInfo}>
           <span className={HeaderToolbarStyles.userName}>
-            {user?.name || 'User'}
+            {user?.name || t("User")}
           </span>
           <span className={HeaderToolbarStyles.userEmail}>{user?.email}</span>
         </div>
@@ -480,14 +456,15 @@ function UserMenu({ user, onLogout }) {
           <div
             className={HeaderToolbarStyles.dropdownMenu}
             style={{
-              '--dropdown-bg': colors.surface.default,
-              '--dropdown-border': colors.border.default,
+              "--dropdown-bg": colors.surface.default,
+              "--dropdown-border": colors.border.default,
             }}
           >
+            {/* User Header */}
             <div className={HeaderToolbarStyles.userMenuHeader}>
               <div
                 className={HeaderToolbarStyles.userAvatarLarge}
-                style={{ backgroundColor: colors.primary[500] }}
+                style={{ backgroundColor: colors.primary500 }}
               >
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} />
@@ -496,7 +473,7 @@ function UserMenu({ user, onLogout }) {
                 )}
               </div>
               <div>
-                <strong>{user?.name || 'User'}</strong>
+                <strong>{user?.name || t("User")}</strong>
                 <span>{user?.email}</span>
               </div>
             </div>
@@ -505,11 +482,11 @@ function UserMenu({ user, onLogout }) {
 
             <a href="/profile" className={HeaderToolbarStyles.dropdownItem}>
               <ProfileIcon />
-              <span>{t('Profile')}</span>
+              <span>{t("Profile")}</span>
             </a>
             <a href="/settings" className={HeaderToolbarStyles.dropdownItem}>
               <SettingsIcon />
-              <span>{t('Settings')}</span>
+              <span>{t("Settings")}</span>
             </a>
 
             <div className={HeaderToolbarStyles.dropdownDivider} />
@@ -522,7 +499,7 @@ function UserMenu({ user, onLogout }) {
               className={HeaderToolbarStyles.dropdownItem}
             >
               <LogoutIcon />
-              <span>{t('Logout')}</span>
+              <span>{t("Logout")}</span>
             </button>
           </div>
         </>
@@ -534,7 +511,6 @@ function UserMenu({ user, onLogout }) {
 // ============================================================================
 // View Controls Component
 // ============================================================================
-
 function ViewControls({
   currentView,
   onViewChange,
@@ -549,35 +525,34 @@ function ViewControls({
   const sortRef = useRef(null);
 
   const views = [
-    { id: 'list', icon: <ViewListIcon />, label: 'List' },
-    { id: 'board', icon: <ViewBoardIcon />, label: 'Board' },
+    { id: "list", icon: ViewListIcon, label: t("List") },
+    { id: "board", icon: ViewBoardIcon, label: t("Board") },
   ];
 
   const filters = [
-    { id: 'today', label: 'Today', icon: <TodayIcon /> },
-    { id: 'upcoming', label: 'Upcoming', icon: <UpcomingIcon /> },
-    { id: 'overdue', label: 'Overdue', icon: <OverdueIcon /> },
+    { id: "today", label: t("Today"), icon: TodayIcon },
+    { id: "upcoming", label: t("Upcoming"), icon: UpcomingIcon },
+    { id: "overdue", label: t("Overdue"), icon: OverdueIcon },
   ];
 
   const sortOptions = [
-    { id: 'date', label: 'Date' },
-    { id: 'priority', label: 'Priority' },
-    { id: 'name', label: 'Name' },
+    { id: "date", label: t("Date") },
+    { id: "priority", label: t("Priority") },
+    { id: "name", label: t("Name") },
   ];
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (filterRef.current && !filterRef.current.contains(e.target)) {
+      if (filterRef.current && !filterRef.current.contains(e.target))
         setIsFilterOpen(false);
-      }
-      if (sortRef.current && !sortRef.current.contains(e.target)) {
+      if (sortRef.current && !sortRef.current.contains(e.target))
         setIsSortOpen(false);
-      }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const activeFilter = filters.find((f) => f.id === currentFilter);
 
   return (
     <div className={HeaderToolbarStyles.viewControls}>
@@ -585,21 +560,22 @@ function ViewControls({
       <div
         className={HeaderToolbarStyles.viewToggle}
         role="group"
-        aria-label="View type"
+        aria-label={t("View type")}
       >
-        {views.map((view) => (
-          <button
-            key={view.id}
-            onClick={() => onViewChange?.(view.id)}
-            className={`${HeaderToolbarStyles.viewToggleBtn} ${
-              currentView === view.id ? HeaderToolbarStyles.active : ''
-            }`}
-            aria-pressed={currentView === view.id}
-            title={view.label}
-          >
-            {view.icon}
-          </button>
-        ))}
+        {views.map((view) => {
+          const Icon = view.icon;
+          return (
+            <button
+              key={view.id}
+              onClick={() => onViewChange?.(view.id)}
+              className={`${HeaderToolbarStyles.viewToggleBtn} ${currentView === view.id ? HeaderToolbarStyles.active : ""}`}
+              aria-pressed={currentView === view.id}
+              title={view.label}
+            >
+              <Icon />
+            </button>
+          );
+        })}
       </div>
 
       {/* Quick Filters */}
@@ -611,13 +587,8 @@ function ViewControls({
           aria-haspopup="true"
         >
           <FilterIcon />
-          <span>
-            {currentFilter
-              ? filters.find((f) => f.id === currentFilter)?.label
-              : t('Filter')}
-          </span>
+          <span>{activeFilter ? activeFilter.label : t("Filter")}</span>
         </button>
-
         {isFilterOpen && (
           <>
             <div
@@ -627,30 +598,31 @@ function ViewControls({
             <div
               className={HeaderToolbarStyles.dropdownMenu}
               style={{
-                '--dropdown-bg': colors.surface.default,
-                '--dropdown-border': colors.border.default,
+                "--dropdown-bg": colors.surface.default,
+                "--dropdown-border": colors.border.default,
               }}
             >
-              {filters.map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => {
-                    onFilterChange?.(filter.id);
-                    setIsFilterOpen(false);
-                  }}
-                  className={`${HeaderToolbarStyles.dropdownItem} ${
-                    currentFilter === filter.id ? HeaderToolbarStyles.active : ''
-                  }`}
-                >
-                  {filter.icon}
-                  <span>{filter.label}</span>
-                  {currentFilter === filter.id && (
-                    <span className={HeaderToolbarStyles.checkmark}>
-                      <CheckIcon />
-                    </span>
-                  )}
-                </button>
-              ))}
+              {filters.map((filter) => {
+                const Icon = filter.icon;
+                return (
+                  <button
+                    key={filter.id}
+                    onClick={() => {
+                      onFilterChange?.(filter.id);
+                      setIsFilterOpen(false);
+                    }}
+                    className={`${HeaderToolbarStyles.dropdownItem} ${currentFilter === filter.id ? HeaderToolbarStyles.active : ""}`}
+                  >
+                    <Icon />
+                    <span>{filter.label}</span>
+                    {currentFilter === filter.id && (
+                      <span className={HeaderToolbarStyles.checkmark}>
+                        <CheckIcon />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </>
         )}
@@ -665,9 +637,8 @@ function ViewControls({
           aria-haspopup="true"
         >
           <SortIcon />
-          <span>{t('Sort')}</span>
+          <span>{t("Sort")}</span>
         </button>
-
         {isSortOpen && (
           <>
             <div
@@ -677,8 +648,8 @@ function ViewControls({
             <div
               className={HeaderToolbarStyles.dropdownMenu}
               style={{
-                '--dropdown-bg': colors.surface.default,
-                '--dropdown-border': colors.border.default,
+                "--dropdown-bg": colors.surface.default,
+                "--dropdown-border": colors.border.default,
               }}
             >
               {sortOptions.map((option) => (
@@ -701,23 +672,22 @@ function ViewControls({
 // ============================================================================
 // Main HeaderToolbar Component
 // ============================================================================
-
 /**
  * HeaderToolbar - Professional application header
  * @param {Object} props
- * @param {Function} props.onAddTask - Callback when add task is clicked
- * @param {Function} props.onSearch - Callback when search query changes
- * @param {string} props.currentView - Current view (list/board)
- * @param {Function} props.onViewChange - Callback when view changes
- * @param {string} props.currentFilter - Current filter
- * @param {Function} props.onFilterChange - Callback when filter changes
- * @param {boolean} props.showViewControls - Show view controls
- * @param {boolean} props.showSearch - Show search input
+ * @param {Function} props.onAddTask
+ * @param {Function} props.onSearch
+ * @param {string} props.currentView
+ * @param {Function} props.onViewChange
+ * @param {string} props.currentFilter
+ * @param {Function} props.onFilterChange
+ * @param {boolean} props.showViewControls
+ * @param {boolean} props.showSearch
  */
 export function HeaderToolbar({
   onAddTask,
   onSearch,
-  currentView = 'list',
+  currentView = "list",
   onViewChange,
   currentFilter,
   onFilterChange,
@@ -725,7 +695,7 @@ export function HeaderToolbar({
   showSearch = true,
 }) {
   const { user, logout } = useAuth();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const colors = useColors();
@@ -733,21 +703,18 @@ export function HeaderToolbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
 
-  // Fetch unread notification count from real API
+  // Fetch unread notification count
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
-        const response = await api.get('/notifications/unread-count');
+        const response = await api.get("notifications/unread-count");
         setNotificationCount(response.data.count || 0);
       } catch (err) {
-        console.error('Failed to fetch notification count:', err);
-        // Fallback to 0 on error
+        console.error("Failed to fetch notification count", err);
         setNotificationCount(0);
       }
     };
-
     fetchNotificationCount();
-    // Poll for updates every 60 seconds
     const interval = setInterval(fetchNotificationCount, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -755,24 +722,24 @@ export function HeaderToolbar({
   // Determine current page title
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path === '/dashboard') return t('Dashboard');
-    if (path.startsWith('/tasks')) {
-      if (path === '/tasks') return t('Tasks');
-      if (path.includes('/new')) return t('Create Task');
-      return t('Task Details');
+    if (path === "/dashboard") return t("Dashboard");
+    if (path.startsWith("/tasks")) {
+      if (path === "/tasks") return t("Tasks");
+      if (path.includes("new")) return t("Create Task");
+      return t("Task Details");
     }
-    if (path === '/notifications') return t('Notifications');
-    if (path === '/profile') return t('Profile');
-    if (path === '/settings') return t('Settings');
-    return t('Task Flow');
+    if (path === "/notifications") return t("Notifications");
+    if (path === "/profile") return t("Profile");
+    if (path === "/settings") return t("Settings");
+    return t("Task Flow");
   };
 
   const handleLogout = useCallback(async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed", error);
     }
   }, [logout, navigate]);
 
@@ -780,42 +747,42 @@ export function HeaderToolbar({
     <header
       className={HeaderToolbarStyles.header}
       style={{
-        '--header-bg': colors.background.primary,
-        '--header-border': colors.border.default,
-        '--header-text': colors.text.primary,
+        "--header-bg": colors.background.primary,
+        "--header-border": colors.border.default,
+        "--header-text": colors.text.primary,
       }}
       role="banner"
     >
       <div className={HeaderToolbarStyles.container}>
-        {/* Left Section - Brand & Navigation */}
+        {/* Left Section */}
         <div className={HeaderToolbarStyles.sectionLeft}>
           {/* Mobile Menu Toggle */}
           <button
             className={HeaderToolbarStyles.iconButton}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            style={{ display: 'none' }}
+            aria-label={t("Toggle menu")}
+            style={{ display: "none" }}
           >
             <MenuIcon />
           </button>
 
-          {/* Logo/Home */}
+          {/* Logo */}
           <a
             href="/dashboard"
             className={HeaderToolbarStyles.logo}
             onClick={(e) => {
               e.preventDefault();
-              navigate('/dashboard');
+              navigate("/dashboard");
             }}
-            aria-label="Go to Inbox"
+            aria-label={t("Go to Dashboard")}
           >
             <LogoIcon />
             <span className={HeaderToolbarStyles.logoText}>
-              {t('Task Flow')}
+              {t("Task Flow")}
             </span>
           </a>
 
-          {/* Page Title (Desktop) */}
+          {/* Page Title */}
           <span className={HeaderToolbarStyles.pageTitle}>
             {getPageTitle()}
           </span>
@@ -828,21 +795,25 @@ export function HeaderToolbar({
           </div>
         )}
 
-        {/* Right Section - Actions */}
+        {/* Right Section */}
         <div className={HeaderToolbarStyles.sectionRight}>
           {/* Add Task Button */}
           <button
-            onClick={onAddTask?.onAddTask ? onAddTask.onAddTask : () => navigate('/tasks/new')}
+            onClick={() =>
+              onAddTask?.onAddTask
+                ? onAddTask.onAddTask()
+                : navigate("/tasks/new")
+            }
             className={HeaderToolbarStyles.addTaskButton}
-            aria-label={t('Add new task')}
+            aria-label={t("Add new task")}
           >
             <AddTaskIcon />
             <span className={HeaderToolbarStyles.addTaskText}>
-              {t('Add Task')}
+              {t("Add Task")}
             </span>
           </button>
 
-          {/* View Controls (Desktop) */}
+          {/* View Controls */}
           {showViewControls && (
             <ViewControls
               currentView={currentView}
@@ -864,18 +835,19 @@ export function HeaderToolbar({
               onClick={() => setShowNotifications(!showNotifications)}
               className={HeaderToolbarStyles.iconButton}
               aria-expanded={showNotifications}
-              aria-label={`Notifications${
-                notificationCount > 0 ? `, ${notificationCount} unread` : ''
-              }`}
+              aria-label={
+                notificationCount > 0
+                  ? t("notificationsWithCount", { count: notificationCount })
+                  : t("Notifications")
+              }
             >
               <NotificationsIcon />
               {notificationCount > 0 && (
                 <span className={HeaderToolbarStyles.notificationBadge}>
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {notificationCount > 9 ? "9+" : notificationCount}
                 </span>
               )}
             </button>
-
             {showNotifications && (
               <NotificationPanel onClose={() => setShowNotifications(false)} />
             )}

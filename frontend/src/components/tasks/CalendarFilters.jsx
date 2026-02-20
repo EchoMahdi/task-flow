@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from '../../context/I18nContext';
+import { useTranslation } from '@/context/I18nContext';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
@@ -13,7 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import Typography from '@mui/material/Typography';
-import { taskOptionsService } from '../../services/taskOptionsService';
+import { taskOptionsService } from '@/services/taskOptionsService';
 
 /**
  * CalendarFilters Component

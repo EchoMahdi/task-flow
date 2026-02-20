@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import dateService from '../../services/dateService';
-import datePreferenceService from '../../services/datePreferenceService';
+import dateService from '@/services/dateService';
+import datePreferenceService from '@/services/datePreferenceService';
 
 /**
  * DateDisplay Component

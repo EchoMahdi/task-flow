@@ -9,39 +9,21 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
+import { useTranslation } from '@/context/I18nContext';
 
 /**
  * Skeleton for a single nav item
  */
 export const NavItemSkeleton = ({ collapsed }) => (
   <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      px: 1.5,
-      py: 0.75,
-      minHeight: 36,
-    }}
+    className="nav-item nav-item--skeleton"
+    sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75 }}
   >
-    <Skeleton
-      variant="circular"
-      width={24}
-      height={24}
-      sx={{ flexShrink: 0 }}
-    />
+    <Skeleton variant="circular" width={20} height={20} />
     {!collapsed && (
       <>
-        <Skeleton
-          variant="text"
-          width="60%"
-          sx={{ ml: 1.5, flex: 1 }}
-        />
-        <Skeleton
-          variant="rounded"
-          width={20}
-          height={16}
-          sx={{ ml: 1 }}
-        />
+        <Skeleton variant="text" width="60%" height={20} />
+        <Skeleton variant="rounded" width={24} height={18} sx={{ ml: 'auto' }} />
       </>
     )}
   </Box>
@@ -50,29 +32,27 @@ export const NavItemSkeleton = ({ collapsed }) => (
 /**
  * Skeleton for a nav section
  */
-export const NavSectionSkeleton = ({ title = true, itemCount = 4, collapsed }) => (
-  <Box sx={{ mb: 1 }}>
+export const NavSectionSkeleton = ({
+  title = true,
+  itemCount = 4,
+  collapsed,
+}) => (
+  <Box className="nav-section nav-section--skeleton">
     {title && (
       <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          px: 1.5,
-          py: 1,
-          minHeight: 40,
-        }}
+        className="nav-section__header"
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.75 }}
       >
-        <Skeleton variant="circular" width={20} height={20} />
-        {!collapsed && (
-          <Skeleton variant="text" width="40%" sx={{ ml: 1 }} />
-        )}
+        <Skeleton variant="circular" width={18} height={18} />
+        {!collapsed && <Skeleton variant="text" width="40%" height={20} />}
       </Box>
     )}
-    <Stack spacing={0.5} sx={{ pl: collapsed ? 0 : 2 }}>
+
+    <Box className="nav-section__content">
       {Array.from({ length: itemCount }).map((_, index) => (
         <NavItemSkeleton key={index} collapsed={collapsed} />
       ))}
-    </Stack>
+    </Box>
   </Box>
 );
 
@@ -81,24 +61,14 @@ export const NavSectionSkeleton = ({ title = true, itemCount = 4, collapsed }) =
  */
 export const UserSectionSkeleton = ({ collapsed }) => (
   <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      px: 1.5,
-      py: 1.5,
-      minHeight: 56,
-    }}
+    className="nav-user nav-user--skeleton"
+    sx={{ display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, py: 1 }}
   >
-    <Skeleton
-      variant="circular"
-      width={40}
-      height={40}
-      sx={{ flexShrink: 0 }}
-    />
+    <Skeleton variant="circular" width={36} height={36} />
     {!collapsed && (
-      <Box sx={{ ml: 1.5, flex: 1 }}>
-        <Skeleton variant="text" width="80%" />
-        <Skeleton variant="text" width="60%" height={14} />
+      <Box sx={{ flex: 1 }}>
+        <Skeleton variant="text" width="60%" height={18} />
+        <Skeleton variant="text" width="45%" height={16} />
       </Box>
     )}
   </Box>
@@ -108,26 +78,35 @@ export const UserSectionSkeleton = ({ collapsed }) => (
  * Full navigation skeleton loader
  */
 const NavigationSkeleton = ({ collapsed = false }) => {
+  const { t } = useTranslation();
+
   return (
-    <Box sx={{ p: 1 }}>
+    <Box
+      aria-label={t('Loading navigation')}
+      aria-busy="true"
+      role="status"
+      sx={{ width: '100%' }}
+    >
       {/* User Section */}
       <UserSectionSkeleton collapsed={collapsed} />
-      
-      {/* Filters Section */}
-      <NavSectionSkeleton title="Filters" itemCount={3} collapsed={collapsed} />
-      
-      {/* Favorites Section */}
-      <NavSectionSkeleton title="Favorites" itemCount={2} collapsed={collapsed} />
-      
-      {/* Projects Section */}
-      <NavSectionSkeleton title="Projects" itemCount={4} collapsed={collapsed} />
-      
-      {/* Tags Section */}
-      <NavSectionSkeleton title="Tags" itemCount={3} collapsed={collapsed} />
-      
+
+      <Stack spacing={1} sx={{ mt: 1 }}>
+        {/* Filters Section */}
+        <NavSectionSkeleton title={true} itemCount={4} collapsed={collapsed} />
+
+        {/* Favorites Section */}
+        <NavSectionSkeleton title={true} itemCount={3} collapsed={collapsed} />
+
+        {/* Projects Section */}
+        <NavSectionSkeleton title={true} itemCount={5} collapsed={collapsed} />
+
+        {/* Tags Section */}
+        <NavSectionSkeleton title={true} itemCount={4} collapsed={collapsed} />
+      </Stack>
+
       {/* Bottom Section */}
-      <Box sx={{ mt: 2 }}>
-        <NavItemSkeleton collapsed={collapsed} />
+      <Box sx={{ mt: 2, px: 1.5 }}>
+        <Skeleton variant="rounded" width="100%" height={36} />
       </Box>
     </Box>
   );

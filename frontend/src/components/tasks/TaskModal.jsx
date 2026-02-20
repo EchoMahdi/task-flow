@@ -17,11 +17,11 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useTranslation } from '../../context/I18nContext';
+import { useTranslation } from '@/context/I18nContext';
 import LoadingButton from '@/components/ui/LoadingButton';
-import { useDateFormat } from '../../hooks/useDateFormat';
-import taskService from '../../services/taskService';
-import { taskOptionsService } from '../../services/taskOptionsService';
+import { useDateFormat } from '@/hooks/useDateFormat';
+import taskService from '@/services/taskService';
+import { taskOptionsService } from '@/services/taskOptionsService';
 
 /**
  * TaskModal Component

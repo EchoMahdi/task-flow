@@ -1,13 +1,14 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { StyledEngineProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
-import App from './App.jsx'
+import { router } from './router'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ToastProvider } from './components/ui/Toast.jsx'
 import { ThemeProvider , MUIThemeProvider } from './theme'
+import { I18nProvider } from './context/I18nContext.jsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,20 +21,18 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* DEBUG: Log provider wrapper order */}
-    {console.log('[main.jsx] Rendering providers in order: StyledEngineProvider -> ThemeProvider -> MUIThemeProvider -> QueryClientProvider -> BrowserRouter -> AuthProvider -> ToastProvider -> App') || true}
     <StyledEngineProvider injectFirst>
       <ThemeProvider persistToAPI={true}>
         <MUIThemeProvider>
           <CssBaseline />
           <QueryClientProvider client={queryClient}>
-            <BrowserRouter>
+            <I18nProvider>
               <AuthProvider>
                 <ToastProvider>
-                  <App />
+                  <RouterProvider router={router} />
                 </ToastProvider>
               </AuthProvider>
-            </BrowserRouter>
+            </I18nProvider>
           </QueryClientProvider>
         </MUIThemeProvider>
       </ThemeProvider>

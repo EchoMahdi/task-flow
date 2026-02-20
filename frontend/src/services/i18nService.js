@@ -1,5 +1,5 @@
-import fa from '../locales/fa.json'
-import en from '../locales/en.json'
+import fa from '@/locales/fa.json'
+import en from '@/locales/en.json'
 
 /**
  * i18n Service - Handles internationalization and language management

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthLayout } from '../components/layout/index';
-import { useTranslation } from '../context/I18nContext';
+import { AuthLayout } from '@/components/layout/index';
+import { useTranslation } from '@/context/I18nContext';
 import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyIcon from '@mui/icons-material/Key';
