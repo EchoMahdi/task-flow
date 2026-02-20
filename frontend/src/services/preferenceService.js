@@ -11,7 +11,8 @@ export const preferenceService = {
    * @returns {Promise<Object>} User preferences object
    */
   async getPreferences() {
-    const response = await api.get('/auth/me')
+    const response = await api.get('/auth/me');
+
     // Backend returns user with nested preferences relation
     return response.data.data.preferences || null
   },
@@ -79,6 +80,7 @@ export const preferenceService = {
    */
   async getProfile() {
     const response = await api.get('/auth/me')
+
     return response.data.data.profile || null
   },
 

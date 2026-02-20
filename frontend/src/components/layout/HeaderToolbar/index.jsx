@@ -802,7 +802,7 @@ export function HeaderToolbar({
             onClick={() =>
               onAddTask?.onAddTask
                 ? onAddTask.onAddTask()
-                : navigate("/tasks/new")
+                : navigate("/app/tasks/new")
             }
             className={HeaderToolbarStyles.addTaskButton}
             aria-label={t("Add new task")}

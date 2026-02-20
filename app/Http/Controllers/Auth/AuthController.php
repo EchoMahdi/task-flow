@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Http\Resources\AuthResource;
 use App\Http\Resources\SessionResource;
 use App\Models\User;
 use App\Services\AuthService;
@@ -117,7 +116,7 @@ class AuthController extends Controller
         // Revoke all Sanctum tokens
         $request->user()->tokens()->delete();
         
-        // Logout from session (Fortify)
+        // Logout from session 
         Auth::guard('web')->logout();
         
         // Invalidate session
@@ -187,9 +186,6 @@ class AuthController extends Controller
                 'data' => new UserResource($user),
             ]);
         } catch (ValidationException $e) {
-            Log::warning('updateProfile: Validation failed', [
-                'errors' => $e->errors(),
-            ]);
             return $this->translator->validationErrorResponse($e);
         }
     }

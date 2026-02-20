@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useTranslation } from "@/context/I18nContext";
+import { useAuthStore, useIsAuthenticated } from "@/stores/authStore";
+import { useTranslation } from "@/stores/i18nStore";
 import { AuthLayout } from "@/components/layout/index";
 import {
   Button,
@@ -28,7 +28,10 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, isAuthenticated } = useAuth();
+  
+  // Zustand store hooks
+  const login = useAuthStore((state) => state.login);
+  const isAuthenticated = useIsAuthenticated();
   const { t } = useTranslation();
   
   // Form state

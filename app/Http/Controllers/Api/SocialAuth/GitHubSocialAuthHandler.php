@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\SocialAuth;
 
 use App\Models\SocialAccount;
 use App\Models\User;
-use App\Services\AuthService;
 use Laravel\Socialite\Two\User as SocialiteUser;
 
 class GitHubSocialAuthHandler extends AbstractSocialAuthHandler

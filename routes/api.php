@@ -20,9 +20,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 require __DIR__.'/sanctum.php';
-require __DIR__.'/fortify-api.php';
 require __DIR__.'/api-notifications.php';
 require __DIR__.'/api-social.php';
+require __DIR__.'/auth.php';
 
 // Task Routes - Define specific routes BEFORE resource routes
 Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {

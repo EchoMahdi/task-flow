@@ -21,10 +21,8 @@ return [
     ],
     'providers' => ServiceProvider::defaultProviders()->merge([
         App\Providers\AppServiceProvider::class,
-        App\Providers\FortifyServiceProvider::class,
         App\Providers\SocialAuthServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
-        Laravel\Fortify\FortifyServiceProvider::class,
     ])->toArray(),
     'aliases' => Facade::defaultAliases()->merge([
         // Custom aliases

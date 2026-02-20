@@ -1,112 +1,53 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authService, initCsrf } from '@/services/authService'
+/**
+ * AuthContext - Backward Compatibility Layer
+ * 
+ * This file provides a compatibility layer for components using the old useAuth hook.
+ * New code should import directly from '@/stores/authStore'
+ * 
+ * @deprecated Import from '@/stores/authStore' instead
+ */
 
-const AuthContext = createContext(null)
+import { useAuthStore } from '@/stores/authStore'
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    // Initialize CSRF and check user on mount
-    const initAuth = async () => {
-      await initCsrf();
-      try {
-        const userData = await authService.getUser()
-        if (!cancelled) setUser(userData)
-      } catch {
-        if (!cancelled) setUser(null)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    initAuth()
-
-    return () => { cancelled = true }
-  }, [])
-
-  const login = async (email, password) => {
-    setError(null)
-    setLoading(true)
-    try {
-      const response = await authService.login(email, password)
-      setUser(response.user)
-      return response
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Login failed.'
-      setError(message)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const register = async (name, email, password, passwordConfirmation) => {
-    setError(null)
-    setLoading(true)
-    try {
-      const response = await authService.register(name, email, password, passwordConfirmation)
-      setUser(response.user)
-      return response
-    } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Registration failed.'
-      setError(message)
-      throw err
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const logout = useCallback(async () => {
-    setLoading(true)
-    try {
-      await authService.logout()
-    } finally {
-      setUser(null)
-      setLoading(false)
-    }
-  }, [])
-
-  const refreshUser = useCallback(async () => {
-    try {
-      const userData = await authService.getUser()
-      setUser(userData)
-    } catch {
-      console.warn('Failed to refresh user')
-    }
-  }, [])
-
-  const clearError = useCallback(() => setError(null), [])
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        login,
-        register,
-        logout,
-        refreshUser,
-        clearError,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
-}
-
+/**
+ * useAuth hook - Backward compatible with old AuthContext
+ * Returns an object with all auth properties and methods
+ */
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    console.error('[AuthContext] useAuth called without AuthProvider! Call stack:', new Error().stack)
-    throw new Error('useAuth must be used within an AuthProvider')
+  const user = useAuthStore((state) => state.user)
+  const loading = useAuthStore((state) => state.loading)
+  const error = useAuthStore((state) => state.error)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const login = useAuthStore((state) => state.login)
+  const logout = useAuthStore((state) => state.logout)
+  const register = useAuthStore((state) => state.register)
+  const refreshUser = useAuthStore((state) => state.refreshUser)
+  const clearError = useAuthStore((state) => state.clearError)
+  
+  return {
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+    refreshUser,
+    clearError,
   }
-  return context
 }
+
+// Re-export individual hooks for new code
+export { 
+  useAuthStore,
+  useUser,
+  useIsAuthenticated,
+  useAuthLoading,
+  useAuthError,
+  useAuthActions
+} from '@/stores/authStore'
+
+// Provider is no longer needed - Zustand works without providers
+export const AuthProvider = ({ children }) => children
+
+export default useAuth

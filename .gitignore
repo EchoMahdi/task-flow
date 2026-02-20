@@ -1,5 +1,6 @@
 
 vendor/
+vscode/
 frontend/node_modules/
 .idea/
 .venv/

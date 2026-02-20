@@ -144,21 +144,12 @@ class AuthService
      */
     public function updateProfile(User $user, array $data): User
     {
-        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Starting update', [
-            'user_id' => $user->id,
-            'has_profile_data' => isset($data['profile']),
-            'profile_data' => $data['profile'] ?? null,
-        ]);
-        
+       
         // Update core user fields only
         $user->update([
             'name' => $data['name'] ?? $user->name,
             'timezone' => $data['timezone'] ?? $user->timezone,
             'locale' => $data['locale'] ?? $user->locale,
-        ]);
-
-        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Core fields updated', [
-            'user_id' => $user->id,
         ]);
 
         // Persist profile data to database
@@ -173,34 +164,14 @@ class AuthService
                 'location' => $data['profile']['location'] ?? null,
             ];
             
-            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Saving profile', [
-                'user_id' => $user->id,
-                'profile_data' => $profileData,
-            ]);
-            
             $user->profile()->updateOrCreate(
                 ['user_id' => $user->id],
                 $profileData
             );
             
-            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Profile saved', [
-                'user_id' => $user->id,
-                'profile_exists' => $user->profile !== null,
-            ]);
-        } else {
-            \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: No profile data in request', [
-                'user_id' => $user->id,
-                'data_keys' => array_keys($data),
-            ]);
         }
 
         $freshUser = $user->fresh(['profile', 'preferences']);
-        
-        \Illuminate\Support\Facades\Log::debug('AuthService::updateProfile: Final result', [
-            'user_id' => $freshUser->id,
-            'profile_bio' => $freshUser->profile?->bio,
-            'profile_company' => $freshUser->profile?->company,
-        ]);
 
         return $freshUser;
     }
@@ -329,6 +300,8 @@ class AuthService
      */
     public function sendEmailVerification(User $user): void
     {
+
+        // Generate the verification URL - using signed route
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addHours(24),
