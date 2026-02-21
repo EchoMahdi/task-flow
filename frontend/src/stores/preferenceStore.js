@@ -24,6 +24,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { preferenceService } from '@/services/preferenceService'
+import { useAuthStore } from './authStore'
 
 // ============================================================================
 // Types
@@ -123,8 +124,9 @@ export const usePreferenceStore = create(
        * Loads from backend if authenticated, otherwise uses local storage
        */
       initialize: async () => {
-        const token = localStorage.getItem('auth_token')
-        if (token) {
+        // Check if user is authenticated via auth store instead of just checking token
+        const authState = useAuthStore.getState()
+        if (authState.isAuthenticated) {
           await get().loadFromBackend()
         }
       },

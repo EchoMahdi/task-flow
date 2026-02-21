@@ -74,6 +74,9 @@ export const useStoreInitialization = () => {
  */
 export const StoreInitializer = ({ children, fallback = null }) => {
   const { isInitialized, isLoading } = useStoreInitialization()
+  if(isInitialized && isLoading) {
+    return fallback
+  }
   
   if (isLoading && fallback) {
     return fallback

@@ -3,6 +3,9 @@
  * 
  * This file bootstraps the React application with all necessary providers.
  * State management is now handled by Zustand stores instead of Context API.
+ * 
+ * NOTE: Store initialization is handled by StoreInitializer component,
+ * do NOT call useAuthStore.getState().initialize() here to avoid duplicate calls.
  */
 
 import React from 'react'
@@ -13,12 +16,10 @@ import { StyledEngineProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { router } from './router'
 import { ToastProvider } from './components/ui/Toast.jsx'
-import { MUIThemeProvider } from './theme'
+import { ThemeProvider, MUIThemeProvider } from './theme'
 import { StoreInitializer } from './stores'
-import { useAuthStore } from './stores/authStore'
-
-// Initialize stores on app load
-useAuthStore.getState().initialize()
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,47 +35,28 @@ const queryClient = new QueryClient({
  * Displayed while stores are initializing
  */
 const AppLoadingFallback = () => (
-  <div style={{
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-  }}>
-    <div style={{ textAlign: 'center' }}>
-      <div className="spinner" style={{
-        width: '40px',
-        height: '40px',
-        border: '3px solid #f3f3f3',
-        borderTop: '3px solid #3498db',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-        margin: '0 auto 16px',
-      }} />
-      <p style={{ color: '#666' }}>Loading...</p>
-    </div>
-    <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
-  </div>
+   (
+    <Box sx={{ display: 'flex' ,justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <CircularProgress />
+    </Box>
+  )
 )
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
-      <MUIThemeProvider>
-        <CssBaseline />
-        <QueryClientProvider client={queryClient}>
-          <StoreInitializer fallback={<AppLoadingFallback />}>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
-          </StoreInitializer>
-        </QueryClientProvider>
-      </MUIThemeProvider>
+      <ThemeProvider>
+        <MUIThemeProvider>
+          <CssBaseline />
+          <QueryClientProvider client={queryClient}>
+            <StoreInitializer fallback={<AppLoadingFallback />}>
+              <ToastProvider>
+                <RouterProvider router={router} />
+              </ToastProvider>
+            </StoreInitializer>
+          </QueryClientProvider>
+        </MUIThemeProvider>
+      </ThemeProvider>
     </StyledEngineProvider>
   </React.StrictMode>,
 )

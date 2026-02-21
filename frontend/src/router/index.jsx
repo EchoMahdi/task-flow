@@ -12,7 +12,7 @@
  * - Nested routes support
  * - Layout-based routing
  * 
- * Authentication: Uses /api/auth/me endpoint for checking auth status
+ * Authentication: Uses Zustand auth store with cached state
  */
 
 import { 
@@ -23,7 +23,7 @@ import {
   useNavigate 
 } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
-import { authService, initCsrf } from '@/services/authService'
+import { useAuthStore } from '@/stores/authStore'
 import { hasAccess } from './accessControl'
 import AppLayout from '@/components/layout/AppLayout/AppLayout'
 import { LoadingPage, NotFound, Unauthorized, ServerError } from '@/pages/ErrorPages'
@@ -54,60 +54,58 @@ const createLazyComponent = (importFn, fallback = 'Loading...') => {
 // ============================================================================
 
 /**
+ * Helper to get auth state from store
+ * Uses cached state if available, otherwise initializes
+ */
+async function getAuthState() {
+  const store = useAuthStore.getState()
+  
+  // If already initialized, return cached state
+  if (!store.initializing && store.user !== undefined) {
+    return { user: store.user, isAuthenticated: store.isAuthenticated }
+  }
+  
+  // Otherwise, trigger initialization and wait for it
+  await store.initialize()
+  
+  // Return the updated state
+  const newState = useAuthStore.getState()
+  return { user: newState.user, isAuthenticated: newState.isAuthenticated }
+}
+
+/**
  * Authentication loader - checks if user is authenticated
  * Returns user data if authenticated, otherwise redirects to login
- * Uses /api/auth/me endpoint
+ * Uses cached auth state from Zustand store
  */
 export async function authLoader({ request }) {
   const pathname = new URL(request.url).pathname
   
-  try {
-    // Initialize CSRF first
-    await initCsrf();
-    
-    const user = await authService.getUser()
-    
-    if (!user) {
-      // Not authenticated - redirect to login with return URL
-      const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-      throw redirect(loginUrl)
-    }
-    
-    return { user, isAuthenticated: true }
-  } catch (error) {
-    if (error.status === 401 || error.status === 0) {
-      const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-      throw redirect(loginUrl)
-    }
-    throw error
+  const { user, isAuthenticated } = await getAuthState()
+  
+  if (!isAuthenticated || !user) {
+    // Not authenticated - redirect to login with return URL
+    const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
+    throw redirect(loginUrl)
   }
+  
+  return { user, isAuthenticated: true }
 }
 
 /**
  * Guest loader - redirects authenticated users away from auth pages
  * Used for login, register, forgot-password pages
+ * Uses cached auth state from Zustand store
  */
 export async function guestLoader({ request }) {
-  const pathname = new URL(request.url).pathname
+  const { user, isAuthenticated } = await getAuthState()
   
-  try {
-    // Initialize CSRF first
-    await initCsrf();
-    
-    const user = await authService.getUser()
-    
-    if (user) {
-      // Already authenticated - redirect to dashboard
-      throw redirect('/app/dashboard')
-    }
-    
-    return { user: null, isAuthenticated: false }
-  } catch (error) {
-    if (error.status === 401 || error.status === 0) {
-      return { user: null, isAuthenticated: false }
-    }
-    throw error
+  if (isAuthenticated && user) {
+    // Already authenticated - redirect to dashboard
+    throw redirect('/app/dashboard')
   }
+  
+  return { user: null, isAuthenticated: false }
 }
 
 /**
@@ -118,35 +116,24 @@ export function roleLoader(requiredRoles = []) {
   return async ({ request }) => {
     const pathname = new URL(request.url).pathname
     
-    try {
-      // Initialize CSRF first
-      await initCsrf();
-      
-      const user = await authService.getUser()
-      
-      if (!user) {
-        const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-        throw redirect(loginUrl)
-      }
-      
-      // Check roles
-      if (requiredRoles.length > 0) {
-        const userRoles = user.roles || []
-        const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role))
-        
-        if (!hasRequiredRole) {
-          throw redirect('/app/unauthorized')
-        }
-      }
-      
-      return { user, isAuthenticated: true }
-    } catch (error) {
-      if (error.status === 401 || error.status === 0) {
-        const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-        throw redirect(loginUrl)
-      }
-      throw error
+    const { user, isAuthenticated } = await getAuthState()
+    
+    if (!isAuthenticated || !user) {
+      const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
+      throw redirect(loginUrl)
     }
+    
+    // Check roles
+    if (requiredRoles.length > 0) {
+      const userRoles = user.roles || []
+      const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role))
+      
+      if (!hasRequiredRole) {
+        throw redirect('/app/unauthorized')
+      }
+    }
+    
+    return { user, isAuthenticated: true }
   }
 }
 
@@ -158,37 +145,26 @@ export function permissionLoader(requiredPermissions = []) {
   return async ({ request }) => {
     const pathname = new URL(request.url).pathname
     
-    try {
-      // Initialize CSRF first
-      await initCsrf();
-      
-      const user = await authService.getUser()
-      
-      if (!user) {
-        const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-        throw redirect(loginUrl)
-      }
-      
-      // Check permissions
-      if (requiredPermissions.length > 0) {
-        const userPermissions = user.permissions || []
-        const hasRequiredPermission = requiredPermissions.some(
-          perm => userPermissions.includes(perm)
-        )
-        
-        if (!hasRequiredPermission) {
-          throw redirect('/app/unauthorized')
-        }
-      }
-      
-      return { user, isAuthenticated: true }
-    } catch (error) {
-      if (error.status === 401 || error.status === 0) {
-        const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
-        throw redirect(loginUrl)
-      }
-      throw error
+    const { user, isAuthenticated } = await getAuthState()
+    
+    if (!isAuthenticated || !user) {
+      const loginUrl = `/app/login?redirect=${encodeURIComponent(pathname)}`
+      throw redirect(loginUrl)
     }
+    
+    // Check permissions
+    if (requiredPermissions.length > 0) {
+      const userPermissions = user.permissions || []
+      const hasRequiredPermission = requiredPermissions.some(
+        perm => userPermissions.includes(perm)
+      )
+      
+      if (!hasRequiredPermission) {
+        throw redirect('/app/unauthorized')
+      }
+    }
+    
+    return { user, isAuthenticated: true }
   }
 }
 

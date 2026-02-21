@@ -15,6 +15,9 @@ import { useI18nStore } from '@/stores/i18nStore';
 import { useTheme } from '@/theme';
 import LanguageSwitcherStyles from './LanguageSwitcher.module.css';
 
+// Get the getLanguages function from the store
+const getLanguages = useI18nStore.getState().getLanguages;
+
 /**
  * 
  * @param {Object} props

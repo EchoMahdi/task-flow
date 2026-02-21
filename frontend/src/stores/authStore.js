@@ -63,6 +63,12 @@ const initialState = {
 }
 
 /**
+ * Initialization guard - prevents duplicate initialization calls
+ * This promise is shared across all calls to initialize()
+ */
+let initializationPromise = null
+
+/**
  * Auth Store
  * Manages all authentication-related state and actions
  */
@@ -74,33 +80,64 @@ export const useAuthStore = create(
       /**
        * Initialize authentication state
        * Called on app startup to check if user is already authenticated
+       * 
+       * GUARD: Returns existing promise if initialization is already in progress
+       * This prevents duplicate API calls from multiple sources
        */
       initialize: async () => {
-        set({ initializing: true, loading: true })
+        const state = get()
         
-        try {
-          // Initialize CSRF protection
-          await initCsrf()
-          
-          // Check if user is authenticated
-          const userData = await authService.getUser()
-          
-          set({
-            user: userData,
-            isAuthenticated: !!userData,
-            initializing: false,
-            loading: false,
-            error: null,
-          })
-        } catch (error) {
-          // User is not authenticated
-          set({
-            user: null,
-            isAuthenticated: false,
-            initializing: false,
-            loading: false,
-          })
+        // If already initialized (not initializing), return immediately
+        if (!state.initializing && state.user !== undefined) {
+          console.log('[AUTH STORE] Already initialized, skipping')
+          return
         }
+        
+        // If initialization is in progress, return the existing promise
+        if (initializationPromise) {
+          console.log('[AUTH STORE] Initialization in progress, waiting...')
+          return initializationPromise
+        }
+        
+        console.log('[AUTH STORE] Starting initialization...')
+        
+        // Create and store the initialization promise
+        initializationPromise = (async () => {
+          set({ initializing: true, loading: true })
+          
+          try {
+            // Initialize CSRF protection
+            await initCsrf()
+            
+            // Check if user is authenticated
+            const userData = await authService.getUser()
+            
+            set({
+              user: userData,
+              isAuthenticated: !!userData,
+              initializing: false,
+              loading: false,
+              error: null,
+            })
+            
+            console.log('[AUTH STORE] Initialization complete, user:', !!userData)
+          } catch (error) {
+            // User is not authenticated - this is expected for guest users
+            console.log('[AUTH STORE] User not authenticated')
+            
+            set({
+              user: null,
+              isAuthenticated: false,
+              initializing: false,
+              loading: false,
+            })
+          } finally {
+            // Clear the promise so future calls can re-initialize if needed
+            initializationPromise = null
+          }
+        })()
+        
+        return initializationPromise
       },
 
       /**
