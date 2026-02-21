@@ -11,7 +11,7 @@ import CheckIcon from '@mui/icons-material/CheckIcon';
 import CloseIcon from '@mui/icons-material/CloseIcon';
 import DeleteIcon from '@mui/icons-material/DeleteIcon';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { Input, TextField, Select } from '@/components/ui/index';
 import DateDisplay from '@/components/ui/DateDisplay';
 import './TaskDetailPanel.css';
@@ -20,10 +20,10 @@ import './TaskDetailPanel.css';
  * Priority options
  */
 const priorityOptions = [
-  { value: 'none', label: t('None') },
-  { value: 'low', label: t('Low') },
-  { value: 'medium', label: t('Medium') },
-  { value: 'high', label: t('High') },
+  { value: 'none', label: 'None' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
 ];
 
 /**
@@ -66,7 +66,7 @@ export const TaskDetailPanel = ({
   const [isDirty, setIsDirty] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   // Initialize form data when task changes
   useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/index';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import {
   Card, 
   CardContent, 
@@ -36,7 +36,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 const TaskList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   
   // Initialize filters from URL params

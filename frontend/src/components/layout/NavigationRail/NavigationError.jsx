@@ -12,7 +12,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import WarningIcon from '@mui/icons-material/Warning';
 import LoadingButton from '@/components/ui/LoadingButton';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * Error display component for navigation
@@ -25,7 +25,7 @@ const NavigationError = ({
   compact = false,
   loading = false,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   const retryButton =
     onRetry &&

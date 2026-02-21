@@ -8,8 +8,8 @@
 import React from 'react';
 import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useNavigation } from '@/context/NavigationContext';
-import { useTranslation } from '@/context/I18nContext';
+import { useNavigationStore } from '@/stores/navigationStore';
+import { useI18nStore } from '@/stores/i18nStore';
 
 export interface TagItemData {
   id: number;
@@ -26,7 +26,7 @@ interface TagItemProps {
 
 /**
  * TagItem Component
- * Automatically detects active state from navigation context
+ * Automatically detects active state from navigation store
  */
 const TagItem: React.FC<TagItemProps> = ({
   tag,
@@ -34,8 +34,8 @@ const TagItem: React.FC<TagItemProps> = ({
   onClick,
   onDelete,
 }): React.ReactNode => {
-  const { t } = useTranslation();
-  const { isActive } = useNavigation();
+  const t = useI18nStore((state) => state.t);
+  const isActive = useNavigationStore((state) => state.isActive);
 
   const active = isActive('tag', `tag-${tag.id}`);
 

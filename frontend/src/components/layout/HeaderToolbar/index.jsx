@@ -9,8 +9,8 @@
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useTranslation } from "@/context/I18nContext";
+import { useAuthStore } from "@/stores/authStore";
+import { useI18nStore } from "@/stores/i18nStore";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher/LanguageSwitcher";
 import { api } from "@/services/authService";
 import { useThemeMode, useColors, useSpacing } from "@/theme";
@@ -44,7 +44,7 @@ import {
 // Search Component
 // ============================================================================
 function SearchSection({ onSearch }) {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const colors = useColors();
   const navigate = useNavigate();
 
@@ -140,7 +140,7 @@ function SearchSection({ onSearch }) {
 // Theme Toggle Component
 // ============================================================================
 function ThemeToggle({ variant = "dropdown" }) {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const { mode, setThemeMode, toggleThemeMode, availableModes } =
     useThemeMode();
   const colors = useColors();
@@ -253,7 +253,7 @@ function ThemeToggle({ variant = "dropdown" }) {
 // Notification Panel Component
 // ============================================================================
 function NotificationPanel({ onClose }) {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const colors = useColors();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -395,7 +395,7 @@ function NotificationPanel({ onClose }) {
 // User Menu Component
 // ============================================================================
 function UserMenu({ user, onLogout }) {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const colors = useColors();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -517,7 +517,7 @@ function ViewControls({
   currentFilter,
   onFilterChange,
 }) {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const colors = useColors();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -694,8 +694,9 @@ export function HeaderToolbar({
   showViewControls = true,
   showSearch = true,
 }) {
-  const { user, logout } = useAuth();
-  const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const t = useI18nStore((state) => state.t);
   const navigate = useNavigate();
   const location = useLocation();
   const colors = useColors();

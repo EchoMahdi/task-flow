@@ -5,7 +5,7 @@ import {
   Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem ,Tab
 } from '@mui/material';
 import PageHeader from '@/components/ui/PageHeader';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { preferenceService } from '@/services/preferenceService';
 import { useTheme } from '@/theme/ThemeProvider';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -13,10 +13,11 @@ import MapIcon from '@mui/icons-material/Map';
 import LanguageIcon from '@mui/icons-material/Language';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 const Profile = () => {
-  const { user, refreshUser } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
   const theme = useTheme();
   const colors = theme.colors ;
   const [activeTab, setActiveTab] = useState('profile');
@@ -24,7 +25,7 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [dataLoaded, setDataLoaded] = useState(false);
-  const { t } = useTranslation()
+  const t = useI18nStore((state) => state.t);
 
   // Profile form - loaded from backend
   const [profileData, setProfileData] = useState({

@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import LabelIcon from '@mui/icons-material/Label';
 import LoadingButton from '@/components/ui/LoadingButton';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * Available tag colors
@@ -46,7 +46,7 @@ interface AddTagModalProps {
  * AddTagModal Component
  */
 const AddTagModal: React.FC<AddTagModalProps> = ({ open, onClose, onSubmit }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   const [name, setName]       = useState('');
   const [color, setColor]     = useState(TAG_COLORS[0]);

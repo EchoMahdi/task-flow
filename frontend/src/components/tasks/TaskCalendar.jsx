@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import calendarService from '@/services/calendarService';
 import dateService from '@/services/dateService';
@@ -31,7 +31,7 @@ const TaskCalendar = ({
   onCreateTask,
   defaultView = 'month',
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const { formatDate, isJalali, preferences, availableFormats } = useDateFormat();
   
   // State

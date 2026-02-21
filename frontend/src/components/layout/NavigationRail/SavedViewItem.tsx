@@ -10,7 +10,7 @@ import { Box, Typography, IconButton, Tooltip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 export interface SavedViewItemData {
   id: number;
@@ -45,7 +45,7 @@ const SavedViewItem: React.FC<SavedViewItemProps> = ({
   onClick,
   onDelete,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const Icon = getIconByMode(view.display_mode);
 
   const content = (

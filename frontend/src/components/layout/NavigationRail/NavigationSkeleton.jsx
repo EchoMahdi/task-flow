@@ -9,7 +9,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * Skeleton for a single nav item
@@ -78,7 +78,7 @@ export const UserSectionSkeleton = ({ collapsed }) => (
  * Full navigation skeleton loader
  */
 const NavigationSkeleton = ({ collapsed = false }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   return (
     <Box

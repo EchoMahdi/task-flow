@@ -17,7 +17,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import LoadingButton from '@/components/ui/LoadingButton';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import taskService from '@/services/taskService';
@@ -35,7 +35,7 @@ const TaskModal = ({
   onSave,
   onDelete,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const { formatDate, formatTime, preferences } = useDateFormat();
   
   // Form state

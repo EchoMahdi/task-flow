@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { useTranslation } from '@/context/I18nContext';
+import { useAuthStore, useIsAuthenticated } from '@/stores/authStore';
+import { useI18nStore } from '@/stores/i18nStore';
 import { AuthLayout } from '@/components/layout/index';
 import { 
   Button, 
@@ -30,8 +30,9 @@ import { initCsrf, authService } from '@/services/authService';
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { register, isAuthenticated } = useAuth();
-  const { t } = useTranslation();
+  const register = useAuthStore((state) => state.register);
+  const isAuthenticated = useIsAuthenticated();
+  const t = useI18nStore((state) => state.t);
   
   // Form state
   const [formData, setFormData] = useState({

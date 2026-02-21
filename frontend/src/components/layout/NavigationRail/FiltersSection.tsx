@@ -10,7 +10,7 @@ import { Box, Typography, Collapse, IconButton } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import FilterItem, { FilterData } from './FilterItem';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 
 const FILTERS: FilterData[] = [
@@ -51,7 +51,7 @@ const saveCollapsedState = (key: string, value: boolean): void => {
  * FiltersSection Component
  */
 const FiltersSection: React.FC<FiltersSectionProps> = ({ collapsed, onNavigate }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   const [expanded, setExpanded] = useState(() =>
     loadCollapsedState('nav_filters_expanded', true)

@@ -10,8 +10,8 @@ import { Box, Typography, Tooltip } from '@mui/material';
 import InboxIcon from '@mui/icons-material/Inbox';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useNavigation } from '@/context/NavigationContext';
-import { useTranslation } from '@/context/I18nContext';
+import { useNavigationStore } from '@/stores/navigationStore';
+import { useI18nStore } from '@/stores/i18nStore';
 
 export interface FilterData {
   id: string;
@@ -40,15 +40,15 @@ const getIconByName = (iconName: string) => {
 
 /**
  * FilterItem Component
- * Automatically detects active state from navigation context
+ * Automatically detects active state from navigation store
  */
 const FilterItem: React.FC<FilterItemProps> = ({
   filter,
   collapsed,
   onClick,
 }): React.ReactNode => {
-  const { isActive } = useNavigation();
-  const { t } = useTranslation();
+  const isActive = useNavigationStore((state) => state.isActive);
+  const t = useI18nStore((state) => state.t);
 
   const active = isActive('filter', filter.id);
   const Icon = getIconByName(filter.icon);

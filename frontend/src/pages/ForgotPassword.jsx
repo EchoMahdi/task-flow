@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/index';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { Button, TextField, Alert, Card, CardContent, Box, Typography, InputAdornment } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import KeyIcon from '@mui/icons-material/Key';
@@ -14,7 +14,7 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   // Initialize CSRF on mount
   useEffect(() => {

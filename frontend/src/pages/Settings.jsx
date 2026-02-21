@@ -9,13 +9,15 @@ import PageHeader from '@/components/ui/PageHeader';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { preferenceService } from '@/services/preferenceService';
-import { useAuth } from '@/context/AuthContext';
-import { useI18n } from '@/context/I18nContext';
+import { useAuthStore } from '@/stores/authStore';
+import { useI18nStore } from '@/stores/i18nStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const Settings = () => {
-  const { user, refreshUser } = useAuth();
-  const { t, changeLanguage } = useI18n();
+  const user = useAuthStore((state) => state.user);
+  const refreshUser = useAuthStore((state) => state.refreshUser);
+  const t = useI18nStore((state) => state.t);
+  const changeLanguage = useI18nStore((state) => state.changeLanguage);
   const theme = useTheme();
   const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   

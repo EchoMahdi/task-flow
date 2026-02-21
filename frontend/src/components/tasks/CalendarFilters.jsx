@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
@@ -29,7 +29,7 @@ const CalendarFilters = ({
   onChange,
   availableFormats,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   
   // Menu state
   const [statusAnchor, setStatusAnchor] = useState(null);

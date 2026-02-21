@@ -11,7 +11,7 @@ import {
   Box,
 } from "@mui/material";
 import { useTheme as useMUITheme } from "@mui/material/styles";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
 import { useNavigation } from "@/hooks/useNavigation";
 import {
   navigationStorage,
@@ -39,7 +39,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import "./NavigationRail.css";
-import { useTranslation } from "@/context/I18nContext";
+import { useI18nStore } from "@/stores/i18nStore";
 
 /**
  * Navigation item sub-component
@@ -57,7 +57,7 @@ const NavItem = ({
   onToggleFavorite,
   loading = false,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const muiTheme = useMUITheme();
   const favoriteColor = muiTheme.palette.warning.main;
   const secondaryColor = muiTheme.palette.text.secondary;
@@ -136,7 +136,7 @@ const NavSection = ({
   addLabel = "Add",
   storageKey,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const initialized = useRef(false);
 
@@ -220,8 +220,9 @@ const getCount = (counts, filterId) => counts?.[filterId] || 0;
  * NavigationRail Component
  */
 const NavigationRail = ({ collapsed = false, onNavigate }) => {
-  const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const t = useI18nStore((state) => state.t);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const {
     systemFilters,

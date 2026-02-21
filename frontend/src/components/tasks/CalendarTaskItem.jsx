@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -26,7 +26,7 @@ const CalendarTaskItem = ({
   onDragStart,
   onDragEnd,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const { formatDate, formatTime, isJalali } = useDateFormat();
   
   // Priority colors (MUI palette)

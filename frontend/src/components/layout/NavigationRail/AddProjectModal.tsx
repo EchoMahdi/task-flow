@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
 import LoadingButton from '@/components/ui/LoadingButton';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * Available project colors
@@ -70,7 +70,7 @@ const AddProjectModal: React.FC<AddProjectModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   const [name, setName]       = useState('');
   const [color, setColor]     = useState(PROJECT_COLORS[0]);

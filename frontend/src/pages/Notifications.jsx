@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/index';
 import { Card, Button, Tabs, Box, Skeleton, Typography, IconButton,Tab } from '@mui/material';
 import PageHeader from '@/components/ui/PageHeader';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 import { api } from '@/services/authService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 const Notifications = () => {
-  const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [notifications, setNotifications] = useState([]);

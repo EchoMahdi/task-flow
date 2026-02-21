@@ -24,7 +24,7 @@ import LabelIcon from '@mui/icons-material/Label';
 import TagItem, { TagItemData } from './TagItem';
 import AddTagModal from './AddTagModal';
 import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 interface TagsSectionProps {
   collapsed: boolean;

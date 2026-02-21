@@ -13,7 +13,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DateDisplay from '@/components/ui/DateDisplay';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * Check if date is overdue
@@ -50,7 +50,7 @@ export const TaskRow = ({
   onOpenDetail,
   index = 0,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [isCompleting, setIsCompleting] = useState(false);

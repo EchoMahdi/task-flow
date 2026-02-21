@@ -9,7 +9,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Add, Close, ArrowForward } from '@mui/icons-material';
 import { TaskModel, createQuickTask, ValidationError } from '@/models/TaskModel';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import './QuickAddBar.css';
 
 /**
@@ -36,7 +36,7 @@ const QuickAddBar = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const inputRef = useRef(null);
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
 
   // Auto-focus when expanded
   useEffect(() => {

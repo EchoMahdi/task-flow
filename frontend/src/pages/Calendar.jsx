@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { TaskCalendar, CalendarTaskItem } from '@/components/tasks';
 import TaskModal from '@/components/tasks/TaskModal';
 import toastService from '@/services/toastService';
@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
  * - Filtering
  */
 const CalendarPage = () => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);

@@ -22,7 +22,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import { taskConfig } from './config';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 /**
  * TaskPreviewDialog Component
@@ -41,7 +41,7 @@ export const TaskPreviewDialog = ({
   tags = [],
   onEdit,
 }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const focusRef = useRef(null);
 
   // Focus first element when dialog opens

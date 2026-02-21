@@ -22,7 +22,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ProjectItem, { ProjectItemData } from './ProjectItem';
 import AddProjectModal from './AddProjectModal';
 import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 interface ProjectsSectionProps {
   collapsed: boolean;

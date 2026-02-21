@@ -1,12 +1,12 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { useTranslation } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 
 // ============================================================================
 // AuthLayout Component - Layout for authentication pages (login, register, etc.)
 // ============================================================================
 export const AuthLayout = ({ children }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   
   return (
     <Box
@@ -32,7 +32,7 @@ export const AuthLayout = ({ children }) => {
 
 // Header Component (authenticated pages)
 export const Header = ({ onMenuClick, sidebarOpen }) => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   
   return (
     <Box

@@ -5,13 +5,13 @@
  * This component:
  * - Is self-contained and decoupled from pages/layouts
  * - Can be used in Header, Settings page, Sidebar, or any future component
- * - Controls global language state via I18nContext
+ * - Controls global language state via i18nStore
  * - Syncs with backend for persistence
  * - Handles RTL/LTR and typography automatically
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useI18n } from '@/context/I18nContext';
+import { useI18nStore } from '@/stores/i18nStore';
 import { useTheme } from '@/theme';
 import LanguageSwitcherStyles from './LanguageSwitcher.module.css';
 
@@ -31,13 +31,10 @@ import LanguageSwitcherStyles from './LanguageSwitcher.module.css';
   showFlags = true,
   onChange 
 }) {
-  const { 
-    language, 
-    changeLanguage, 
-    getLanguages, 
-    direction,
-    isRTL 
-  } = useI18n();
+  const language = useI18nStore((state) => state.language);
+  const changeLanguage = useI18nStore((state) => state.changeLanguage);
+  const direction = useI18nStore((state) => state.direction);
+  const isRTL = useI18nStore((state) => state.isRTL);
   
   const { colors, spacing } = useTheme();
   const [isOpen, setIsOpen] = useState(false);

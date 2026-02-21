@@ -10,8 +10,8 @@ import { Box, IconButton, Typography, Tooltip } from '@mui/material';
 import { useTheme as useMUITheme } from '@mui/material/styles';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { useNavigation } from '@/context/NavigationContext';
-import { useTranslation } from '@/context/I18nContext';
+import { useNavigationStore } from '@/stores/navigationStore';
+import { useI18nStore } from '@/stores/i18nStore';
 
 export interface ProjectItemData {
   id: number;
@@ -50,7 +50,7 @@ const getIconEmoji = (iconName: string): string => {
 
 /**
  * ProjectItem Component
- * Automatically detects active state from navigation context
+ * Automatically detects active state from navigation store
  */
 const ProjectItem: React.FC<ProjectItemProps> = ({
   project,
@@ -58,9 +58,9 @@ const ProjectItem: React.FC<ProjectItemProps> = ({
   onClick,
   onToggleFavorite,
 }): React.ReactNode => {
-  const { t } = useTranslation();
+  const t = useI18nStore((state) => state.t);
   const muiTheme = useMUITheme();
-  const { isActive } = useNavigation();
+  const isActive = useNavigationStore((state) => state.isActive);
 
   const favoriteColor = muiTheme.palette.warning.main;
   const secondaryColor = muiTheme.palette.text.secondary;
