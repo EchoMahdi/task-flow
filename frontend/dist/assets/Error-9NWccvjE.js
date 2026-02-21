@@ -1,1 +1,0 @@
-import{j as e,i as t}from"./mui-B-AR24YU.js";import{r as a}from"./index-CJ0_3zob.js";var r={},o=t;Object.defineProperty(r,"__esModule",{value:!0});var u=r.default=void 0,i=o(a()),s=e;u=r.default=(0,i.default)((0,s.jsx)("path",{d:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"}),"Error");export{u as d};
