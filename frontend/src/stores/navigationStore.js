@@ -129,6 +129,9 @@ const getInitialState = () => ({
     counts: null,
   },
   previousState: null, // For optimistic updates rollback
+  // Callbacks for error handling
+  onError: null,
+  on401: null,
 })
 
 // ============================================================================
@@ -137,6 +140,52 @@ const getInitialState = () => ({
 
 export const useNavigationStore = create((set, get) => ({
   ...getInitialState(),
+
+  // ==========================================================================
+  // Callback Management
+  // ==========================================================================
+
+  /**
+   * Set error callbacks
+   * @param {Object} callbacks - Callback functions
+   * @param {Function} [callbacks.onError] - Error callback
+   * @param {Function} [callbacks.on401] - 401 unauthorized callback
+   */
+  setCallbacks: (callbacks) => {
+    set({
+      onError: callbacks.onError || null,
+      on401: callbacks.on401 || null,
+    })
+  },
+
+  /**
+   * Handle 401 unauthorized error
+   */
+  handle401: (error) => {
+    const { on401 } = get()
+    if (on401) {
+      on401(error)
+    } else {
+      // Default: clear auth and redirect to login
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
+  },
+
+  /**
+   * Handle error with callback
+   */
+  handleError: (error, context = 'Navigation') => {
+    const { onError } = get()
+    const message = getErrorMessage(error)
+    console.error(`${context} error:`, error)
+    set({ error: message })
+    if (onError) {
+      onError(message, error)
+    }
+    return message
+  },
 
   // ==========================================================================
   // Initialization
@@ -164,14 +213,11 @@ export const useNavigationStore = create((set, get) => ({
       })
     } catch (error) {
       if (error?.response?.status === 401) {
-        // Handle 401 - redirect to login
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user')
-        window.location.href = '/login'
+        get().handle401(error)
       } else {
-        const message = getErrorMessage(error)
-        set({ error: message, loading: false })
+        get().handleError(error, 'Fetch navigation')
       }
+      set({ loading: false })
     }
   },
 
@@ -191,11 +237,15 @@ export const useNavigationStore = create((set, get) => ({
         sectionLoading: { ...state.sectionLoading, counts: false },
       }))
     } catch (error) {
-      const message = getErrorMessage(error)
-      set((state) => ({
-        sectionErrors: { ...state.sectionErrors, counts: message },
-        sectionLoading: { ...state.sectionLoading, counts: false },
-      }))
+      if (error?.response?.status === 401) {
+        get().handle401(error)
+      } else {
+        const message = getErrorMessage(error)
+        set((state) => ({
+          sectionErrors: { ...state.sectionErrors, counts: message },
+          sectionLoading: { ...state.sectionLoading, counts: false },
+        }))
+      }
     }
   },
 

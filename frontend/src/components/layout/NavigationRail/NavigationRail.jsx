@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useTheme as useMUITheme } from "@mui/material/styles";
 import { useAuthStore } from "@/stores/authStore";
-import { useNavigation } from "@/hooks/useNavigation";
+import { useNavigationStore } from "@/stores/navigationStore";
 import {
   navigationStorage,
   NAV_STORAGE_KEYS,
@@ -224,37 +224,41 @@ const NavigationRail = ({ collapsed = false, onNavigate }) => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
-  const {
-    systemFilters,
-    projects,
-    favorites,
-    tags,
-    savedViews,
-    counts,
-    loading,
-    error,
-    refetch,
-    addProject,
-    toggleProjectFavorite,
-    sectionLoading,
-    on401,
-    onError,
-  } = useNavigation({
-    on401: () => {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    },
-    onError: (message) => {
-      setErrorMessage(message);
-      setShowError(true);
-    },
-  });
+  // Use Zustand store with selectors for optimal re-renders
+  const systemFilters = useNavigationStore((state) => state.systemFilters);
+  const projects = useNavigationStore((state) => state.projects);
+  const favorites = useNavigationStore((state) => state.favorites);
+  const tags = useNavigationStore((state) => state.tags);
+  const savedViews = useNavigationStore((state) => state.savedViews);
+  const counts = useNavigationStore((state) => state.counts);
+  const loading = useNavigationStore((state) => state.loading);
+  const error = useNavigationStore((state) => state.error);
+  const sectionLoading = useNavigationStore((state) => state.sectionLoading);
+  const fetchNavigationData = useNavigationStore((state) => state.fetchNavigationData);
+  const addProject = useNavigationStore((state) => state.addProject);
+  const toggleProjectFavorite = useNavigationStore((state) => state.toggleProjectFavorite);
+  const setCallbacks = useNavigationStore((state) => state.setCallbacks);
 
   const [activeItem, setActiveItem] = useState("inbox");
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Set up callbacks and fetch navigation data on mount
+  useEffect(() => {
+    setCallbacks({
+      on401: () => {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      },
+      onError: (message) => {
+        setErrorMessage(message);
+        setShowError(true);
+      },
+    });
+    fetchNavigationData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Restore active view from localStorage on mount
   useEffect(() => {
@@ -298,7 +302,7 @@ const NavigationRail = ({ collapsed = false, onNavigate }) => {
         <NavigationError
           message={t("Failed to load navigation")}
           title={t("Error")}
-          onRetry={refetch}
+          onRetry={fetchNavigationData}
         />
       </nav>
     );

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/index';
 import { useI18nStore } from '@/stores/i18nStore';
+import { useTaskStore } from '@/stores/taskStore';
 import {
   Card, 
   CardContent, 
@@ -29,7 +30,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import useTasks from '@/hooks/useTasks';
 import { taskOptionsService } from '@/services/taskOptionsService';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -52,23 +52,23 @@ const TaskList = () => {
     filter: searchParams.get('filter') || null,
   };
   
-  // Use optimized useTasks hook
-  const {
-    tasks,
-    loading,
-    pagination,
-    filters,
-    fetchTasks,
-    refreshTasks,
-    updateFilters,
-    goToPage,
-    deleteTask,
-    toggleTask,
-  } = useTasks({
-    initialFilters,
-    autoFetch: true,
-    cacheTTL: 30000,
-  });
+  // Use Zustand store with selectors for optimal re-renders
+  const tasks = useTaskStore((state) => state.tasks);
+  const loading = useTaskStore((state) => state.loading);
+  const pagination = useTaskStore((state) => state.pagination);
+  const filters = useTaskStore((state) => state.filters);
+  const fetchTasks = useTaskStore((state) => state.fetchTasks);
+  const updateFilters = useTaskStore((state) => state.updateFilters);
+  const setFilters = useTaskStore((state) => state.setFilters);
+  const goToPage = useTaskStore((state) => state.goToPage);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
+  const toggleTask = useTaskStore((state) => state.toggleTask);
+  
+  // Initialize filters and fetch tasks on mount
+  useEffect(() => {
+    setFilters(initialFilters);
+    fetchTasks(initialFilters, 1);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Options state
   const [statusFilterOptions, setStatusFilterOptions] = useState([]);

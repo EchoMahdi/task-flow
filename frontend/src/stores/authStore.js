@@ -89,17 +89,14 @@ export const useAuthStore = create(
         
         // If already initialized (not initializing), return immediately
         if (!state.initializing && state.user !== undefined) {
-          console.log('[AUTH STORE] Already initialized, skipping')
           return
         }
         
         // If initialization is in progress, return the existing promise
         if (initializationPromise) {
-          console.log('[AUTH STORE] Initialization in progress, waiting...')
           return initializationPromise
         }
         
-        console.log('[AUTH STORE] Starting initialization...')
         
         // Create and store the initialization promise
         initializationPromise = (async () => {
@@ -120,10 +117,7 @@ export const useAuthStore = create(
               error: null,
             })
             
-            console.log('[AUTH STORE] Initialization complete, user:', !!userData)
           } catch (error) {
-            // User is not authenticated - this is expected for guest users
-            console.log('[AUTH STORE] User not authenticated')
             
             set({
               user: null,

@@ -76,6 +76,12 @@ const initialState = {
 // In-flight request tracking for deduplication
 const pendingRequests = new Map()
 
+// AbortController for canceling in-flight requests
+let abortController = null
+
+// Default cache TTL (30 seconds)
+const DEFAULT_CACHE_TTL = 30000
+
 // ============================================================================
 // Task Store
 // ============================================================================
@@ -107,8 +113,8 @@ export const useTaskStore = create((set, get) => ({
       ...currentFilters,
     })
     
-    // Check cache first
-    const cached = requestCache.getCachedResponse('GET', '/api/tasks', currentFilters, 30000)
+    // Check cache first (only for same page/filter combination)
+    const cached = requestCache.getCachedResponse('GET', '/api/tasks', currentFilters, DEFAULT_CACHE_TTL)
     if (cached && !customFilters && !customPage) {
       set({
         tasks: cached.data || [],
@@ -122,12 +128,27 @@ export const useTaskStore = create((set, get) => ({
       return cached
     }
     
-    // Check for in-flight request
+    // Check for in-flight request (deduplication)
     if (pendingRequests.has(cacheKey)) {
       return pendingRequests.get(cacheKey)
     }
     
+    // Abort previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    
+    // Create new AbortController
+    abortController = new AbortController()
+    
     set({ loading: true, error: null })
+    
+    // Update pagination page if customPage was provided
+    if (customPage !== null) {
+      set((state) => ({
+        pagination: { ...state.pagination, current_page: customPage },
+      }))
+    }
     
     // Build API params
     const apiParams = {
@@ -182,6 +203,11 @@ export const useTaskStore = create((set, get) => ({
         
         return data
       } catch (error) {
+        // Ignore abort errors
+        if (error.name === 'AbortError') {
+          return null
+        }
+        
         set({
           error: error.message || 'Failed to fetch tasks',
           loading: false,
@@ -189,6 +215,7 @@ export const useTaskStore = create((set, get) => ({
         throw error
       } finally {
         pendingRequests.delete(cacheKey)
+        abortController = null
       }
     })()
     
