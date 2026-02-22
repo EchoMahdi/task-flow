@@ -586,19 +586,22 @@ export const useNavigationLoading = () => useNavigationStore((state) => ({
 /**
  * Selector for navigation actions
  */
-export const useNavigationActions = () => useNavigationStore((state) => ({
-  fetchNavigationData: state.fetchNavigationData,
-  fetchCounts: state.fetchCounts,
-  setNavigation: state.setNavigation,
-  clearNavigation: state.clearNavigation,
-  addProject: state.addProject,
-  toggleProjectFavorite: state.toggleProjectFavorite,
-  deleteProject: state.deleteProject,
-  addTag: state.addTag,
-  deleteTag: state.deleteTag,
-  addSavedView: state.addSavedView,
-  deleteSavedView: state.deleteSavedView,
-  reset: state.reset,
-}))
+export const useNavigationActions = () =>
+  useNavigationStore(
+    useShallow((state) => ({
+      fetchNavigationData: state.fetchNavigationData,
+      fetchCounts: state.fetchCounts,
+      setNavigation: state.setNavigation,
+      clearNavigation: state.clearNavigation,
+      addProject: state.addProject,
+      toggleProjectFavorite: state.toggleProjectFavorite,
+      deleteProject: state.deleteProject,
+      addTag: state.addTag,
+      deleteTag: state.deleteTag,
+      addSavedView: state.addSavedView,
+      deleteSavedView: state.deleteSavedView,
+      reset: state.reset,
+    }))
+  )
 
 export default useNavigationStore

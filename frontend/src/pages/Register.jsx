@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuthStore, useIsAuthenticated } from '@/stores/authStore';
+import {useAuthActions,useIsAuthenticated } from "@/stores/authStore";
 import { useI18nStore } from '@/stores/i18nStore';
 import { AuthLayout } from '@/components/layout/index';
 import { 
@@ -30,7 +30,7 @@ import { initCsrf, authService } from '@/services/authService';
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const register = useAuthStore((state) => state.register);
+  const register = useAuthActions().register;
   const isAuthenticated = useIsAuthenticated();
   const t = useI18nStore((state) => state.t);
   

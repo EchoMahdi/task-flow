@@ -9,7 +9,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
+import { useUser,useAuthActions } from "@/stores/authStore";
 import { useI18nStore } from "@/stores/i18nStore";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher/LanguageSwitcher";
 import { api } from "@/services/authService";
@@ -694,8 +694,8 @@ export function HeaderToolbar({
   showViewControls = true,
   showSearch = true,
 }) {
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const user   = useUser();
+  const logout = useAuthActions().logout;
   const t = useI18nStore((state) => state.t);
   const navigate = useNavigate();
   const location = useLocation();

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/index';
 import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
-import { useAuthStore } from '@/stores/authStore';
+import { useUser } from "@/stores/authStore";
+
 import { taskService } from '@/services/taskService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -15,7 +16,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 
 const Dashboard = () => {
-  const user = useAuthStore((state) => state.user);
+  const user = useUser();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [recentTasks, setRecentTasks] = useState([]);

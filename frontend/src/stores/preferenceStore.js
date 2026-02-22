@@ -2,29 +2,29 @@
  * ============================================================================
  * Preference Store - Zustand
  * ============================================================================
- * 
+ *
  * Centralized user preferences state management using Zustand.
  * Handles user settings, notification preferences, and other user-specific data.
- * 
+ *
  * Features:
  * - User preferences management
  * - Notification settings
  * - Date/time preferences
  * - Calendar preferences
  * - Backend synchronization
- * 
+ *
  * @example
  * // Basic usage
  * const { preferences, updatePreference, syncWithBackend } = usePreferenceStore()
- * 
+ *
  * // With selectors
  * const dateFormat = usePreferenceStore(state => state.preferences.dateFormat)
  */
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { preferenceService } from '@/services/preferenceService'
-import { useAuthStore } from './authStore'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { preferenceService } from "@/services/preferenceService";
+import { useAuthStore } from "./authStore";
 
 // ============================================================================
 // Types
@@ -48,34 +48,34 @@ import { useAuthStore } from './authStore'
 
 const defaultPreferences = {
   // Locale & Timezone
-  locale: 'en',
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-  
+  locale: "en",
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+
   // Date & Time
-  dateFormat: 'YYYY-MM-DD',
-  timeFormat: '24h',
-  jalaliDateFormat: 'jYYYY/jMM/jDD',
-  
+  dateFormat: "YYYY-MM-DD",
+  timeFormat: "24h",
+  jalaliDateFormat: "jYYYY/jMM/jDD",
+
   // Calendar
-  calendarView: 'month',
-  weekStart: 'monday',
+  calendarView: "month",
+  weekStart: "monday",
   showWeekends: true,
   calendarTimeSlot: 30,
-  
+
   // Task List
-  taskListDensity: 'comfortable',
+  taskListDensity: "comfortable",
   showCompletedTasks: true,
-  defaultTaskView: 'list',
-  
+  defaultTaskView: "list",
+
   // Notifications
   emailNotifications: true,
   taskReminders: true,
   reminderTime: 30, // minutes before due
-  
+
   // Display
   compactMode: false,
   showTaskCount: true,
-}
+};
 
 const initialState = {
   preferences: defaultPreferences,
@@ -83,7 +83,7 @@ const initialState = {
   error: null,
   syncing: false,
   lastSynced: null,
-}
+};
 
 // ============================================================================
 // Preference Store
@@ -103,18 +103,18 @@ export const usePreferenceStore = create(
        */
       loadFromBackend: async () => {
         try {
-          set({ loading: true, error: null })
-          
-          const response = await preferenceService.getPreferences()
-          
+          set({ loading: true, error: null });
+
+          const response = await preferenceService.getPreferences();
+
           set({
             preferences: { ...defaultPreferences, ...response.data },
             loading: false,
             lastSynced: new Date().toISOString(),
-          })
+          });
         } catch (error) {
-          console.warn('Failed to load preferences from backend:', error)
-          set({ loading: false })
+          console.warn("Failed to load preferences from backend:", error);
+          set({ loading: false });
           // Use local preferences if backend fails
         }
       },
@@ -125,9 +125,9 @@ export const usePreferenceStore = create(
        */
       initialize: async () => {
         // Check if user is authenticated via auth store instead of just checking token
-        const authState = useAuthStore.getState()
+        const authState = useAuthStore.getState();
         if (authState.isAuthenticated) {
-          await get().loadFromBackend()
+          await get().loadFromBackend();
         }
       },
 
@@ -141,25 +141,25 @@ export const usePreferenceStore = create(
        * @param {*} value - Preference value
        */
       setPreference: async (key, value) => {
-        const { preferences } = get()
-        const previousValue = preferences[key]
-        
+        const { preferences } = get();
+        const previousValue = preferences[key];
+
         // Optimistic update
         set((state) => ({
           preferences: { ...state.preferences, [key]: value },
-        }))
-        
+        }));
+
         try {
           // Sync with backend
-          await preferenceService.updatePreference(key, value)
-          set({ lastSynced: new Date().toISOString() })
+          await preferenceService.updatePreference(key, value);
+          set({ lastSynced: new Date().toISOString() });
         } catch (error) {
           // Revert on error
           set((state) => ({
             preferences: { ...state.preferences, [key]: previousValue },
-            error: error.message || 'Failed to save preference',
-          }))
-          throw error
+            error: error.message || "Failed to save preference",
+          }));
+          throw error;
         }
       },
 
@@ -168,25 +168,25 @@ export const usePreferenceStore = create(
        * @param {Object} updates - Preference updates
        */
       updatePreferences: async (updates) => {
-        const { preferences } = get()
-        const previousPreferences = { ...preferences }
-        
+        const { preferences } = get();
+        const previousPreferences = { ...preferences };
+
         // Optimistic update
         set((state) => ({
           preferences: { ...state.preferences, ...updates },
-        }))
-        
+        }));
+
         try {
           // Sync with backend
-          await preferenceService.updatePreferences(updates)
-          set({ lastSynced: new Date().toISOString() })
+          await preferenceService.updatePreferences(updates);
+          set({ lastSynced: new Date().toISOString() });
         } catch (error) {
           // Revert on error
           set({
             preferences: previousPreferences,
-            error: error.message || 'Failed to save preferences',
-          })
-          throw error
+            error: error.message || "Failed to save preferences",
+          });
+          throw error;
         }
       },
 
@@ -198,7 +198,7 @@ export const usePreferenceStore = create(
       setPreferenceLocal: (key, value) => {
         set((state) => ({
           preferences: { ...state.preferences, [key]: value },
-        }))
+        }));
       },
 
       /**
@@ -208,7 +208,7 @@ export const usePreferenceStore = create(
       updatePreferencesLocal: (updates) => {
         set((state) => ({
           preferences: { ...state.preferences, ...updates },
-        }))
+        }));
       },
 
       // ==========================================================================
@@ -220,7 +220,7 @@ export const usePreferenceStore = create(
        * @param {string} locale - Locale code
        */
       setLocale: (locale) => {
-        get().setPreference('locale', locale)
+        get().setPreference("locale", locale);
       },
 
       /**
@@ -228,7 +228,7 @@ export const usePreferenceStore = create(
        * @param {string} timezone - Timezone
        */
       setTimezone: (timezone) => {
-        get().setPreference('timezone', timezone)
+        get().setPreference("timezone", timezone);
       },
 
       /**
@@ -236,7 +236,7 @@ export const usePreferenceStore = create(
        * @param {string} format - Date format
        */
       setDateFormat: (format) => {
-        get().setPreference('dateFormat', format)
+        get().setPreference("dateFormat", format);
       },
 
       /**
@@ -244,7 +244,7 @@ export const usePreferenceStore = create(
        * @param {string} format - Time format (12h/24h)
        */
       setTimeFormat: (format) => {
-        get().setPreference('timeFormat', format)
+        get().setPreference("timeFormat", format);
       },
 
       /**
@@ -252,7 +252,7 @@ export const usePreferenceStore = create(
        * @param {string} view - Calendar view (day/week/month)
        */
       setCalendarView: (view) => {
-        get().setPreference('calendarView', view)
+        get().setPreference("calendarView", view);
       },
 
       /**
@@ -260,15 +260,15 @@ export const usePreferenceStore = create(
        * @param {string} day - Week start day (sunday/monday)
        */
       setWeekStart: (day) => {
-        get().setPreference('weekStart', day)
+        get().setPreference("weekStart", day);
       },
 
       /**
        * Toggle show weekends
        */
       toggleShowWeekends: () => {
-        const { preferences } = get()
-        get().setPreference('showWeekends', !preferences.showWeekends)
+        const { preferences } = get();
+        get().setPreference("showWeekends", !preferences.showWeekends);
       },
 
       /**
@@ -276,15 +276,18 @@ export const usePreferenceStore = create(
        * @param {string} density - Density level
        */
       setTaskListDensity: (density) => {
-        get().setPreference('taskListDensity', density)
+        get().setPreference("taskListDensity", density);
       },
 
       /**
        * Toggle show completed tasks
        */
       toggleShowCompletedTasks: () => {
-        const { preferences } = get()
-        get().setPreference('showCompletedTasks', !preferences.showCompletedTasks)
+        const { preferences } = get();
+        get().setPreference(
+          "showCompletedTasks",
+          !preferences.showCompletedTasks,
+        );
       },
 
       // ==========================================================================
@@ -296,20 +299,20 @@ export const usePreferenceStore = create(
        */
       syncWithBackend: async () => {
         try {
-          set({ syncing: true })
-          
-          await preferenceService.updatePreferences(get().preferences)
-          
+          set({ syncing: true });
+
+          await preferenceService.updatePreferences(get().preferences);
+
           set({
             syncing: false,
             lastSynced: new Date().toISOString(),
-          })
+          });
         } catch (error) {
           set({
             syncing: false,
-            error: error.message || 'Failed to sync preferences',
-          })
-          throw error
+            error: error.message || "Failed to sync preferences",
+          });
+          throw error;
         }
       },
 
@@ -324,31 +327,31 @@ export const usePreferenceStore = create(
         set({
           preferences: defaultPreferences,
           error: null,
-        })
+        });
       },
 
       /**
        * Reset store to initial state
        */
       reset: () => {
-        set(initialState)
+        set(initialState);
       },
 
       /**
        * Clear error
        */
       clearError: () => {
-        set({ error: null })
+        set({ error: null });
       },
     }),
     {
-      name: 'preference-store',
+      name: "preference-store",
       partialize: (state) => ({
         preferences: state.preferences,
       }),
-    }
-  )
-)
+    },
+  ),
+);
 
 // ============================================================================
 // Selectors
@@ -357,92 +360,102 @@ export const usePreferenceStore = create(
 /**
  * Selector for all preferences
  */
-export const usePreferences = () => usePreferenceStore((state) => state.preferences)
+export const usePreferences = () =>
+  usePreferenceStore((state) => state.preferences);
 
 /**
  * Selector for specific preference
  */
-export const usePreference = (key) => usePreferenceStore((state) => state.preferences[key])
+export const usePreference = (key) =>
+  usePreferenceStore((state) => state.preferences[key]);
 
 /**
  * Selector for locale
  */
-export const useLocale = () => usePreferenceStore((state) => state.preferences.locale)
+export const useLocale = () =>
+  usePreferenceStore((state) => state.preferences.locale);
 
 /**
  * Selector for timezone
  */
-export const useTimezone = () => usePreferenceStore((state) => state.preferences.timezone)
+export const useTimezone = () =>
+  usePreferenceStore((state) => state.preferences.timezone);
 
 /**
  * Selector for date format
  */
-export const useDateFormat = () => usePreferenceStore((state) => state.preferences.dateFormat)
+export const useDateFormat = () =>
+  usePreferenceStore((state) => state.preferences.dateFormat);
 
 /**
  * Selector for time format
  */
-export const useTimeFormat = () => usePreferenceStore((state) => state.preferences.timeFormat)
+export const useTimeFormat = () =>
+  usePreferenceStore((state) => state.preferences.timeFormat);
 
 /**
  * Selector for calendar preferences
  */
-export const useCalendarPreferences = () => usePreferenceStore((state) => ({
-  calendarView: state.preferences.calendarView,
-  weekStart: state.preferences.weekStart,
-  showWeekends: state.preferences.showWeekends,
-  calendarTimeSlot: state.preferences.calendarTimeSlot,
-}))
+export const useCalendarPreferences = () =>
+  usePreferenceStore((state) => ({
+    calendarView: state.preferences.calendarView,
+    weekStart: state.preferences.weekStart,
+    showWeekends: state.preferences.showWeekends,
+    calendarTimeSlot: state.preferences.calendarTimeSlot,
+  }));
 
 /**
  * Selector for task list preferences
  */
-export const useTaskListPreferences = () => usePreferenceStore((state) => ({
-  taskListDensity: state.preferences.taskListDensity,
-  showCompletedTasks: state.preferences.showCompletedTasks,
-  defaultTaskView: state.preferences.defaultTaskView,
-}))
+export const useTaskListPreferences = () =>
+  usePreferenceStore((state) => ({
+    taskListDensity: state.preferences.taskListDensity,
+    showCompletedTasks: state.preferences.showCompletedTasks,
+    defaultTaskView: state.preferences.defaultTaskView,
+  }));
 
 /**
  * Selector for notification preferences
  */
-export const useNotificationPreferences = () => usePreferenceStore((state) => ({
-  emailNotifications: state.preferences.emailNotifications,
-  taskReminders: state.preferences.taskReminders,
-  reminderTime: state.preferences.reminderTime,
-}))
+export const useNotificationPreferences = () =>
+  usePreferenceStore((state) => ({
+    emailNotifications: state.preferences.emailNotifications,
+    taskReminders: state.preferences.taskReminders,
+    reminderTime: state.preferences.reminderTime,
+  }));
 
 /**
  * Selector for preference loading state
  */
-export const usePreferenceLoading = () => usePreferenceStore((state) => ({
-  loading: state.loading,
-  syncing: state.syncing,
-}))
+export const usePreferenceLoading = () =>
+  usePreferenceStore((state) => ({
+    loading: state.loading,
+    syncing: state.syncing,
+  }));
 
-/**
- * Selector for preference actions
- */
-export const usePreferenceActions = () => usePreferenceStore((state) => ({
-  loadFromBackend: state.loadFromBackend,
-  initialize: state.initialize,
-  setPreference: state.setPreference,
-  updatePreferences: state.updatePreferences,
-  setPreferenceLocal: state.setPreferenceLocal,
-  updatePreferencesLocal: state.updatePreferencesLocal,
-  setLocale: state.setLocale,
-  setTimezone: state.setTimezone,
-  setDateFormat: state.setDateFormat,
-  setTimeFormat: state.setTimeFormat,
-  setCalendarView: state.setCalendarView,
-  setWeekStart: state.setWeekStart,
-  toggleShowWeekends: state.toggleShowWeekends,
-  setTaskListDensity: state.setTaskListDensity,
-  toggleShowCompletedTasks: state.toggleShowCompletedTasks,
-  syncWithBackend: state.syncWithBackend,
-  resetToDefaults: state.resetToDefaults,
-  reset: state.reset,
-  clearError: state.clearError,
-}))
+export const usePreferenceActions = () =>
+  usePreferenceStore(
+    useShallow((state) => ({
+      loadFromBackend: state.loadFromBackend,
+      initialize: state.initialize,
+      setPreference: state.setPreference,
+      updatePreferences: state.updatePreferences,
+      setPreferenceLocal: state.setPreferenceLocal,
+      updatePreferencesLocal: state.updatePreferencesLocal,
+      setLocale: state.setLocale,
+      setTimezone: state.setTimezone,
+      setDateFormat: state.setDateFormat,
+      setTimeFormat: state.setTimeFormat,
+      setCalendarView: state.setCalendarView,
+      setWeekStart: state.setWeekStart,
+      toggleShowWeekends: state.toggleShowWeekends,
+      setTaskListDensity: state.setTaskListDensity,
+      toggleShowCompletedTasks: state.toggleShowCompletedTasks,
+      syncWithBackend: state.syncWithBackend,
+      resetToDefaults: state.resetToDefaults,
+      reset: state.reset,
+      clearError: state.clearError,
+    })),
+  );
 
-export default usePreferenceStore
+export default usePreferenceStore;

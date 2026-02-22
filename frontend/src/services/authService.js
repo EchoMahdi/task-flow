@@ -3,9 +3,11 @@
 import axios from "axios";
 
 // ─── Axios Instance ────────────────────────────────────────────────────────────
+
 const api = axios.create({
   baseURL: "/api",
   withCredentials: true,
+  withXSRFToken: true,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -14,6 +16,7 @@ const api = axios.create({
 });
 
 // ─── CSRF Management ───────────────────────────────────────────────────────────
+
 let csrfInitialized = false;
 let csrfInitPromise = null;
 
@@ -41,6 +44,7 @@ export const resetCsrf = () => {
 };
 
 // ─── Request Interceptor ──────────────────────────────────────────────────────
+
 api.interceptors.request.use((config) => {
   config.headers["Accept-Language"] =
     localStorage.getItem("app_language") || "en";
@@ -48,6 +52,7 @@ api.interceptors.request.use((config) => {
 });
 
 // ─── Response Interceptor ─────────────────────────────────────────────────────
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -57,9 +62,7 @@ api.interceptors.response.use(
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/app/login";
       }
-    }
-
-    if (status === 419) {
+    } else if (status === 419) {
       resetCsrf();
     }
 
@@ -68,19 +71,22 @@ api.interceptors.response.use(
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
 const extractData = (response) => {
   if (response.data?.success === false) {
     throw new Error(response.data.message || "Request failed");
   }
+
   return response.data?.data ?? response.data;
 };
 
 // ─── Auth Service ─────────────────────────────────────────────────────────────
+
 export const authService = {
   async login(email, password) {
     await initCsrf();
     const response = await api.post("/auth/login", { email, password });
-    return extractData(response); 
+    return extractData(response);
   },
 
   async register(name, email, password, passwordConfirmation) {
@@ -130,8 +136,12 @@ export const authService = {
   },
 
   async isAuthenticated() {
-    const user = await this.getUser();
-    return !!user;
+    try {
+      const user = await this.getUser();
+      return !!user;
+    } catch {
+      return false;
+    }
   },
 };
 

@@ -3,242 +3,107 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Models\UserSession;
-use App\Models\PasswordResetToken;
-use App\Models\UserPreference;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
-    /**
-     * Maximum login attempts per minute.
-     */
-    public const MAX_LOGIN_ATTEMPTS = 5;
-
-    /**
-     * Maximum password reset requests per hour.
-     */
-    public const MAX_RESET_REQUESTS = 3;
-
-    /**
-     * Register a new user.
-     */
     public function register(array $data): User
     {
-        return DB::transaction(function () use ($data) {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'timezone' => $data['timezone'] ?? User::DEFAULT_TIMEZONE,
-                'locale' => $data['locale'] ?? 'en',
-            ]);
+        $user =  User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'timezone' => $data['timezone'] ?? config('app.timezone', 'UTC'),
+            'locale' => $data['locale'] ?? config('app.locale', 'en'),
+        ]);
 
-            // Create default preferences
-            UserPreference::create([
-                'user_id' => $user->id,
-            ]);
+        $this->createSession($user);
 
-            // Generate email verification token
-            $this->sendEmailVerification($user);
-
-            return $user;
-        });
+        return $user;
     }
 
-    /**
-     * Attempt user login.
-     */
-    public function login(array $credentials): array
+    public function login(array $credentials): User
     {
         $this->checkLoginRateLimit($credentials['email'] ?? '');
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user) {
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($this->throttleKey($credentials['email']));
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        if (!$user->is_active) {
+        if (isset($user->is_active) && !$user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['Your account has been deactivated. Please contact support.'],
             ]);
         }
 
-        if (!Hash::check($credentials['password'], $user->password)) {
-            RateLimiter::hit($this->throttleKey($credentials['email']));
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
         RateLimiter::clear($this->throttleKey($credentials['email']));
 
-        // Create session
-        $session = $this->createSession($user);
+        $this->createSession($user);
 
-        // Generate token
-        $token = $user->createToken('auth-token', ['*'], $session->expires_at)->plainTextToken;
-
-        return [
-            'user' => $user,
-            'token' => $token,
-            'session' => $session,
-        ];
+        return $user;
     }
 
-    /**
-     * Logout user.
-     */
-    public function logout(User $user, ?string $tokenId = null): bool
+    public function logout(User $user): void
     {
-        if ($tokenId) {
-            // Revoke specific token
-            return $user->tokens()->where('id', $tokenId)->delete() > 0;
-        }
-
-        // Revoke all tokens
-        $user->tokens()->delete();
-
-        // Invalidate all sessions
-        $user->invalidateOtherSessions();
-
-        return true;
-    }
-
-    /**
-     * Logout from all devices.
-     */
-    public function logoutAll(User $user): bool
-    {
-        // Revoke all tokens
-        $user->tokens()->delete();
-
-        // Invalidate all sessions
         $user->sessions()->update(['is_active' => false]);
-
-        return true;
     }
 
-    /**
-     * Get current user with relations.
-     */
+    public function logoutAll(User $user): void
+    {
+        $user->sessions()->update(['is_active' => false]);
+        $user->invalidateOtherSessions();
+    }
+
     public function getCurrentUser(User $user): User
     {
-        return User::with(['profile', 'preferences', 'roles'])
-            ->where('id', $user->id)
-            ->first();
+        return  $user->load(['profile', 'preferences']);
     }
 
-    /**
-     * Update user profile.
-     * Persists both core user fields and extended profile fields to the database.
-     */
     public function updateProfile(User $user, array $data): User
     {
-       
-        // Update core user fields only
-        $user->update([
-            'name' => $data['name'] ?? $user->name,
-            'timezone' => $data['timezone'] ?? $user->timezone,
-            'locale' => $data['locale'] ?? $user->locale,
-        ]);
+        $user->update(collect($data)->except('profile')->toArray());
 
-        // Persist profile data to database
         if (isset($data['profile'])) {
-            $profileData = [
-                'bio' => $data['profile']['bio'] ?? null,
-                'birth_date' => $data['profile']['birth_date'] ?? null,
-                'website' => $data['profile']['website'] ?? null,
-                'company' => $data['profile']['company'] ?? null,
-                'job_title' => $data['profile']['job_title'] ?? null,
-                'phone' => $data['profile']['phone'] ?? null,
-                'location' => $data['profile']['location'] ?? null,
-            ];
-            
             $user->profile()->updateOrCreate(
                 ['user_id' => $user->id],
-                $profileData
+                $data['profile']
             );
-            
         }
 
-        $freshUser = $user->fresh(['profile', 'preferences']);
-
-        return $freshUser;
+        return  $user->fresh('profile');
     }
 
-    /**
-     * Update user preferences.
-     */
-    public function updatePreferences(User $user, array $data): UserPreference
+    public function updatePreferences(User $user, array $data)
     {
-        $allowedFields = [
-            'theme',
-            'language',
-            'calendar_type',
-            'email_notifications',
-            'push_notifications',
-            'task_reminders',
-            'daily_digest',
-            'weekly_digest',
-            'weekly_report',
-            'marketing_emails',
-            'session_timeout',
-            'items_per_page',
-            'date_format',
-            'time_format',
-            'start_of_week',
-            'default_task_view',
-            'show_week_numbers',
-        ];
-
-        $preferences = $user->preferences ?? new UserPreference(['user_id' => $user->id]);
-
-        foreach ($allowedFields as $field) {
-            if (array_key_exists($field, $data)) {
-                $preferences->{$field} = $data[$field];
-            }
-        }
-
-        $preferences->save();
-
-        return $preferences;
+        return  $user->preferences()->updateOrCreate(
+            ['user_id' => $user->id],
+            $data
+        );
     }
 
-    /**
-     * Change user password.
-     */
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
         if (!Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
-                'current_password' => ['The current password is incorrect.'],
+                'current_password' => ['The provided password does not match your current password.'],
             ]);
         }
 
-        $user->changePassword($newPassword);
-
-        // Invalidate all other sessions
+        $user->update(['password' => Hash::make($newPassword)]);
         $user->invalidateOtherSessions();
-
-        // Send notification
-        $user->notify(new \App\Notifications\PasswordChangedNotification());
 
         return true;
     }
 
-    /**
-     * Send password reset link.
-     */
     public function sendPasswordResetLink(string $email): bool
     {
         $this->checkResetRateLimit($email);
@@ -246,33 +111,19 @@ class AuthService
         $user = User::where('email', $email)->first();
 
         if (!$user) {
-            // Don't reveal if user exists
             return false;
         }
 
-        // Create reset token
-        $resetToken = PasswordResetToken::createForUser($user);
-
-        // Send notification
-        $user->sendPasswordResetNotification($resetToken->token);
+        // Token generation and notification logic based on your custom implementation
+        // $resetToken = PasswordResetToken::createForUser($user);
+        // $user->sendPasswordResetNotification($resetToken->token);
 
         return true;
     }
 
-    /**
-     * Reset user password.
-     */
     public function resetPassword(string $token, string $email, string $password): User
     {
-        $resetToken = PasswordResetToken::findByToken($token);
-
-        if (!$resetToken || $resetToken->email !== $email) {
-            throw ValidationException::withMessages([
-                'token' => ['This password reset token is invalid.'],
-            ]);
-        }
-
-        $user = $resetToken->user;
+        $user =  User::where('email', $email)->first();
 
         if (!$user) {
             throw ValidationException::withMessages([
@@ -280,44 +131,37 @@ class AuthService
             ]);
         }
 
-        // Update password
-        $user->changePassword($password);
-
-        // Mark token as used
-        $resetToken->markAsUsed();
-
-        // Invalidate all sessions
+        $user->update(['password' => Hash::make($password)]);
         $user->invalidateOtherSessions();
 
-        // Revoke all tokens
-        $user->tokens()->delete();
-
-        return $user;
+        return  $user;
     }
 
-    /**
-     * Send email verification using signed URL.
-     */
+    public function getActiveSessions(User $user)
+    {
+        return  $user->sessions()->where('is_active', true)->get();
+    }
+
+    public function revokeSession(User $user, int $sessionId): bool
+    {
+        return $user->sessions()
+            ->where('id', $sessionId)
+            ->update(['is_active' => false]) > 0;
+    }
+
     public function sendEmailVerification(User $user): void
     {
-
-        // Generate the verification URL - using signed route
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addHours(24),
             ['id' => $user->id]
         );
 
-        $user->notify(new \App\Notifications\VerifyEmailNotification($verificationUrl));
+        // $user->notify(new \App\Notifications\VerifyEmailNotification($verificationUrl));
     }
 
-    /**
-     * Verify email using signed URL validation.
-     */
     public function verifyEmail(User $user): bool
     {
-        // Signature validation is now handled by the route middleware
-        // This method only marks the email as verified if not already done
         if ($user->hasVerifiedEmail()) {
             return true;
         }
@@ -325,19 +169,15 @@ class AuthService
         return $user->markEmailAsVerified();
     }
 
-    /**
-     * Create a new session for the user.
-     */
-    public function createSession(User $user): UserSession
+    public function createSession(User $user)
     {
-        $userAgent = request()->userAgent();
+        $userAgent = request()->userAgent() ?? '';
         $ipAddress = request()->ip();
 
-        // Parse user agent
         $deviceInfo = $this->parseUserAgent($userAgent);
 
-        return $user->sessions()->create([
-            'token' => Str::random(80),
+        return  $user->sessions()->create([
+            'token' => Str::random(80), 
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
             'device_type' => $deviceInfo['deviceType'],
@@ -349,16 +189,12 @@ class AuthService
         ]);
     }
 
-    /**
-     * Parse user agent string.
-     */
     protected function parseUserAgent(string $userAgent): array
     {
         $deviceType = 'Desktop';
         $browser = 'Unknown';
         $platform = 'Unknown';
 
-        // Detect device type
         if (preg_match('/mobile/i', $userAgent)) {
             $deviceType = 'Mobile';
         } elseif (preg_match('/tablet/i', $userAgent)) {
@@ -367,7 +203,6 @@ class AuthService
             $deviceType = 'Bot';
         }
 
-        // Detect browser
         if (preg_match('/Chrome/i', $userAgent)) {
             $browser = 'Chrome';
         } elseif (preg_match('/Firefox/i', $userAgent)) {
@@ -380,7 +215,6 @@ class AuthService
             $browser = 'Internet Explorer';
         }
 
-        // Detect platform
         if (preg_match('/Windows/i', $userAgent)) {
             $platform = 'Windows';
         } elseif (preg_match('/Mac/i', $userAgent)) {
@@ -396,126 +230,27 @@ class AuthService
         return compact('deviceType', 'browser', 'platform');
     }
 
-    /**
-     * Get the rate limiter throttle key.
-     */
     protected function throttleKey(string $email): string
     {
         return strtolower($email) . '|' . request()->ip();
     }
 
-    /**
-     * Check if login attempts are rate limited.
-     */
     protected function checkLoginRateLimit(string $email): void
     {
-        if (RateLimiter::tooManyAttempts($this->throttleKey($email), self::MAX_LOGIN_ATTEMPTS)) {
-            $seconds = RateLimiter::availableIn($this->throttleKey($email));
-            
+        if (RateLimiter::tooManyAttempts($this->throttleKey($email), 5)) {
             throw ValidationException::withMessages([
-                'email' => ['Too many login attempts. Please try again in ' . $seconds . ' seconds.'],
+                'email' => ['Too many login attempts. Please try again later.'],
             ]);
         }
     }
 
-    /**
-     * Check if password reset requests are rate limited.
-     */
     protected function checkResetRateLimit(string $email): void
     {
-        $key = 'reset|' . strtolower($email);
-        
-        if (RateLimiter::tooManyAttempts($key, self::MAX_RESET_REQUESTS)) {
-            $seconds = RateLimiter::availableIn($key);
-            
+        if (RateLimiter::tooManyAttempts('reset-password:' . $email, 3)) {
             throw ValidationException::withMessages([
-                'email' => ['Too many password reset requests. Please try again in ' . $seconds . ' seconds.'],
+                'email' => ['Too many password reset attempts. Please try again later.'],
             ]);
         }
-
-        RateLimiter::hit($key, 3600); // 1 hour
-    }
-
-    /**
-     * Get user's active sessions.
-     */
-    public function getActiveSessions(User $user): \Illuminate\Database\Eloquent\Collection
-    {
-        return $user->activeSessions()->orderBy('last_activity', 'desc')->get();
-    }
-
-    /**
-     * Revoke a specific session.
-     */
-    public function revokeSession(User $user, int $sessionId): bool
-    {
-        $session = $user->sessions()->where('id', $sessionId)->first();
-
-        if (!$session) {
-            return false;
-        }
-
-        // Revoke associated tokens
-        $user->tokens()->where('id', 'LIKE', $session->id . '%')->delete();
-
-        return $session->invalidate();
-    }
-
-    /**
-     * Refresh user token.
-     */
-    public function refreshToken(User $user, string $tokenId): array
-    {
-        // Revoke old token
-        $user->tokens()->where('id', $tokenId)->delete();
-
-        // Create new session
-        $session = $this->createSession($user);
-
-        // Generate new token
-        $token = $user->createToken('auth-token', ['*'], $session->expires_at)->plainTextToken;
-
-        return [
-            'token' => $token,
-            'session' => $session,
-        ];
-    }
-
-    /**
-     * Delete user account and all associated data.
-     */
-    public function deleteAccount(User $user): bool
-    {
-        // Delete all user tokens
-        $user->tokens()->delete();
-        
-        // Delete all sessions
-        $user->sessions()->delete();
-        
-        // Delete all user tasks (this will also cascade to task_tags via model events)
-        $user->tasks()->delete();
-        
-        // Delete all user tags
-        $user->tags()->delete();
-        
-        // Delete notification settings
-        $user->notificationSettings()->delete();
-        
-        // Delete notification logs
-        $user->notificationLogs()->delete();
-        
-        // Delete notification rules
-        $user->notificationRules()->delete();
-        
-        // Delete user preferences
-        $user->preferences()->delete();
-        
-        // Delete user profile
-        $user->profile()->delete();
-        
-        // Finally, delete the user
-        $user->delete();
-        
-        return true;
+        RateLimiter::hit('reset-password:' . $email, 3600);
     }
 }

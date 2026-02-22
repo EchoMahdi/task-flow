@@ -9,16 +9,16 @@
  */
 
 import { useEffect } from 'react'
-import { useAuthStore } from './stores/authStore'
-import { useI18nStore } from './stores/i18nStore'
+import { useUser } from './stores/authStore'
+import { useLanguage } from './stores/i18nStore'
 
 /**
  * AppContent handles app-level effects
  */
 function AppContent() {
-  const user = useAuthStore((state) => state.user)
-  const language = useI18nStore((state) => state.language)
-  const changeLanguage = useI18nStore((state) => state.changeLanguage)
+  const user = useUser() // Get user from auth store
+  const language = useLanguage() // Get current language from i18n store
+  const changeLanguage = useI18nActions().changeLanguage // Get language change action from i18n store
 
   // Sync language with user preference on load
   useEffect(() => {

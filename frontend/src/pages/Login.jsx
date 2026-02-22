@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuthStore, useIsAuthenticated } from "@/stores/authStore";
+import { useIsAuthenticated, useAuthActions } from "@/stores/authStore";
 import { useTranslation } from "@/stores/i18nStore";
 import { AuthLayout } from "@/components/layout/index";
 import {
@@ -28,12 +28,11 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-  // Zustand store hooks
-  const login = useAuthStore((state) => state.login);
+
+  const login = useAuthActions().login;
   const isAuthenticated = useIsAuthenticated();
   const { t } = useTranslation();
-  
+
   // Form state
   const [formData, setFormData] = useState({
     email: "",
@@ -47,7 +46,7 @@ const Login = () => {
   const [socialLoading, setSocialLoading] = useState({});
 
   // Get redirect URL from query params
-  const redirectTo = searchParams.get('redirect') || '/app/dashboard';
+  const redirectTo = searchParams.get("redirect") || "/app/dashboard";
 
   // Check if already authenticated - redirect to dashboard
   useEffect(() => {
@@ -109,9 +108,10 @@ const Login = () => {
       await login(formData.email, formData.password);
       navigate(redirectTo);
     } catch (error) {
-      const message = error.response?.data?.message || 
-                      error.message || 
-                      t("Login failed. Please try again");
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        t("Login failed. Please try again");
       setApiError(message);
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ const Login = () => {
           clearInterval(popupCheckInterval.current);
           popupCheckInterval.current = null;
           popupRef.current = null;
-          
+
           // Initialize CSRF and check auth status
           await initCsrf();
           const user = await authService.getUser();
@@ -296,7 +296,11 @@ const Login = () => {
                 disabled={loading}
                 sx={{ py: 1.5, mt: 1 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : t("Sign in")}
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  t("Sign in")
+                )}
               </Button>
             </form>
 
@@ -347,7 +351,13 @@ const Login = () => {
                 type="button"
                 onClick={() => handleSocialLogin("google")}
                 disabled={socialLoading.google}
-                startIcon={socialLoading.google ? <CircularProgress size={18} /> : <GoogleIcon />}
+                startIcon={
+                  socialLoading.google ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <GoogleIcon />
+                  )
+                }
               >
                 {t("Google")}
               </Button>
@@ -356,7 +366,13 @@ const Login = () => {
                 type="button"
                 onClick={() => handleSocialLogin("github")}
                 disabled={socialLoading.github}
-                startIcon={socialLoading.github ? <CircularProgress size={18} /> : <GitHubIcon />}
+                startIcon={
+                  socialLoading.github ? (
+                    <CircularProgress size={18} />
+                  ) : (
+                    <GitHubIcon />
+                  )
+                }
               >
                 {t("GitHub")}
               </Button>

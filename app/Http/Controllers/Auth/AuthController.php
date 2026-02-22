@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
 use App\Http\Resources\SessionResource;
-use App\Models\User;
+use App\Http\Resources\UserResource;
 use App\Services\AuthService;
-use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
+use App\Services\TranslationService; 
+
 
 class AuthController extends Controller
 {
@@ -26,9 +25,6 @@ class AuthController extends Controller
         $this->translator = $translator;
     }
 
-    /**
-     * Register a new user.
-     */
     public function register(Request $request): JsonResponse
     {
         try {
@@ -42,15 +38,14 @@ class AuthController extends Controller
 
             $user = $this->authService->register($validated);
 
-            // Create Sanctum token
-            $token = $user->createToken('auth-token')->plainTextToken;
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Registration successful',
                 'data' => [
                     'user' => new UserResource($user),
-                    'token' => $token,
                 ],
             ], 201);
         } catch (ValidationException $e) {
@@ -67,9 +62,6 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Login user.
-     */
     public function login(Request $request): JsonResponse
     {
         try {
@@ -78,14 +70,16 @@ class AuthController extends Controller
                 'password' => ['required', 'string'],
             ]);
 
-            $result = $this->authService->login($validated);
+            $user = $this->authService->login($validated);
+
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
                 'data' => [
-                    'user' => new UserResource($result['user']),
-                    'token' => $result['token'],
+                    'user' => new UserResource($user),
                 ],
             ]);
         } catch (ValidationException $e) {
@@ -94,11 +88,6 @@ class AuthController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
             ], 422);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 401);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -107,19 +96,11 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Logout user.
-     * Uses Laravel Fortify for session invalidation.
-     */
     public function logout(Request $request): JsonResponse
     {
-        // Revoke all Sanctum tokens
-        $request->user()->tokens()->delete();
-        
-        // Logout from session 
+        $this->authService->logout(Auth::user());
+
         Auth::guard('web')->logout();
-        
-        // Invalidate session
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -129,13 +110,14 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Logout from all devices.
-     */
     public function logoutAll(Request $request): JsonResponse
     {
         $user = Auth::user();
         $this->authService->logoutAll($user);
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'success' => true,
@@ -143,9 +125,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Get current user.
-     */
     public function me(Request $request): JsonResponse
     {
         $user = $this->authService->getCurrentUser($request->user());
@@ -156,14 +135,10 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Update user profile.
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
             $user = Auth::user();
-
             $validated = $request->validate([
                 'name' => ['sometimes', 'string', 'max:255'],
                 'timezone' => ['sometimes', 'timezone'],
@@ -190,14 +165,10 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Update user preferences.
-     */
     public function updatePreferences(Request $request): JsonResponse
     {
         try {
             $user = Auth::user();
-
             $validated = $request->validate([
                 'theme' => ['sometimes', 'in:light,dark,system'],
                 'language' => ['sometimes', 'string'],
@@ -230,14 +201,10 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Change password.
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
             $user = Auth::user();
-
             $validated = $request->validate([
                 'current_password' => ['required', 'string'],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -258,9 +225,6 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Get active sessions.
-     */
     public function sessions(Request $request): JsonResponse
     {
         $user = Auth::user();
@@ -272,9 +236,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Revoke a specific session.
-     */
     public function revokeSession(Request $request, int $sessionId): JsonResponse
     {
         $user = Auth::user();
@@ -293,28 +254,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Refresh token.
-     */
-    public function refresh(Request $request): JsonResponse
-    {
-        $user = Auth::user();
-        $tokenId = $request->user()->currentAccessToken()?->id;
-
-        $result = $this->authService->refreshToken($user, $tokenId);
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'token' => $result['token'],
-                'session' => $result['session'],
-            ],
-        ]);
-    }
-
-    /**
-     * Send password reset link.
-     */
     public function forgotPassword(Request $request): JsonResponse
     {
         try {
@@ -333,9 +272,6 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Reset password.
-     */
     public function resetPassword(Request $request): JsonResponse
     {
         try {
@@ -358,132 +294,5 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);
         }
-    }
-
-    /**
-     * Verify email.
-     * Note: Signature validation is handled by the 'signed' middleware on the route.
-     */
-    public function verifyEmail(Request $request): JsonResponse
-    {
-        $request->validate([
-            'id' => ['required', 'integer'],
-        ]);
-
-        $user = User::find($request->id);
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => $this->translator->get('errors.not_found'),
-            ], 404);
-        }
-
-        // Signature is already validated by the middleware
-        $verified = $this->authService->verifyEmail($user);
-
-        if (!$verified) {
-            return response()->json([
-                'success' => false,
-                'message' => $this->translator->get('errors.validation_failed'),
-            ], 400);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $this->translator->get('success.operation_completed'),
-        ]);
-    }
-
-    /**
-     * Resend email verification.
-     * 
-     */
-    public function resendVerification(Request $request): JsonResponse
-    {
-        $user = Auth::user();
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'success' => false,
-                'message' => $this->translator->get('errors.validation_failed'),
-            ], 400);
-        }
-
-        $this->authService->sendEmailVerification($user);
-
-        return response()->json([
-            'success' => true,
-            'message' => $this->translator->get('success.operation_completed'),
-        ]);
-    }
-
-    /**
-     * Export user data.
-     */
-    public function exportData(Request $request): JsonResponse
-    {
-        $user = $this->authService->getCurrentUser($request->user());
-
-        $exportData = [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'timezone' => $user->timezone,
-                'locale' => $user->locale,
-                'created_at' => $user->created_at,
-            ],
-            'profile' => $user->profile ? [
-                'bio' => $user->profile->bio,
-                'birth_date' => $user->profile->birth_date,
-                'website' => $user->profile->website,
-                'company' => $user->profile->company,
-                'job_title' => $user->profile->job_title,
-            ] : null,
-            'preferences' => $user->preferences ? $user->preferences->toArray() : null,
-            'tasks' => $user->tasks ? $user->tasks->map(function ($task) {
-                return [
-                    'id' => $task->id,
-                    'title' => $task->title,
-                    'description' => $task->description,
-                    'priority' => $task->priority,
-                    'is_completed' => $task->is_completed,
-                    'due_date' => $task->due_date,
-                    'created_at' => $task->created_at,
-                    'updated_at' => $task->updated_at,
-                    'tags' => $task->tags ? $task->tags->pluck('name')->toArray() : [],
-                ];
-            })->toArray() : [],
-            'tags' => $user->tags ? $user->tags->map(function ($tag) {
-                return [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'color' => $tag->color,
-                    'created_at' => $tag->created_at,
-                ];
-            })->toArray() : [],
-            'exported_at' => now()->toIso8601String(),
-        ];
-
-        return response()->json([
-            'success' => true,
-            'data' => $exportData,
-        ]);
-    }
-
-    /**
-     * Delete user account.
-     */
-    public function deleteAccount(Request $request): JsonResponse
-    {
-        $user = Auth::user();
-
-        $this->authService->deleteAccount($user);
-
-        return response()->json([
-            'success' => true,
-            'message' => $this->translator->get('success.data_deleted'),
-        ]);
     }
 }

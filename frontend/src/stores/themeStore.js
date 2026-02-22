@@ -447,16 +447,18 @@ export const useColors = () => useThemeStore((state) => getColors(state.resolved
 /**
  * Selector for theme actions
  */
-export const useThemeActions = () => useThemeStore((state) => ({
-  setThemeMode: state.setThemeMode,
-  toggleThemeMode: state.toggleThemeMode,
-  setReducedMotion: state.setReducedMotion,
-  setHighContrast: state.setHighContrast,
-  setFontScale: state.setFontScale,
-  setLocale: state.setLocale,
-  initialize: state.initialize,
-  loadFromBackend: state.loadFromBackend,
-  reset: state.reset,
-}))
-
+export const useThemeActions = () =>
+  useThemeStore(
+    useShallow((state) => ({
+      setThemeMode: state.setThemeMode,
+      toggleThemeMode: state.toggleThemeMode,
+      setReducedMotion: state.setReducedMotion,
+      setHighContrast: state.setHighContrast,
+      setFontScale: state.setFontScale,
+      setLocale: state.setLocale,
+      initialize: state.initialize,
+      loadFromBackend: state.loadFromBackend,
+      reset: state.reset,
+    }))
+  )
 export default useThemeStore

@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { useTheme as useMUITheme } from "@mui/material/styles";
 import { useAuthStore } from "@/stores/authStore";
+import { useUser,useAuthActions } from "@/stores/authStore";
 import { useNavigationStore } from "@/stores/navigationStore";
 import {
   navigationStorage,
@@ -221,8 +222,8 @@ const getCount = (counts, filterId) => counts?.[filterId] || 0;
  */
 const NavigationRail = ({ collapsed = false, onNavigate }) => {
   const t = useI18nStore((state) => state.t);
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const user = useUser();
+  const logout = useAuthActions().logout;
 
   // Use Zustand store with selectors for optimal re-renders
   const systemFilters = useNavigationStore((state) => state.systemFilters);

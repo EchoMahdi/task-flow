@@ -5,7 +5,7 @@ import {
   Tabs, Divider, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem ,Tab
 } from '@mui/material';
 import PageHeader from '@/components/ui/PageHeader';
-import { useAuthStore } from '@/stores/authStore';
+import { useUser,useAuthActions } from "@/stores/authStore";
 import { preferenceService } from '@/services/preferenceService';
 import { useTheme } from '@/theme/ThemeProvider';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -16,10 +16,9 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useI18nStore } from '@/stores/i18nStore';
 
 const Profile = () => {
-  const user = useAuthStore((state) => state.user);
-  const refreshUser = useAuthStore((state) => state.refreshUser);
+  const user = useUser();
+  const refreshUser = useAuthActions().refreshUser;
   const theme = useTheme();
-  const colors = theme.colors ;
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');

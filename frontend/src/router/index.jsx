@@ -24,7 +24,6 @@ import {
 } from 'react-router-dom'
 import { Suspense, lazy, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
-import { hasAccess } from './accessControl'
 import AppLayout from '@/components/layout/AppLayout/AppLayout'
 import { LoadingPage, NotFound, Unauthorized, ServerError } from '@/pages/ErrorPages'
 

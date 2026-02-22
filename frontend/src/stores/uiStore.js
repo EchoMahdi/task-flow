@@ -2,27 +2,27 @@
  * ============================================================================
  * UI Store - Zustand
  * ============================================================================
- * 
+ *
  * Centralized UI state management using Zustand.
  * Handles toasts, modals, loading states, and other UI-related state.
- * 
+ *
  * Features:
  * - Toast notifications (success, error, warning, info)
  * - Modal management
  * - Global loading states
  * - Sidebar/drawer states
  * - UI preferences
- * 
+ *
  * @example
  * // Basic usage
  * const { showToast, showModal, hideModal } = useUIStore()
- * 
+ *
  * // With selectors
  * const toasts = useUIStore(state => state.toasts)
  */
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 // ============================================================================
 // Types
@@ -52,34 +52,34 @@ import { persist } from 'zustand/middleware'
 const initialState = {
   // Toasts
   toasts: [],
-  
+
   // Modals
   modals: [],
   activeModal: null,
-  
+
   // Global loading
   globalLoading: false,
   globalLoadingMessage: null,
-  
+
   // Sidebar states
   sidebarOpen: true,
   sidebarCollapsed: false,
-  
+
   // Right panel
   rightPanelOpen: false,
   rightPanelContent: null,
-  
+
   // Search
   searchOpen: false,
-  searchQuery: '',
-  
+  searchQuery: "",
+
   // UI preferences
   preferences: {
     compactMode: false,
     showCompletedTasks: true,
-    taskListDensity: 'comfortable', // 'compact', 'comfortable', 'spacious'
+    taskListDensity: "comfortable", // 'compact', 'comfortable', 'spacious'
   },
-}
+};
 
 // ============================================================================
 // Helper Functions
@@ -88,7 +88,8 @@ const initialState = {
 /**
  * Generate unique ID
  */
-const generateId = () => `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const generateId = () =>
+  `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // ============================================================================
 // UI Store
@@ -112,22 +113,27 @@ export const useUIStore = create(
        * @param {Object} [options.action] - Optional action button
        * @returns {string} Toast ID
        */
-      showToast: ({ type = 'info', message, duration = 5000, action = null }) => {
-        const id = generateId()
-        const toast = { id, type, message, duration, action }
-        
+      showToast: ({
+        type = "info",
+        message,
+        duration = 5000,
+        action = null,
+      }) => {
+        const id = generateId();
+        const toast = { id, type, message, duration, action };
+
         set((state) => ({
           toasts: [...state.toasts, toast],
-        }))
-        
+        }));
+
         // Auto-dismiss if duration > 0
         if (duration > 0) {
           setTimeout(() => {
-            get().dismissToast(id)
-          }, duration)
+            get().dismissToast(id);
+          }, duration);
         }
-        
-        return id
+
+        return id;
       },
 
       /**
@@ -136,7 +142,7 @@ export const useUIStore = create(
        * @param {Object} [options] - Additional options
        */
       showSuccess: (message, options = {}) => {
-        return get().showToast({ type: 'success', message, ...options })
+        return get().showToast({ type: "success", message, ...options });
       },
 
       /**
@@ -145,7 +151,12 @@ export const useUIStore = create(
        * @param {Object} [options] - Additional options
        */
       showError: (message, options = {}) => {
-        return get().showToast({ type: 'error', message, duration: 7000, ...options })
+        return get().showToast({
+          type: "error",
+          message,
+          duration: 7000,
+          ...options,
+        });
       },
 
       /**
@@ -154,7 +165,7 @@ export const useUIStore = create(
        * @param {Object} [options] - Additional options
        */
       showWarning: (message, options = {}) => {
-        return get().showToast({ type: 'warning', message, ...options })
+        return get().showToast({ type: "warning", message, ...options });
       },
 
       /**
@@ -163,7 +174,7 @@ export const useUIStore = create(
        * @param {Object} [options] - Additional options
        */
       showInfo: (message, options = {}) => {
-        return get().showToast({ type: 'info', message, ...options })
+        return get().showToast({ type: "info", message, ...options });
       },
 
       /**
@@ -173,14 +184,14 @@ export const useUIStore = create(
       dismissToast: (id) => {
         set((state) => ({
           toasts: state.toasts.filter((t) => t.id !== id),
-        }))
+        }));
       },
 
       /**
        * Clear all toasts
        */
       clearToasts: () => {
-        set({ toasts: [] })
+        set({ toasts: [] });
       },
 
       // ==========================================================================
@@ -195,15 +206,15 @@ export const useUIStore = create(
        * @returns {string} Modal ID
        */
       showModal: ({ type, props = {} }) => {
-        const id = `modal-${Date.now()}`
-        const modal = { id, type, props, isOpen: true }
-        
+        const id = `modal-${Date.now()}`;
+        const modal = { id, type, props, isOpen: true };
+
         set((state) => ({
           modals: [...state.modals, modal],
           activeModal: id,
-        }))
-        
-        return id
+        }));
+
+        return id;
       },
 
       /**
@@ -213,17 +224,18 @@ export const useUIStore = create(
       hideModal: (id) => {
         set((state) => ({
           modals: state.modals.filter((m) => m.id !== id),
-          activeModal: state.modals.length > 1 
-            ? state.modals[state.modals.length - 2].id 
-            : null,
-        }))
+          activeModal:
+            state.modals.length > 1
+              ? state.modals[state.modals.length - 2].id
+              : null,
+        }));
       },
 
       /**
        * Hide all modals
        */
       hideAllModals: () => {
-        set({ modals: [], activeModal: null })
+        set({ modals: [], activeModal: null });
       },
 
       /**
@@ -234,9 +246,9 @@ export const useUIStore = create(
       updateModalProps: (id, props) => {
         set((state) => ({
           modals: state.modals.map((m) =>
-            m.id === id ? { ...m, props: { ...m.props, ...props } } : m
+            m.id === id ? { ...m, props: { ...m.props, ...props } } : m,
           ),
-        }))
+        }));
       },
 
       // ==========================================================================
@@ -252,22 +264,22 @@ export const useUIStore = create(
         set({
           globalLoading: loading,
           globalLoadingMessage: loading ? message : null,
-        })
+        });
       },
 
       /**
        * Show global loading
        * @param {string} [message] - Loading message
        */
-      showGlobalLoading: (message = 'Loading...') => {
-        get().setGlobalLoading(true, message)
+      showGlobalLoading: (message = "Loading...") => {
+        get().setGlobalLoading(true, message);
       },
 
       /**
        * Hide global loading
        */
       hideGlobalLoading: () => {
-        get().setGlobalLoading(false)
+        get().setGlobalLoading(false);
       },
 
       // ==========================================================================
@@ -278,7 +290,7 @@ export const useUIStore = create(
        * Toggle sidebar
        */
       toggleSidebar: () => {
-        set((state) => ({ sidebarOpen: !state.sidebarOpen }))
+        set((state) => ({ sidebarOpen: !state.sidebarOpen }));
       },
 
       /**
@@ -286,14 +298,14 @@ export const useUIStore = create(
        * @param {boolean} open - Open state
        */
       setSidebarOpen: (open) => {
-        set({ sidebarOpen: open })
+        set({ sidebarOpen: open });
       },
 
       /**
        * Toggle sidebar collapsed state
        */
       toggleSidebarCollapsed: () => {
-        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }))
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
       },
 
       /**
@@ -301,7 +313,7 @@ export const useUIStore = create(
        * @param {boolean} collapsed - Collapsed state
        */
       setSidebarCollapsed: (collapsed) => {
-        set({ sidebarCollapsed: collapsed })
+        set({ sidebarCollapsed: collapsed });
       },
 
       // ==========================================================================
@@ -313,21 +325,21 @@ export const useUIStore = create(
        * @param {Object} content - Panel content
        */
       openRightPanel: (content) => {
-        set({ rightPanelOpen: true, rightPanelContent: content })
+        set({ rightPanelOpen: true, rightPanelContent: content });
       },
 
       /**
        * Close right panel
        */
       closeRightPanel: () => {
-        set({ rightPanelOpen: false, rightPanelContent: null })
+        set({ rightPanelOpen: false, rightPanelContent: null });
       },
 
       /**
        * Toggle right panel
        */
       toggleRightPanel: () => {
-        set((state) => ({ rightPanelOpen: !state.rightPanelOpen }))
+        set((state) => ({ rightPanelOpen: !state.rightPanelOpen }));
       },
 
       // ==========================================================================
@@ -338,21 +350,21 @@ export const useUIStore = create(
        * Open search
        */
       openSearch: () => {
-        set({ searchOpen: true })
+        set({ searchOpen: true });
       },
 
       /**
        * Close search
        */
       closeSearch: () => {
-        set({ searchOpen: false, searchQuery: '' })
+        set({ searchOpen: false, searchQuery: "" });
       },
 
       /**
        * Toggle search
        */
       toggleSearch: () => {
-        set((state) => ({ searchOpen: !state.searchOpen }))
+        set((state) => ({ searchOpen: !state.searchOpen }));
       },
 
       /**
@@ -360,7 +372,7 @@ export const useUIStore = create(
        * @param {string} query - Search query
        */
       setSearchQuery: (query) => {
-        set({ searchQuery: query })
+        set({ searchQuery: query });
       },
 
       // ==========================================================================
@@ -374,7 +386,7 @@ export const useUIStore = create(
       updatePreferences: (updates) => {
         set((state) => ({
           preferences: { ...state.preferences, ...updates },
-        }))
+        }));
       },
 
       /**
@@ -386,7 +398,7 @@ export const useUIStore = create(
             ...state.preferences,
             compactMode: !state.preferences.compactMode,
           },
-        }))
+        }));
       },
 
       /**
@@ -396,7 +408,7 @@ export const useUIStore = create(
       setTaskListDensity: (density) => {
         set((state) => ({
           preferences: { ...state.preferences, taskListDensity: density },
-        }))
+        }));
       },
 
       // ==========================================================================
@@ -407,19 +419,19 @@ export const useUIStore = create(
        * Reset store to initial state
        */
       reset: () => {
-        set(initialState)
+        set(initialState);
       },
     }),
     {
-      name: 'ui-store',
+      name: "ui-store",
       // Only persist preferences
       partialize: (state) => ({
         preferences: state.preferences,
         sidebarCollapsed: state.sidebarCollapsed,
       }),
-    }
-  )
-)
+    },
+  ),
+);
 
 // ============================================================================
 // Selectors
@@ -428,114 +440,124 @@ export const useUIStore = create(
 /**
  * Selector for toasts
  */
-export const useToasts = () => useUIStore((state) => state.toasts)
+export const useToasts = () => useUIStore((state) => state.toasts);
 
 /**
  * Selector for active modal
  */
-export const useActiveModal = () => useUIStore((state) => state.activeModal)
+export const useActiveModal = () => useUIStore((state) => state.activeModal);
 
 /**
  * Selector for modals
  */
-export const useModals = () => useUIStore((state) => state.modals)
+export const useModals = () => useUIStore((state) => state.modals);
 
 /**
  * Selector for global loading
  */
-export const useGlobalLoading = () => useUIStore((state) => ({
-  loading: state.globalLoading,
-  message: state.globalLoadingMessage,
-}))
+export const useGlobalLoading = () =>
+  useUIStore((state) => ({
+    loading: state.globalLoading,
+    message: state.globalLoadingMessage,
+  }));
 
 /**
  * Selector for sidebar state
  */
-export const useSidebar = () => useUIStore((state) => ({
-  open: state.sidebarOpen,
-  collapsed: state.sidebarCollapsed,
-}))
+export const useSidebar = () =>
+  useUIStore((state) => ({
+    open: state.sidebarOpen,
+    collapsed: state.sidebarCollapsed,
+  }));
 
 /**
  * Selector for search state
  */
-export const useSearch = () => useUIStore((state) => ({
-  open: state.searchOpen,
-  query: state.searchQuery,
-}))
+export const useSearch = () =>
+  useUIStore((state) => ({
+    open: state.searchOpen,
+    query: state.searchQuery,
+  }));
 
 /**
  * Selector for UI preferences
  */
-export const useUIPreferences = () => useUIStore((state) => state.preferences)
+export const useUIPreferences = () => useUIStore((state) => state.preferences);
 
 /**
  * Selector for toast actions
  */
-export const useToastActions = () => useUIStore((state) => ({
-  showToast: state.showToast,
-  showSuccess: state.showSuccess,
-  showError: state.showError,
-  showWarning: state.showWarning,
-  showInfo: state.showInfo,
-  dismissToast: state.dismissToast,
-  clearToasts: state.clearToasts,
-}))
+export const useToastActions = () =>
+  useUIStore((state) => ({
+    showToast: state.showToast,
+    showSuccess: state.showSuccess,
+    showError: state.showError,
+    showWarning: state.showWarning,
+    showInfo: state.showInfo,
+    dismissToast: state.dismissToast,
+    clearToasts: state.clearToasts,
+  }));
 
 /**
  * Selector for modal actions
  */
-export const useModalActions = () => useUIStore((state) => ({
-  showModal: state.showModal,
-  hideModal: state.hideModal,
-  hideAllModals: state.hideAllModals,
-  updateModalProps: state.updateModalProps,
-}))
+export const useModalActions = () =>
+  useUIStore((state) => ({
+    showModal: state.showModal,
+    hideModal: state.hideModal,
+    hideAllModals: state.hideAllModals,
+    updateModalProps: state.updateModalProps,
+  }));
 
 /**
  * Selector for UI actions
  */
-export const useUIActions = () => useUIStore((state) => ({
-  // Toasts
-  showToast: state.showToast,
-  showSuccess: state.showSuccess,
-  showError: state.showError,
-  showWarning: state.showWarning,
-  showInfo: state.showInfo,
-  dismissToast: state.dismissToast,
-  clearToasts: state.clearToasts,
-  
-  // Modals
-  showModal: state.showModal,
-  hideModal: state.hideModal,
-  hideAllModals: state.hideAllModals,
-  
-  // Loading
-  setGlobalLoading: state.setGlobalLoading,
-  showGlobalLoading: state.showGlobalLoading,
-  hideGlobalLoading: state.hideGlobalLoading,
-  
-  // Sidebar
-  toggleSidebar: state.toggleSidebar,
-  setSidebarOpen: state.setSidebarOpen,
-  toggleSidebarCollapsed: state.toggleSidebarCollapsed,
-  
-  // Right panel
-  openRightPanel: state.openRightPanel,
-  closeRightPanel: state.closeRightPanel,
-  
-  // Search
-  openSearch: state.openSearch,
-  closeSearch: state.closeSearch,
-  setSearchQuery: state.setSearchQuery,
-  
-  // Preferences
-  updatePreferences: state.updatePreferences,
-  toggleCompactMode: state.toggleCompactMode,
-  setTaskListDensity: state.setTaskListDensity,
-  
-  // Reset
-  reset: state.reset,
-}))
+import { useShallow } from "zustand/react/shallow";
 
-export default useUIStore
+export const useUIActions = () =>
+  useUIStore(
+    useShallow((state) => ({
+      // Toasts
+      showToast: state.showToast,
+      showSuccess: state.showSuccess,
+      showError: state.showError,
+      showWarning: state.showWarning,
+      showInfo: state.showInfo,
+      dismissToast: state.dismissToast,
+      clearToasts: state.clearToasts,
+
+      // Modals
+      showModal: state.showModal,
+      hideModal: state.hideModal,
+      hideAllModals: state.hideAllModals,
+
+      // Loading
+      setGlobalLoading: state.setGlobalLoading,
+      showGlobalLoading: state.showGlobalLoading,
+      hideGlobalLoading: state.hideGlobalLoading,
+
+      // Sidebar
+      toggleSidebar: state.toggleSidebar,
+      setSidebarOpen: state.setSidebarOpen,
+      toggleSidebarCollapsed: state.toggleSidebarCollapsed,
+
+      // Right panel
+      openRightPanel: state.openRightPanel,
+      closeRightPanel: state.closeRightPanel,
+
+      // Search
+      openSearch: state.openSearch,
+      closeSearch: state.closeSearch,
+      setSearchQuery: state.setSearchQuery,
+
+      // Preferences
+      updatePreferences: state.updatePreferences,
+      toggleCompactMode: state.toggleCompactMode,
+      setTaskListDensity: state.setTaskListDensity,
+
+      // Reset
+      reset: state.reset,
+    })),
+  );
+
+export default useUIStore;

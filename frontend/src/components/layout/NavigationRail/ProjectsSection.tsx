@@ -127,7 +127,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   collapsed,
   onNavigate,
 }): React.ReactNode => {
-  const { t } = useTranslation();
+  const { t } = useI18nStore();
 
   const [projects, setProjects] = useState<ProjectItemData[]>([]);
   const [loading, setLoading] = useState(true);

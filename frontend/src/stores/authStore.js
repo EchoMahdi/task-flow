@@ -24,6 +24,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 import { authService, initCsrf } from '@/services/authService'
 
 /**
@@ -45,6 +46,8 @@ import { authService, initCsrf } from '@/services/authService'
  * @property {Function} login - Login action
  * @property {Function} logout - Logout action
  * @property {Function} register - Register action
+ * @property {Function} forgotPassword - Forgot password action
+ * @property {Function} resetPassword - Reset password action
  * @property {Function} refreshUser - Refresh user data from server
  * @property {Function} setUser - Set user directly
  * @property {Function} clearError - Clear error state
@@ -209,6 +212,78 @@ export const useAuthStore = create(
       },
 
       /**
+       * Forgot Password action
+       * Sends a password reset link to the user's email
+       * 
+       * @param {string} email - User's email address
+       * @returns {Promise<Object>} Forgot password response
+       * @throws {Error} If request fails
+       */
+      forgotPassword: async (email) => {
+        set({ loading: true, error: null })
+        
+        try {
+          // Initialize CSRF protection
+          await initCsrf()
+          
+          const response = await authService.forgotPassword(email)
+          
+          set({
+            loading: false,
+            error: null,
+          })
+          
+          return response
+        } catch (error) {
+          const message = error.response?.data?.message || error.message || 'Failed to send reset link.'
+          
+          set({
+            loading: false,
+            error: message,
+          })
+          
+          throw error
+        }
+      },
+
+      /**
+       * Reset Password action
+       * Resets the user's password using the token from the email
+       * 
+       * @param {string} token - Password reset token
+       * @param {string} password - New password
+       * @param {string} passwordConfirmation - Password confirmation
+       * @returns {Promise<Object>} Reset password response
+       * @throws {Error} If reset fails
+       */
+      resetPassword: async (token, password, passwordConfirmation) => {
+        set({ loading: true, error: null })
+        
+        try {
+          // Initialize CSRF protection
+          await initCsrf()
+          
+          const response = await authService.resetPassword(token, password, passwordConfirmation)
+          
+          set({
+            loading: false,
+            error: null,
+          })
+          
+          return response
+        } catch (error) {
+          const message = error.response?.data?.message || error.message || 'Failed to reset password.'
+          
+          set({
+            loading: false,
+            error: message,
+          })
+          
+          throw error
+        }
+      },
+
+      /**
        * Logout action
        * Ends the user's session
        */
@@ -221,12 +296,7 @@ export const useAuthStore = create(
           // Continue with logout even if API call fails
           console.warn('Logout API call failed:', error)
         } finally {
-          set({
-            user: null,
-            isAuthenticated: false,
-            loading: false,
-            error: null,
-          })
+          this.reset()
         }
       },
 
@@ -337,16 +407,21 @@ export const useAuthError = () => useAuthStore((state) => state.error)
 /**
  * Selector for auth actions
  * Returns stable action references
+ * Uses useShallow to prevent infinite loops from new object references
  */
-export const useAuthActions = () => useAuthStore((state) => ({
-  login: state.login,
-  logout: state.logout,
-  register: state.register,
-  refreshUser: state.refreshUser,
-  setUser: state.setUser,
-  updateUser: state.updateUser,
-  clearError: state.clearError,
-  initialize: state.initialize,
-}))
+export const useAuthActions = () => useAuthStore(
+  useShallow((state) => ({
+    login: state.login,
+    logout: state.logout,
+    register: state.register,
+    forgotPassword: state.forgotPassword,
+    resetPassword: state.resetPassword,
+    refreshUser: state.refreshUser,
+    setUser: state.setUser,
+    updateUser: state.updateUser,
+    clearError: state.clearError,
+    initialize: state.initialize,
+  }))
+)
 
 export default useAuthStore

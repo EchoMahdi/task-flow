@@ -9,17 +9,16 @@ import PageHeader from '@/components/ui/PageHeader';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { preferenceService } from '@/services/preferenceService';
-import { useAuthStore } from '@/stores/authStore';
+import { useUser,useAuthActions } from "@/stores/authStore";
 import { useI18nStore } from '@/stores/i18nStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const Settings = () => {
-  const user = useAuthStore((state) => state.user);
-  const refreshUser = useAuthStore((state) => state.refreshUser);
+  const user = useUser();
+  const refreshUser = useAuthActions().refreshUser;
   const t = useI18nStore((state) => state.t);
   const changeLanguage = useI18nStore((state) => state.changeLanguage);
   const theme = useTheme();
-  const colors = theme.colors || { background: { tertiary: '#f4f4f5' }, action: { hover: 'rgba(0, 0, 0, 0.04)' } };
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
