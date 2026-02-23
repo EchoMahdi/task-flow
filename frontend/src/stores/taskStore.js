@@ -23,7 +23,7 @@
  */
 
 import { create } from "zustand";
-import { taskService } from "@/services/taskService";
+import { taskService } from "@/features/tasks/services/taskService";
 import requestCache from "@/utils/requestCache";
 import { taskEventEmitter } from "@/utils/eventBus";
 
@@ -580,6 +580,142 @@ export const useTaskStore = create((set, get) => ({
   },
 
   // ==========================================================================
+  // Project-Task Operations
+  // ==========================================================================
+
+  /**
+   * Get all standalone tasks (tasks without a project)
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Object>} Tasks data
+   */
+  fetchStandaloneTasks: async (params = {}) => {
+    const { pagination } = get();
+    
+    set({ loading: true, error: null });
+
+    try {
+      const data = await taskService.getStandaloneTasks({
+        page: params.page ?? pagination.current_page,
+        per_page: params.per_page ?? pagination.per_page,
+        ...params,
+      });
+
+      set({
+        tasks: data.data || [],
+        pagination: {
+          current_page: data.meta?.current_page || 1,
+          last_page: data.meta?.last_page || 1,
+          total: data.meta?.total || 0,
+          per_page: data.meta?.per_page || pagination.per_page,
+        },
+        loading: false,
+      });
+
+      return data;
+    } catch (error) {
+      set({
+        error: error.message || "Failed to fetch standalone tasks",
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  /**
+   * Assign a task to a project
+   * @param {number} taskId - Task ID
+   * @param {number|null} projectId - Project ID or null to make standalone
+   * @returns {Promise<Object>} Updated task
+   */
+  assignToProject: async (taskId, projectId) => {
+    const previousTasks = get().tasks;
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        t.id === taskId ? { ...t, project_id: projectId } : t
+      ),
+    }));
+
+    try {
+      const result = await taskService.assignToProject(taskId, projectId);
+
+      // Emit event
+      taskEventEmitter.emitTaskUpdated({
+        taskId,
+        project_id: projectId,
+      });
+
+      // Invalidate cache
+      requestCache.invalidateCache("/api/tasks");
+
+      return result;
+    } catch (error) {
+      // Revert on error
+      set({
+        tasks: previousTasks,
+        error: error.message || "Failed to assign task to project",
+      });
+      throw error;
+    }
+  },
+
+  /**
+   * Remove a task from its project (make it standalone)
+   * @param {number} taskId - Task ID
+   * @returns {Promise<Object>} Updated task
+   */
+  removeFromProject: async (taskId) => {
+    return get().assignToProject(taskId, null);
+  },
+
+  /**
+   * Move a task to a different project
+   * @param {number} taskId - Task ID
+   * @param {number|null} projectId - Target project ID or null to make standalone
+   * @returns {Promise<Object>} Updated task
+   */
+  moveToProject: async (taskId, projectId) => {
+    return get().assignToProject(taskId, projectId);
+  },
+
+  /**
+   * Bulk assign tasks to a project
+   * @param {number[]} taskIds - Task IDs
+   * @param {number|null} projectId - Project ID or null to make all standalone
+   * @returns {Promise<Object>} Result
+   */
+  bulkAssignToProject: async (taskIds, projectId) => {
+    const previousTasks = get().tasks;
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        taskIds.includes(t.id) ? { ...t, project_id: projectId } : t
+      ),
+    }));
+
+    try {
+      const result = await taskService.bulkAssignToProject(taskIds, projectId);
+
+      // Invalidate cache
+      requestCache.invalidateCache("/api/tasks");
+
+      // Clear selection
+      set({ selectedTasks: [] });
+
+      return result;
+    } catch (error) {
+      // Revert on error
+      set({
+        tasks: previousTasks,
+        error: error.message || "Failed to assign tasks to project",
+      });
+      throw error;
+    }
+  },
+
+  // ==========================================================================
   // Reset
   // ==========================================================================
 
@@ -672,6 +808,11 @@ export const useTaskActions = () =>
       setEditingTask: state.setEditingTask,
       bulkUpdate: state.bulkUpdate,
       bulkDelete: state.bulkDelete,
+      fetchStandaloneTasks: state.fetchStandaloneTasks,
+      assignToProject: state.assignToProject,
+      removeFromProject: state.removeFromProject,
+      moveToProject: state.moveToProject,
+      bulkAssignToProject: state.bulkAssignToProject,
       reset: state.reset,
       clearError: state.clearError,
     })),

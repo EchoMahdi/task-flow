@@ -40,11 +40,12 @@ export const useStoreInitialization = () => {
         // Initialize theme first (applies CSS variables)
         initializeTheme()
         
-        // Initialize i18n (sets up language)
-        await initializeI18n()
-        
-        // Initialize auth (checks if user is logged in)
+        // Initialize auth BEFORE i18n (i18n needs to know auth state
+        // to determine whether to fetch user's locale preference)
         await initializeAuth()
+        
+        // Initialize i18n (sets up language based on user preference or fallback)
+        await initializeI18n()
         
         // Initialize preferences (loads user preferences)
         await initializePreferences()

@@ -18,7 +18,7 @@ class TaskRepository implements TaskRepositoryInterface
     public function getAllTasks(Request $request)
     {
         $query = $this->task->where('user_id', Auth::id())
-            ->with('tags')
+            ->with('tags', 'project')
             ->filter($request->all());
 
         // Apply dynamic sorting based on request parameters
@@ -46,7 +46,7 @@ class TaskRepository implements TaskRepositoryInterface
     public function getTasksForDateRange(array $filters)
     {
         $query = $this->task->where('user_id', Auth::id())
-            ->with('tags');
+            ->with('tags', 'project');
 
         // Date range filter
         if (isset($filters['start_date']) && isset($filters['end_date'])) {
@@ -81,8 +81,7 @@ class TaskRepository implements TaskRepositoryInterface
 
     public function getTaskById(int $id)
     {
-        // DUPLICATION: ->where('user_id', Auth::id())->with('tags') pattern repeated in getAllTasks, getTasksForDateRange
-        return $this->task->where('user_id', Auth::id())->with('tags')->findOrFail($id);
+        return $this->task->where('user_id', Auth::id())->with('tags', 'project')->findOrFail($id);
     }
 
     public function createTask(array $data)
@@ -134,5 +133,135 @@ class TaskRepository implements TaskRepositoryInterface
     public function getTasksByUser(int $userId)
     {
         return $this->task->where('user_id', $userId)->with('tags')->get();
+    }
+
+    /**
+     * Apply common sorting and filtering to a task query
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Request $request
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    private function applySortingAndFiltering($query, Request $request)
+    {
+        // Apply filters
+        $query->filter($request->all());
+
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $sortBy = in_array($sortBy, ['due_date', 'priority', 'created_at', 'title']) ? $sortBy : 'created_at';
+        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'desc';
+
+        if ($sortBy === 'priority') {
+            $query->orderByPriority();
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get all standalone tasks (tasks without a project)
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getStandaloneTasks(Request $request)
+    {
+        $query = $this->task->where('user_id', Auth::id())
+            ->whereNull('project_id')
+            ->with('tags', 'project');
+
+        $query = $this->applySortingAndFiltering($query, $request);
+
+        return $query->paginate($request->get('per_page', 15));
+    }
+
+    /**
+     * Get all tasks for a specific project
+     *
+     * @param int $projectId
+     * @param Request $request
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getTasksByProject(int $projectId, Request $request)
+    {
+        $query = $this->task->where('user_id', Auth::id())
+            ->where('project_id', $projectId)
+            ->with('tags', 'project');
+
+        $query = $this->applySortingAndFiltering($query, $request);
+
+        return $query->paginate($request->get('per_page', 15));
+    }
+
+    /**
+     * Assign a task to a project
+     *
+     * @param int $taskId
+     * @param int|null $projectId
+     * @return Task
+     */
+    public function assignToProject(int $taskId, ?int $projectId)
+    {
+        $task = $this->getTaskById($taskId);
+        
+        // If projectId is provided, verify the project exists and belongs to user
+        if ($projectId !== null) {
+            $project = \App\Models\Project::where('user_id', Auth::id())
+                ->where('id', $projectId)
+                ->firstOrFail();
+        }
+
+        $task->update(['project_id' => $projectId]);
+
+        return $task->load('tags', 'project');
+    }
+
+    /**
+     * Remove a task from its project (make it standalone)
+     *
+     * @param int $taskId
+     * @return Task
+     */
+    public function removeFromProject(int $taskId)
+    {
+        return $this->assignToProject($taskId, null);
+    }
+
+    /**
+     * Move a task to a different project
+     *
+     * @param int $taskId
+     * @param int|null $targetProjectId
+     * @return Task
+     */
+    public function moveToProject(int $taskId, ?int $targetProjectId)
+    {
+        return $this->assignToProject($taskId, $targetProjectId);
+    }
+
+    /**
+     * Bulk assign tasks to a project
+     *
+     * @param array $taskIds
+     * @param int|null $projectId
+     * @return int Number of tasks updated
+     */
+    public function bulkAssignToProject(array $taskIds, ?int $projectId)
+    {
+        // If projectId is provided, verify the project exists and belongs to user
+        if ($projectId !== null) {
+            \App\Models\Project::where('user_id', Auth::id())
+                ->where('id', $projectId)
+                ->firstOrFail();
+        }
+
+        return $this->task->where('user_id', Auth::id())
+            ->whereIn('id', $taskIds)
+            ->update(['project_id' => $projectId]);
     }
 }

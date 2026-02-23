@@ -19,8 +19,8 @@ import {
 import PageHeader from "@/components/ui/PageHeader";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { tagService } from "@/services/tagService";
-import { taskOptionsService } from "@/services/taskOptionsService";
+import { tagService } from "@/features/tasks/services/tagService";
+import { taskOptionsService } from "@/features/tasks/services/taskOptionsService";
 import { TaskModel, ValidationError } from "@/models/TaskModel";
 import TaskPreviewDialog from "@/components/domain/Task/TaskPreviewDialog";
 

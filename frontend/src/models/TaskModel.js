@@ -6,7 +6,7 @@
  * ============================================================================
  */
 
-import { taskService } from '@/services/taskService';
+import { taskService } from '@/features/tasks/services/taskService';
 import requestCache from '@/utils/requestCache';
 import { taskEventEmitter, TaskEvents } from '@/utils/eventBus';
 

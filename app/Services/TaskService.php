@@ -64,4 +64,66 @@ class TaskService
     {
         return $this->taskRepository->markAsIncomplete($id);
     }
+
+    // =========================================================================
+    // Project-Task Operations
+    // =========================================================================
+
+    /**
+     * Get all standalone tasks (tasks without a project)
+     */
+    public function getStandaloneTasks(Request $request)
+    {
+        return $this->taskRepository->getStandaloneTasks($request);
+    }
+
+    /**
+     * Get all tasks for a specific project
+     */
+    public function getTasksByProject(int $projectId, Request $request)
+    {
+        return $this->taskRepository->getTasksByProject($projectId, $request);
+    }
+
+    /**
+     * Assign a task to a project
+     * 
+     * @param int $taskId
+     * @param int|null $projectId Pass null to make task standalone
+     */
+    public function assignTaskToProject(int $taskId, ?int $projectId)
+    {
+        return $this->taskRepository->assignToProject($taskId, $projectId);
+    }
+
+    /**
+     * Remove a task from its project (make it standalone)
+     */
+    public function removeTaskFromProject(int $taskId)
+    {
+        return $this->taskRepository->removeFromProject($taskId);
+    }
+
+    /**
+     * Move a task to a different project
+     * 
+     * @param int $taskId
+     * @param int|null $targetProjectId Pass null to make task standalone
+     */
+    public function moveTaskToProject(int $taskId, ?int $targetProjectId)
+    {
+        return $this->taskRepository->moveToProject($taskId, $targetProjectId);
+    }
+
+    /**
+     * Bulk assign tasks to a project
+     * 
+     * @param array $taskIds
+     * @param int|null $projectId Pass null to make all tasks standalone
+     * @return int Number of tasks updated
+     */
+    public function bulkAssignTasksToProject(array $taskIds, ?int $projectId)
+    {
+        return $this->taskRepository->bulkAssignToProject($taskIds, $projectId);
+    }
 }

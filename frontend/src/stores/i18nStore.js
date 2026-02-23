@@ -12,6 +12,7 @@
  * - RTL/LTR direction handling
  * - Backend synchronization for authenticated users
  * - Font family management based on locale
+ * - Integration with authService for authentication-aware locale handling
  *
  * @example
  * // Basic usage
@@ -24,6 +25,9 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useShallow } from 'zustand/react/shallow'
+import { api } from '@/services/authService'
+import { useAuthStore } from './authStore'
 import {
   getCurrentLanguage,
   setLanguage as setLanguageStorage,
@@ -64,60 +68,58 @@ function applyLanguageToDocument(language) {
 
 /**
  * API service for user locale preferences
+ * Uses the centralized api instance from authService for consistent
+ * authentication handling and interceptor support
  */
 const preferenceApi = {
+  /**
+   * Get locale from backend for authenticated users
+   * @returns {Promise<string|null>} Locale code or null if unauthenticated/unavailable
+   */
   async getLocale() {
-    const token = localStorage.getItem("auth_token");
-    if (!token) return null;
+    // Check authentication state from auth store
+    const authState = useAuthStore.getState();
+    if (!authState.isAuthenticated) {
+      return null;
+    }
 
     try {
-      const response = await fetch("/api/user/theme", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Accept-Language": localStorage.getItem("app_language") || "en",
-        },
-      });
+      const response = await api.get("/user/theme");
 
-      if (!response.ok) {
-        if (response.status === 401) return null;
-        throw new Error("Failed to fetch theme settings");
+      if (response.data?.locale) {
+        return response.data.locale;
       }
-
-      const data = await response.json();
-      return data.locale || null;
+      
+      return null;
     } catch (error) {
-      console.warn("Could not fetch locale from backend:", error);
+      // Don't log 401 errors - expected for unauthenticated users
+      if (error.response?.status !== 401) {
+        console.warn("Could not fetch locale from backend:", error);
+      }
       return null;
     }
   },
 
+  /**
+   * Update locale in backend for authenticated users
+   * @param {string} locale - Language code to save
+   * @returns {Promise<boolean>} Whether the update was successful
+   */
   async updateLocale(locale) {
-    const token = localStorage.getItem("auth_token");
-    if (!token) return false;
+    // Check authentication state from auth store
+    const authState = useAuthStore.getState();
+    if (!authState.isAuthenticated) {
+      return false;
+    }
 
     try {
-      const response = await fetch("/api/user/theme/locale", {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Accept-Language": localStorage.getItem("app_language") || "en",
-        },
-        body: JSON.stringify({ locale }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) return false;
-        throw new Error("Failed to update locale");
-      }
-
+      await api.put("/user/theme/locale", { locale });
       return true;
     } catch (error) {
-      console.warn("Could not sync locale to backend:", error);
+      // Don't log 401 errors - expected for unauthenticated users
+      if (error.response?.status !== 401) {
+        console.warn("Could not sync locale to backend:", error);
+      }
       return false;
     }
   },
@@ -150,6 +152,9 @@ export const useI18nStore = create(
       /**
        * Initialize language from backend preference
        * Called on app startup for authenticated users
+       * 
+       * Note: This should be called AFTER auth store initialization
+       * to ensure authentication state is available
        */
       initialize: async () => {
         set({ isLoading: true, error: null });
@@ -169,7 +174,7 @@ export const useI18nStore = create(
             });
             applyLanguageToDocument(backendLocale);
           } else {
-            // Use localStorage or default
+            // Use localStorage or default (fallback for unauthenticated users)
             const storedLang = getCurrentLanguage();
             set({
               language: storedLang,
@@ -194,8 +199,39 @@ export const useI18nStore = create(
       },
 
       /**
+       * Handle authentication state changes
+       * Should be called when user logs in to load their language preference
+       * 
+       * @param {boolean} isAuthenticated - New authentication state
+       */
+      onAuthChange: async (isAuthenticated) => {
+        if (isAuthenticated) {
+          // User just logged in - fetch their locale preference
+          try {
+            const backendLocale = await preferenceApi.getLocale();
+            if (backendLocale) {
+              const currentLang = get().language;
+              // Only update if different from current
+              if (currentLang !== backendLocale) {
+                setLanguageStorage(backendLocale);
+                set({
+                  language: backendLocale,
+                  translations: loadTranslations(backendLocale),
+                  direction: getDirection(backendLocale),
+                });
+                applyLanguageToDocument(backendLocale);
+              }
+            }
+          } catch (error) {
+            console.warn("Error fetching locale after auth change:", error);
+          }
+        }
+        // If user logged out, keep the current language (no action needed)
+      },
+
+      /**
        * Change the current language
-       * Updates local state, localStorage, and syncs with backend
+       * Updates local state, localStorage, and syncs with backend if authenticated
        *
        * @param {string} newLang - Language code (e.g., 'en', 'fa')
        * @returns {Promise<boolean>} Whether the change was successful
@@ -214,32 +250,36 @@ export const useI18nStore = create(
         set({ isLoading: true, error: null });
 
         try {
-          // Sync with backend
-          const success = await preferenceApi.updateLocale(newLang);
+          // Check if user is authenticated before syncing
+          const authState = useAuthStore.getState();
+          
+          if (authState.isAuthenticated) {
+            // Sync with backend for authenticated users
+            const success = await preferenceApi.updateLocale(newLang);
 
-          if (success) {
-            // Update local storage
-            setLanguageStorage(newLang);
-
-            // Update state
-            set({
-              language: newLang,
-              translations: loadTranslations(newLang),
-              direction: getDirection(newLang),
-              isLoading: false,
-            });
-
-            // Apply to document
-            applyLanguageToDocument(newLang);
-
-            return true;
-          } else {
-            console.warn("Failed to sync language preference with backend");
-            set({ isLoading: false });
-            return false;
+            if (!success) {
+              console.warn("Failed to sync language preference with backend");
+              // Continue with local update even if backend sync fails
+            }
           }
+
+          // Always update local storage and state
+          setLanguageStorage(newLang);
+
+          // Update state
+          set({
+            language: newLang,
+            translations: loadTranslations(newLang),
+            direction: getDirection(newLang),
+            isLoading: false,
+          });
+
+          // Apply to document
+          applyLanguageToDocument(newLang);
+
+          return true;
         } catch (error) {
-          console.error("Error syncing language to backend:", error);
+          console.error("Error changing language:", error);
           set({
             error: "Failed to save language preference",
             isLoading: false,
@@ -288,7 +328,7 @@ export const useI18nStore = create(
 
       /**
        * Set language directly without backend sync
-       * Useful for offline scenarios
+       * Useful for offline scenarios or guest users
        *
        * @param {string} newLang - Language code
        */
@@ -376,6 +416,7 @@ export const useI18nActions = () => useI18nStore(
       changeLanguage: state.changeLanguage,
       setLanguage: state.setLanguage,
       initialize: state.initialize,
+      onAuthChange: state.onAuthChange,
       clearError: state.clearError,
       reset: state.reset,
     })),

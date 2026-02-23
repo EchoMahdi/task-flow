@@ -9,6 +9,7 @@ use Illuminate\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
@@ -251,6 +252,24 @@ class User extends Authenticatable
     public function notificationRules(): HasMany
     {
         return $this->hasMany(NotificationRule::class);
+    }
+
+    /**
+     * Get teams owned by the user.
+     */
+    public function ownedTeams(): HasMany
+    {
+        return $this->hasMany(Team::class, 'owner_id');
+    }
+
+    /**
+     * Get teams the user is a member of.
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**

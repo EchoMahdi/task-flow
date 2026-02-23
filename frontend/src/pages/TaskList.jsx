@@ -30,7 +30,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { taskOptionsService } from '@/services/taskOptionsService';
+import { taskOptionsService } from '@/features/tasks/services/taskOptionsService';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const TaskList = () => {

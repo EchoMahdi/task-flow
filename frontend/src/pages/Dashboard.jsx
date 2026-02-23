@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/index';
 import { Card, CardContent, Chip, Button, Skeleton, Box, Typography, Grid, CircularProgress } from '@mui/material';
 import { useUser } from "@/stores/authStore";
 
-import { taskService } from '@/services/taskService';
+import { taskService } from '@/features/tasks/services/taskService';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import AddIcon from '@mui/icons-material/Add';

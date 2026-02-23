@@ -19,7 +19,14 @@ class TaskResource extends JsonResource
             'completed_at' => $this->completed_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
+            'project_id' => $this->project_id,
+            'project' => new ProjectResource($this->whenLoaded('project')),
             'tags' => TagResource::collection($this->whenLoaded('tags')),
+            'subtasks_count' => $this->whenCounted('subtasks'),
+            'subtask_progress' => $this->when(
+                $this->relationLoaded('subtasks') || ($this->subtasks_count ?? 0) > 0,
+                fn() => $this->subtask_progress
+            ),
         ];
     }
 }

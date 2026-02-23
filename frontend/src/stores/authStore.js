@@ -26,6 +26,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useShallow } from 'zustand/react/shallow'
 import { authService, initCsrf } from '@/services/authService'
+import { useI18nStore } from './i18nStore'
 
 /**
  * @typedef {Object} User
@@ -159,6 +160,16 @@ export const useAuthStore = create(
             error: null,
           })
           
+          // Notify i18n store about auth change to load user's locale preference
+          try {
+            const i18nState = useI18nStore.getState()
+            if (i18nState.onAuthChange) {
+              await i18nState.onAuthChange(true)
+            }
+          } catch (i18nError) {
+            console.warn('Failed to update locale after login:', i18nError)
+          }
+          
           return response
         } catch (error) {
           const message = error.response?.data?.message || error.message || 'Login failed.'
@@ -197,6 +208,16 @@ export const useAuthStore = create(
             loading: false,
             error: null,
           })
+          
+          // Notify i18n store about auth change to load user's locale preference
+          try {
+            const i18nState = useI18nStore.getState()
+            if (i18nState.onAuthChange) {
+              await i18nState.onAuthChange(true)
+            }
+          } catch (i18nError) {
+            console.warn('Failed to update locale after registration:', i18nError)
+          }
           
           return response
         } catch (error) {

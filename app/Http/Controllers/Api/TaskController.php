@@ -11,6 +11,7 @@ use App\Services\TaskSearchService;
 use App\Services\TranslationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -310,6 +311,152 @@ class TaskController extends Controller
                     ['value' => 'medium', 'label' => 'Medium'],
                     ['value' => 'low', 'label' => 'Low'],
                 ],
+            ],
+        ]);
+    }
+
+    // =========================================================================
+    // Project-Task Operations
+    // =========================================================================
+
+    /**
+     * Get all standalone tasks (tasks without a project)
+     *
+     * GET /api/tasks/standalone
+     */
+    public function standalone(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'sort_by' => ['sometimes', 'string', 'in:due_date,priority,created_at,title'],
+            'sort_order' => ['sometimes', 'string', 'in:asc,desc'],
+            'status' => ['sometimes', 'nullable', 'string', 'in:pending,completed,all'],
+            'priority' => ['sometimes', 'nullable', 'string', 'in:low,medium,high'],
+        ]);
+
+        $tasks = $this->taskService->getStandaloneTasks($request);
+
+        return response()->json([
+            'data' => TaskResource::collection($tasks),
+            'meta' => [
+                'current_page' => $tasks->currentPage(),
+                'last_page' => $tasks->lastPage(),
+                'per_page' => $tasks->perPage(),
+                'total' => $tasks->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Assign a task to a project
+     *
+     * PATCH /api/tasks/{id}/assign-project
+     * Request body: { "project_id": 1 } or { "project_id": null } to remove from project
+     */
+    public function assignToProject(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($request) {
+                    $query->where('user_id', $request->user()->id);
+                })
+            ],
+        ]);
+
+        $task = $this->taskService->assignTaskToProject($id, $validated['project_id'] ?? null);
+
+        $message = $validated['project_id'] === null
+            ? $this->translator->get('tasks.removed_from_project')
+            : $this->translator->get('tasks.assigned_to_project');
+
+        return response()->json([
+            'message' => $message,
+            'data' => new TaskResource($task),
+        ]);
+    }
+
+    /**
+     * Remove a task from its project (make it standalone)
+     *
+     * PATCH /api/tasks/{id}/remove-from-project
+     */
+    public function removeFromProject(int $id): JsonResponse
+    {
+        $task = $this->taskService->removeTaskFromProject($id);
+
+        return response()->json([
+            'message' => $this->translator->get('tasks.removed_from_project'),
+            'data' => new TaskResource($task),
+        ]);
+    }
+
+    /**
+     * Move a task to a different project
+     *
+     * PATCH /api/tasks/{id}/move-to-project
+     * Request body: { "project_id": 1 } or { "project_id": null } to make standalone
+     */
+    public function moveToProject(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($request) {
+                    $query->where('user_id', $request->user()->id);
+                })
+            ],
+        ]);
+
+        $task = $this->taskService->moveTaskToProject($id, $validated['project_id'] ?? null);
+
+        $message = $validated['project_id'] === null
+            ? $this->translator->get('tasks.moved_to_standalone')
+            : $this->translator->get('tasks.moved_to_project');
+
+        return response()->json([
+            'message' => $message,
+            'data' => new TaskResource($task),
+        ]);
+    }
+
+    /**
+     * Bulk assign tasks to a project
+     *
+     * POST /api/tasks/bulk-assign-project
+     * Request body: { "task_ids": [1, 2, 3], "project_id": 1 } or { "project_id": null } to make all standalone
+     */
+    public function bulkAssignToProject(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1'],
+            'task_ids.*' => ['required', 'integer', 'exists:tasks,id'],
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($request) {
+                    $query->where('user_id', $request->user()->id);
+                })
+            ],
+        ]);
+
+        $count = $this->taskService->bulkAssignTasksToProject(
+            $validated['task_ids'],
+            $validated['project_id'] ?? null
+        );
+
+        $message = $validated['project_id'] === null
+            ? $this->translator->get('tasks.bulk_removed_from_project', ['count' => $count])
+            : $this->translator->get('tasks.bulk_assigned_to_project', ['count' => $count]);
+
+        return response()->json([
+            'message' => $message,
+            'data' => [
+                'updated_count' => $count,
+                'project_id' => $validated['project_id'] ?? null,
             ],
         ]);
     }

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/sanctum.php';
 require __DIR__.'/api-notifications.php';
 require __DIR__.'/api-social.php';
+require __DIR__.'/api-teams.php';
 require __DIR__.'/auth.php';
 
 // Task Routes - Define specific routes BEFORE resource routes
@@ -41,8 +42,19 @@ Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {
     // Calendar view
     Route::get('/calendar', [TaskController::class, 'calendar']);
     
+    // Standalone tasks (tasks without a project)
+    Route::get('/standalone', [TaskController::class, 'standalone']);
+    
+    // Bulk assign tasks to a project
+    Route::post('/bulk-assign-project', [TaskController::class, 'bulkAssignToProject']);
+    
     // Update task date (for drag & drop)
     Route::patch('/{id}/date', [TaskController::class, 'updateDate']);
+    
+    // Project assignment operations
+    Route::patch('/{id}/assign-project', [TaskController::class, 'assignToProject']);
+    Route::patch('/{id}/remove-from-project', [TaskController::class, 'removeFromProject']);
+    Route::patch('/{id}/move-to-project', [TaskController::class, 'moveToProject']);
 });
 
 // Task Resource Routes (MUST be after specific routes)
@@ -70,6 +82,14 @@ Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [ProjectController::class, 'index']);
     // POST /api/projects - Create new project
     Route::post('/', [ProjectController::class, 'store']);
+    // GET /api/projects/{id} - Get single project
+    Route::get('/{project}', [ProjectController::class, 'show']);
+    // PUT /api/projects/{id} - Update project
+    Route::put('/{project}', [ProjectController::class, 'update']);
+    // GET /api/projects/{id}/tasks - Get project tasks
+    Route::get('/{project}/tasks', [ProjectController::class, 'tasks']);
+    // GET /api/projects/{id}/statistics - Get project statistics
+    Route::get('/{project}/statistics', [ProjectController::class, 'statistics']);
     // PATCH /api/projects/{id}/favorite - Update favorite status
     Route::patch('/{project}/favorite', [ProjectController::class, 'updateFavorite']);
     // DELETE /api/projects/{id} - Delete project

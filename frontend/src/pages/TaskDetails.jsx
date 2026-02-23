@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import PageHeader from '@/components/ui/PageHeader';
 import DateDisplay from '@/components/ui/DateDisplay';
-import { subtaskService } from '@/services/subtaskService';
+import { subtaskService } from '@/features/tasks/services/subtaskService';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
