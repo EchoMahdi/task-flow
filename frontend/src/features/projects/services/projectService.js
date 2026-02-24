@@ -6,7 +6,7 @@
  * @module features/projects/services
  */
 
-import { apiClient } from '../../../core/api/index.js';
+import { apiClient } from '@/core/api/index.js';
 
 /**
  * Project API endpoints

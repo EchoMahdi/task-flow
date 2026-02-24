@@ -6,7 +6,7 @@ export { useI18nStore, useLanguage, useTranslation, useDirection, useIsRTL, useI
 export { useThemeStore, useThemeMode, useIsDarkMode, useAccessibility, useColors, useThemeActions } from './themeStore';
 export { useNavigationStore, useCurrentNavigation, useProjects, useTags, useSavedViews, useNavigationCounts, useNavigationLoading, useNavigationActions } from './navigationStore';
 export { useUIStore, useToasts, useActiveModal, useModals, useGlobalLoading, useSidebar, useSearch, useUIPreferences, useToastActions, useModalActions, useUIActions } from './uiStore';
-export { useTaskStore, useTasks, useTaskLoading, useTaskError, useTaskPagination, useTaskFilters, useSelectedTask, useSelectedTasks, useTaskById, useTaskActions } from './taskStore';
+export { useTaskStore, useTasks, useTaskLoading, useTaskError, useTaskPagination, useTaskFilters, useSelectedTask, useSelectedIds, useSelectedTasks, useTaskById, useTaskActions } from '@/features/tasks/store/taskStore';
 export { usePreferenceStore, usePreferences, usePreference, useLocale, useTimezone, useDateFormat, useTimeFormat, useCalendarPreferences, useTaskListPreferences, useNotificationPreferences, usePreferenceLoading, usePreferenceActions } from './preferenceStore';
 
 // Store hooks

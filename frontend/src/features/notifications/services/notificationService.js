@@ -6,7 +6,7 @@
  * @module features/notifications/services
  */
 
-import { apiClient } from '../../../core/api/index.js';
+import { apiClient } from '@/core/api/index.js';
 
 /**
  * Notification API endpoints

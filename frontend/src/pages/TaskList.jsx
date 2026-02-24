@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/index';
 import { useI18nStore } from '@/stores/i18nStore';
-import { useTaskStore } from '@/stores/taskStore';
+import { useTaskStore } from '@/features/tasks/store/taskStore';
 import {
   Card, 
   CardContent, 

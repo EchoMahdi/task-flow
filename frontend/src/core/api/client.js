@@ -7,7 +7,7 @@
  * @module core/api/client
  */
 
-import { EventBus } from '../../utils/eventBus.ts';
+import { emit } from '@core/observer';
 
 // API Configuration
 const API_CONFIG = {
@@ -349,8 +349,8 @@ apiClient.addResponseInterceptor(
       // Clear auth token
       localStorage.removeItem('auth_token');
       
-      // Emit auth error event
-      EventBus.emit('auth:logout', { reason: 'token_expired' });
+      // Emit auth error event using centralized observer
+      emit('auth.sessionExpired', { reason: 'token_expired' });
       
       // Redirect to login if not already there
       if (!window.location.pathname.includes('/login')) {

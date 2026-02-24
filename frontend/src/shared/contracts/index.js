@@ -10,6 +10,9 @@
  * - Events for cross-feature communication
  * 
  * @module shared/contracts
+ * 
+ * @deprecated Since version 2.0.0. Use @core/observer for event definitions.
+ *   The EventTypes below are deprecated. Use EventNames from @core/observer instead.
  */
 
 // ============================================================================
@@ -61,40 +64,45 @@
  */
 
 // ============================================================================
-// Event Contracts
+// Event Contracts (DEPRECATED)
 // ============================================================================
 
 /**
  * Event types for cross-feature communication
+ * 
+ * @deprecated Use EventNames from @core/observer instead.
+ *   - 'task:created' → EventNames.TASK_CREATED ('tasks.created')
+ *   - 'task:updated' → EventNames.TASK_UPDATED ('tasks.updated')
+ *   - etc.
  */
 export const EventTypes = {
-  // Task events
-  TASK_CREATED: 'task:created',
-  TASK_UPDATED: 'task:updated',
-  TASK_DELETED: 'task:deleted',
-  TASK_COMPLETED: 'task:completed',
-  TASK_STATUS_CHANGED: 'task:status_changed',
+  // Task events (DEPRECATED)
+  TASK_CREATED: 'task:created', // @deprecated
+  TASK_UPDATED: 'task:updated', // @deprecated
+  TASK_DELETED: 'task:deleted', // @deprecated
+  TASK_COMPLETED: 'task:completed', // @deprecated
+  TASK_STATUS_CHANGED: 'task:status_changed', // @deprecated
   
-  // Project events
-  PROJECT_CREATED: 'project:created',
-  PROJECT_UPDATED: 'project:updated',
-  PROJECT_DELETED: 'project:deleted',
-  PROJECT_ARCHIVED: 'project:archived',
+  // Project events (DEPRECATED)
+  PROJECT_CREATED: 'project:created', // @deprecated
+  PROJECT_UPDATED: 'project:updated', // @deprecated
+  PROJECT_DELETED: 'project:deleted', // @deprecated
+  PROJECT_ARCHIVED: 'project:archived', // @deprecated
   
-  // Notification events
-  NOTIFICATION_RECEIVED: 'notification:received',
-  NOTIFICATION_READ: 'notification:read',
-  NOTIFICATIONS_CLEARED: 'notifications:cleared',
+  // Notification events (DEPRECATED)
+  NOTIFICATION_RECEIVED: 'notification:received', // @deprecated
+  NOTIFICATION_READ: 'notification:read', // @deprecated
+  NOTIFICATIONS_CLEARED: 'notifications:cleared', // @deprecated
   
-  // User events
-  USER_AUTHENTICATED: 'user:authenticated',
-  USER_LOGOUT: 'user:logout',
-  USER_PREFERENCES_CHANGED: 'user:preferences_changed',
+  // User events (DEPRECATED)
+  USER_AUTHENTICATED: 'user:authenticated', // @deprecated
+  USER_LOGOUT: 'user:logout', // @deprecated
+  USER_PREFERENCES_CHANGED: 'user:preferences_changed', // @deprecated
   
-  // UI events
-  THEME_CHANGED: 'ui:theme_changed',
-  LANGUAGE_CHANGED: 'ui:language_changed',
-  SIDEBAR_TOGGLED: 'ui:sidebar_toggled',
+  // UI events (DEPRECATED)
+  THEME_CHANGED: 'ui:theme_changed', // @deprecated
+  LANGUAGE_CHANGED: 'ui:language_changed', // @deprecated
+  SIDEBAR_TOGGLED: 'ui:sidebar_toggled', // @deprecated
 };
 
 // ============================================================================

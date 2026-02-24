@@ -9,6 +9,7 @@ public/uploads/
 /dist/
 /build/
 .env
+.md
 *.sqlite
 *.sqlite3
 database/database.sqlite

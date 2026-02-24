@@ -7,7 +7,7 @@
  * @module features/tasks/services
  */
 
-import { apiClient } from '../../../core/api/index.js';
+import { apiClient } from '@/core/api/index.js';
 
 /**
  * Task API endpoints

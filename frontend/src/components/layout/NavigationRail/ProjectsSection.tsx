@@ -21,7 +21,8 @@ import StarIcon from '@mui/icons-material/Star';
 import FolderIcon from '@mui/icons-material/Folder';
 import ProjectItem, { ProjectItemData } from './ProjectItem';
 import AddProjectModal from './AddProjectModal';
-import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
+import { subscribe, unsubscribe, EventNames } from '@/core/observer';
+import type { Event } from '@/core/observer/types';
 import { useI18nStore } from '@/stores/i18nStore';
 
 interface ProjectsSectionProps {
@@ -172,25 +173,20 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   // Listen for task events to update counts locally (no full refetch)
   useEffect(() => {
-    const handleTaskCreated = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.project_id) {
-        setProjects((prev) =>
-          prev.map((p) =>
-            p.id === taskData.project_id
-              ? { ...p, task_count: (p.task_count || 0) + 1 }
-              : p
-          )
-        );
+    const handleTaskCreated = (event: Event) => {
+      const payload = event.payload as { projectId?: string; taskId?: string };
+      // Refresh when a task is created in a project
+      if (payload.projectId) {
+        loadProjects();
       }
     };
 
-    const handleTaskDeleted = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.project_id) {
+    const handleTaskDeleted = (event: Event) => {
+      const payload = event.payload as { projectId?: string };
+      if (payload.projectId) {
         setProjects((prev) =>
           prev.map((p) =>
-            p.id === taskData.project_id
+            String(p.id) === payload.projectId
               ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
               : p
           )
@@ -198,12 +194,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       }
     };
 
-    const handleTaskCompleted = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.project_id) {
+    const handleTaskCompleted = (event: Event) => {
+      const payload = event.payload as { projectId?: string };
+      if (payload.projectId) {
         setProjects((prev) =>
           prev.map((p) =>
-            p.id === taskData.project_id
+            String(p.id) === payload.projectId
               ? { ...p, task_count: Math.max(0, (p.task_count || 0) - 1) }
               : p
           )
@@ -216,15 +212,32 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       loadProjects().finally(() => setRefreshing(false));
     };
 
-    const unsubscribers = [
-      eventBus.on(TaskEvents.TASK_CREATED, handleTaskCreated),
-      eventBus.on(TaskEvents.TASK_DELETED, handleTaskDeleted),
-      eventBus.on(TaskEvents.TASK_COMPLETED, handleTaskCompleted),
-      eventBus.on(TaskEvents.TASK_UNCOMPLETED, handleTaskCompleted),
-      eventBus.on(TaskEvents.REFRESH_COUNTS, handleRefreshCounts),
-    ];
+    const handleTaskUpdated = (event: Event) => {
+      const payload = event.payload as { 
+        projectId?: string; 
+        previousProjectId?: string | null;
+        changes?: Record<string, unknown>;
+      };
+      // If task was moved to/from a project, refresh the counts
+      if (payload.previousProjectId !== undefined || (payload.changes && 'project_id' in payload.changes)) {
+        loadProjects();
+      }
+    };
 
-    return () => unsubscribers.forEach((unsub) => unsub());
+    // Subscribe to task events using core observer
+    const sub1 = subscribe(EventNames.TASK_CREATED, handleTaskCreated);
+    const sub2 = subscribe(EventNames.TASK_UPDATED, handleTaskUpdated);
+    const sub3 = subscribe(EventNames.TASK_DELETED, handleTaskDeleted);
+    const sub4 = subscribe(EventNames.TASK_COMPLETED, handleTaskCompleted);
+    const sub5 = subscribe(EventNames.TASK_UNCOMPLETED, handleTaskCompleted);
+
+    return () => {
+      unsubscribe(sub1);
+      unsubscribe(sub2);
+      unsubscribe(sub3);
+      unsubscribe(sub4);
+      unsubscribe(sub5);
+    };
   }, [loadProjects]);
 
   const favorites = projects.filter((p) => p.is_favorite);

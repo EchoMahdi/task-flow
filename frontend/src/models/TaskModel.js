@@ -8,7 +8,7 @@
 
 import { taskService } from '@/features/tasks/services/taskService';
 import requestCache from '@/utils/requestCache';
-import { taskEventEmitter, TaskEvents } from '@/utils/eventBus';
+import { taskEventPublisher } from '@/features/tasks/events/taskEventPublisher';
 
 /**
  * Default values for task creation
@@ -272,12 +272,12 @@ export class TaskModel {
       const normalizedData = this.normalizeForAPI();
       const result = await taskService.createTask(normalizedData);
 
-      // Emit event for other components
-      taskEventEmitter.emitTaskCreated({
-        task: result.data,
-        project_id: result.data.project_id,
-        tag_ids: result.data.tag_ids,
-        is_completed: result.data.is_completed,
+      // Emit event using core observer infrastructure
+      taskEventPublisher.publishTaskCreated({
+        taskId: String(result.data.id),
+        projectId: String(result.data.project_id || ''),
+        title: result.data.title,
+        tagIds: result.data.tag_ids || [],
       });
 
       // Invalidate cache
@@ -323,13 +323,13 @@ export class TaskModel {
       const normalizedData = this.normalizeForAPI();
       const result = await taskService.updateTask(id, normalizedData);
 
-      // Emit event for other components
-      taskEventEmitter.emitTaskUpdated({
-        taskId: id,
-        task: result.data,
-        project_id: result.data.project_id,
-        tag_ids: result.data.tag_ids,
-        is_completed: result.data.is_completed,
+      // Emit event using core observer infrastructure
+      taskEventPublisher.publishTaskUpdated({
+        taskId: String(id),
+        changes: normalizedData,
+        previousValues: {},
+        projectId: String(result.data.project_id || ''),
+        tagIds: result.data.tag_ids || [],
       });
 
       // Invalidate cache

@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTaskStore, selectTaskById, selectTasksByStatus, selectOverdueTasks, selectTasksDueToday } from '../store/taskStore.js';
-import { useDebounce } from '../../../shared/hooks/index.js';
+import { useDebounce } from '@/shared/hooks/index.js';
 
 /**
  * Hook for task operations

@@ -23,7 +23,8 @@ import AddIcon from '@mui/icons-material/Add';
 import LabelIcon from '@mui/icons-material/Label';
 import TagItem, { TagItemData } from './TagItem';
 import AddTagModal from './AddTagModal';
-import { eventBus, TaskEvents, TaskEventData } from '@/utils/eventBus';
+import { subscribe, unsubscribe, EventNames } from '@/core/observer';
+import type { Event } from '@/core/observer/types';
 import { useI18nStore } from '@/stores/i18nStore';
 
 interface TagsSectionProps {
@@ -134,25 +135,20 @@ const TagsSection: React.FC<TagsSectionProps> = ({
 
   // Listen for task events to update counts locally
   useEffect(() => {
-    const handleTaskCreated = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.tag_ids?.length > 0) {
-        setTags((prev) =>
-          prev.map((t) =>
-            taskData.tag_ids.includes(t.id)
-              ? { ...t, task_count: (t.task_count || 0) + 1 }
-              : t
-          )
-        );
+    const handleTaskCreated = (event: Event) => {
+      const payload = event.payload as { taskId?: string; projectId?: string; tagIds?: number[] };
+      // Refresh counts when a task is created with tags
+      if (payload.tagIds && payload.tagIds.length > 0) {
+        loadTags();
       }
     };
 
-    const handleTaskDeleted = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.tag_ids?.length > 0) {
+    const handleTaskDeleted = (event: Event) => {
+      const payload = event.payload as { taskId?: string; tagIds?: number[] };
+      if (payload.tagIds && payload.tagIds.length > 0) {
         setTags((prev) =>
           prev.map((t) =>
-            taskData.tag_ids.includes(t.id)
+            payload.tagIds.includes(t.id)
               ? { ...t, task_count: Math.max(0, (t.task_count || 0) - 1) }
               : t
           )
@@ -160,13 +156,16 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       }
     };
 
-    const handleTaskCompleted = (data: unknown) => {
-      const taskData = data as TaskEventData;
-      if (taskData.tag_ids?.length > 0) {
+    const handleTaskCompleted = (event: Event) => {
+      const payload = event.payload as { taskId?: string; tagIds?: number[]; wasCompleted?: boolean };
+      // When task is completed, decrement tag counts
+      // When task is uncompleted (wasCompleted=false), increment tag counts
+      if (payload.tagIds && payload.tagIds.length > 0) {
+        const countDelta = payload.wasCompleted === false ? 1 : -1;
         setTags((prev) =>
           prev.map((t) =>
-            taskData.tag_ids.includes(t.id)
-              ? { ...t, task_count: Math.max(0, (t.task_count || 0) - 1) }
+            payload.tagIds.includes(t.id)
+              ? { ...t, task_count: Math.max(0, (t.task_count || 0) + countDelta) }
               : t
           )
         );
@@ -178,15 +177,28 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       loadTags().finally(() => setRefreshing(false));
     };
 
-    const unsubscribers = [
-      eventBus.on(TaskEvents.TASK_CREATED, handleTaskCreated),
-      eventBus.on(TaskEvents.TASK_DELETED, handleTaskDeleted),
-      eventBus.on(TaskEvents.TASK_COMPLETED, handleTaskCompleted),
-      eventBus.on(TaskEvents.TASK_UNCOMPLETED, handleTaskCompleted),
-      eventBus.on(TaskEvents.REFRESH_COUNTS, handleRefreshCounts),
-    ];
+    const handleTaskUpdated = (event: Event) => {
+      const payload = event.payload as { taskId?: string; projectId?: string; tagIds?: number[]; changes?: Record<string, unknown> };
+      // If tags were modified, refresh the tags list
+      if (payload.changes && 'tag_ids' in payload.changes) {
+        loadTags();
+      }
+    };
 
-    return () => unsubscribers.forEach((unsub) => unsub());
+    // Subscribe to task events using core observer
+    const sub1 = subscribe(EventNames.TASK_CREATED, handleTaskCreated);
+    const sub2 = subscribe(EventNames.TASK_UPDATED, handleTaskUpdated);
+    const sub3 = subscribe(EventNames.TASK_DELETED, handleTaskDeleted);
+    const sub4 = subscribe(EventNames.TASK_COMPLETED, handleTaskCompleted);
+    const sub5 = subscribe(EventNames.TASK_UNCOMPLETED, handleTaskCompleted);
+
+    return () => {
+      unsubscribe(sub1);
+      unsubscribe(sub2);
+      unsubscribe(sub3);
+      unsubscribe(sub4);
+      unsubscribe(sub5);
+    };
   }, [loadTags]);
 
   const handleTagClick = useCallback(
