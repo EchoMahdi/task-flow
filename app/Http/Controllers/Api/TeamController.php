@@ -42,9 +42,9 @@ class TeamController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'avatar' => 'nullable|string|max:255',
+            'avatar'      => 'nullable|string|max:255',
         ]);
 
         $team = $this->teamService->createTeam($request->user(), $validated);
@@ -60,10 +60,7 @@ class TeamController extends Controller
      */
     public function show(Request $request, Team $team): TeamResource
     {
-        // Check if user has access to this team
-        if (!$team->hasMember($request->user())) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('view', $team);
 
         return new TeamResource($team->load(['owner', 'members', 'projects']));
     }
@@ -74,10 +71,7 @@ class TeamController extends Controller
      */
     public function update(Request $request, Team $team): TeamResource
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can update teams'], 403);
-        }
+        $this->authorize('update', $team);
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -96,10 +90,7 @@ class TeamController extends Controller
      */
     public function destroy(Request $request, Team $team): JsonResponse
     {
-        // Check if user is the owner
-        if (!$team->isOwner($request->user())) {
-            return response()->json(['message' => 'Unauthorized - Only the owner can delete the team'], 403);
-        }
+        $this->authorize('delete', $team);
 
         $this->teamService->deleteTeam($team);
 
@@ -112,10 +103,7 @@ class TeamController extends Controller
      */
     public function members(Request $request, Team $team): AnonymousResourceCollection
     {
-        // Check if user has access to this team
-        if (!$team->hasMember($request->user())) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('view', $team);
 
         $members = $this->teamService->getMembers($team);
         
@@ -138,10 +126,8 @@ class TeamController extends Controller
      */
     public function addMember(Request $request, Team $team): JsonResponse
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can add members'], 403);
-        }
+       
+        $this->authorize('addMember', $team);
 
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -167,10 +153,8 @@ class TeamController extends Controller
      */
     public function removeMember(Request $request, Team $team, User $user): JsonResponse
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can remove members'], 403);
-        }
+       
+        $this->authorize('removeMember', $team);
 
         // Check if user is a member
         if (!$team->hasMember($user)) {
@@ -192,10 +176,8 @@ class TeamController extends Controller
      */
     public function updateMemberRole(Request $request, Team $team, User $user): JsonResponse
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can change roles'], 403);
-        }
+       
+        $this->authorize('updateMemberRole', $team);
 
         $validated = $request->validate([
             'role' => 'required|in:admin,member',
@@ -221,10 +203,8 @@ class TeamController extends Controller
      */
     public function projects(Request $request, Team $team): AnonymousResourceCollection
     {
-        // Check if user has access to this team
-        if (!$team->hasMember($request->user())) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('view', $team);
 
         $projects = $this->teamService->getTeamProjects($team);
 
@@ -237,10 +217,8 @@ class TeamController extends Controller
      */
     public function assignProject(Request $request, Team $team): JsonResponse
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can assign projects'], 403);
-        }
+       
+        $this->authorize('assignProject', $team);
 
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
@@ -248,10 +226,8 @@ class TeamController extends Controller
 
         $project = \App\Models\Project::findOrFail($validated['project_id']);
 
-        // Check if user can access the project (owner or team member)
-        if ($project->user_id !== $request->user()->id && !$team->hasMember($request->user())) {
-            return response()->json(['message' => 'You do not have access to this project'], 403);
-        }
+        // SECURITY: Check if user can access the project (owner or team member)
+        $this->authorize('update', $project);
 
         $project = $this->teamService->assignProjectToTeam($project, $team);
 
@@ -267,10 +243,8 @@ class TeamController extends Controller
      */
     public function removeProject(Request $request, Team $team, \App\Models\Project $project): JsonResponse
     {
-        // Check if user can manage this team
-        if (!$this->teamService->canManageTeam($request->user(), $team)) {
-            return response()->json(['message' => 'Unauthorized - Only admins can remove projects'], 403);
-        }
+       
+        $this->authorize('removeProject', $team);
 
         // Check if project belongs to this team
         if ($project->team_id !== $team->id) {
@@ -291,6 +265,9 @@ class TeamController extends Controller
      */
     public function leave(Request $request, Team $team): JsonResponse
     {
+       
+        $this->authorize('leave', $team);
+
         try {
             $this->teamService->leaveTeam($team, $request->user());
         } catch (\InvalidArgumentException $e) {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\NotificationController;
+use App\Models\NotificationRule;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -11,29 +12,25 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     
-    // User notification settings
     Route::get('/notifications/settings', [NotificationController::class, 'getUserSettings']);
     Route::put('/notifications/settings', [NotificationController::class, 'updateUserSettings']);
     
-    // Notification history
     Route::get('/notifications/history', [NotificationController::class, 'getNotificationHistory']);
     
-    // Notification management
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    
+    // NotificationRule routes (must come before generic {id} routes for DELETE)
+    Route::put('/notifications/{notificationRule}', [NotificationController::class, 'updateNotification']);
+    Route::delete('/notifications/{notificationRule}', [NotificationController::class, 'deleteNotification']);
+    Route::post('/notifications/{notificationRule}/toggle', [NotificationController::class, 'toggleNotification']);
+    
+    // Generic notification routes with {id} parameter
     Route::delete('/notifications/{id}', [NotificationController::class, 'deleteNotificationLog']);
     
-    // Task-specific notification rules
     Route::prefix('/tasks/{task}/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'getTaskNotifications']);
         Route::post('/', [NotificationController::class, 'createTaskNotification']);
-    });
-    
-    // Individual notification rule management
-    Route::prefix('/notifications/{rule}')->group(function () {
-        Route::put('/', [NotificationController::class, 'updateNotification']);
-        Route::delete('/', [NotificationController::class, 'deleteNotification']);
-        Route::post('/toggle', [NotificationController::class, 'toggleNotification']);
     });
 });

@@ -7,21 +7,18 @@ use App\Models\Subtask;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class SubtaskController extends Controller
 {
     /**
      * Get all subtasks for a task
+     *
+     * @param Task $task
+     * @return JsonResponse
      */
-    public function index(int $taskId): JsonResponse
+    public function index(Task $task): JsonResponse
     {
-        $task = Task::findOrFail($taskId);
-        
-        // Ensure user owns the task
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('view', $task);
 
         $subtasks = $task->subtasks;
 
@@ -36,15 +33,14 @@ class SubtaskController extends Controller
 
     /**
      * Store a new subtask
+     *
+     * @param Request $request
+     * @param Task $task
+     * @return JsonResponse
      */
-    public function store(Request $request, int $taskId): JsonResponse
+    public function store(Request $request, Task $task): JsonResponse
     {
-        $task = Task::findOrFail($taskId);
-        
-        // Ensure user owns the task
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('update', $task);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -68,17 +64,15 @@ class SubtaskController extends Controller
 
     /**
      * Update a subtask
+     *
+     * @param Request $request
+     * @param Task $task
+     * @param Subtask $subtask
+     * @return JsonResponse
      */
-    public function update(Request $request, int $taskId, int $subtaskId): JsonResponse
+    public function update(Request $request, Task $task, Subtask $subtask): JsonResponse
     {
-        $task = Task::findOrFail($taskId);
-        
-        // Ensure user owns the task
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $subtask = Subtask::where('task_id', $taskId)->findOrFail($subtaskId);
+        $this->authorize('update', $subtask);
 
         $validated = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
@@ -97,17 +91,15 @@ class SubtaskController extends Controller
 
     /**
      * Toggle subtask completion
+     *
+     * @param Request $request
+     * @param Task $task
+     * @param Subtask $subtask
+     * @return JsonResponse
      */
-    public function toggleComplete(Request $request, int $taskId, int $subtaskId): JsonResponse
+    public function toggleComplete(Request $request, Task $task, Subtask $subtask): JsonResponse
     {
-        $task = Task::findOrFail($taskId);
-        
-        // Ensure user owns the task
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $subtask = Subtask::where('task_id', $taskId)->findOrFail($subtaskId);
+        $this->authorize('toggleComplete', $subtask);
 
         $subtask->is_completed = !$subtask->is_completed;
         $subtask->save();
@@ -120,18 +112,15 @@ class SubtaskController extends Controller
 
     /**
      * Delete a subtask
+     *
+     * @param Task $task
+     * @param Subtask $subtask
+     * @return JsonResponse
      */
-    public function destroy(int $taskId, int $subtaskId): JsonResponse
+    public function destroy(Task $task, Subtask $subtask): JsonResponse
     {
-        $task = Task::findOrFail($taskId);
-        
-        // Ensure user owns the task
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('delete', $subtask);
 
-        $subtask = Subtask::where('task_id', $taskId)->findOrFail($subtaskId);
-        
         $subtask->delete();
 
         return response()->json([

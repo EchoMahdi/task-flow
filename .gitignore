@@ -1,6 +1,7 @@
 
 vendor/
 vscode/
+tests/
 frontend/node_modules/
 .idea/
 .venv/

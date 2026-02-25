@@ -28,9 +28,6 @@ class EventBusServiceProvider extends ServiceProvider
                 'debug' => config('app.debug', false),
             ]);
         });
-
-        // Register alias for easy access
-        $this->app->alias(EventBus::class, 'events');
     }
 
     /**

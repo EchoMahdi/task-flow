@@ -66,10 +66,8 @@ class ProjectController extends Controller
      */
     public function show(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('view', $project);
 
         $project->loadCount([
             'tasks',
@@ -93,10 +91,8 @@ class ProjectController extends Controller
      */
     public function tasks(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('view', $project);
 
         $tasks = $this->taskService->getTasksByProject($project->id, $request);
 
@@ -120,10 +116,8 @@ class ProjectController extends Controller
      */
     public function statistics(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('viewStatistics', $project);
 
         $statistics = DB::table('tasks')
             ->where('project_id', $project->id)
@@ -195,10 +189,8 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('update', $project);
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255|unique:projects,name,' . $project->id . ',id,user_id,' . $request->user()->id,
@@ -230,10 +222,8 @@ class ProjectController extends Controller
      */
     public function updateFavorite(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('toggleFavorite', $project);
 
         $validator = Validator::make($request->all(), [
             'is_favorite' => 'required|boolean',
@@ -263,10 +253,8 @@ class ProjectController extends Controller
      */
     public function destroy(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('delete', $project);
 
         // Get task count before deletion for the response message
         $taskCount = $project->tasks()->count();
@@ -291,10 +279,8 @@ class ProjectController extends Controller
      */
     public function archive(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('archive', $project);
 
         // Check if already archived
         if ($project->isArchived()) {
@@ -320,10 +306,8 @@ class ProjectController extends Controller
      */
     public function restore(Request $request, Project $project): JsonResponse
     {
-        // Check ownership
-        if ($project->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('restore', $project);
 
         // Check if not archived
         if (!$project->isArchived()) {

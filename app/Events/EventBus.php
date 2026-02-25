@@ -91,6 +91,9 @@ class EventBus
         
         $this->log('debug', "Event emitted: {$eventName}", $payload);
         
+        // Transform payload if contract exists
+        $payload = $this->transformPayload($eventName, $payload);
+        
         // Store in replay buffer
         $this->storeInReplayBuffer($eventName, $payload);
         
@@ -399,17 +402,28 @@ class EventBus
     /**
      * Prepare payload with default fields
      * 
+     * Only adds metadata fields if they are not already present in the payload.
+     * This preserves backward compatibility and allows tests to expect exact payloads.
+     * 
      * @param string $eventName
      * @param array $payload
      * @return array
      */
     protected function preparePayload(string $eventName, array $payload): array
     {
-        return array_merge($payload, [
-            'timestamp' => $payload['timestamp'] ?? time(),
-            'source' => $payload['source'] ?? 'backend',
-            'eventId' => $payload['eventId'] ?? Str::uuid()->toString(),
-        ]);
+        // Only add metadata if not already present in payload
+        // This preserves the original payload for exact matching in tests
+        if (!isset($payload['timestamp'])) {
+            $payload['timestamp'] = time();
+        }
+        if (!isset($payload['source'])) {
+            $payload['source'] = 'backend';
+        }
+        if (!isset($payload['eventId'])) {
+            $payload['eventId'] = Str::uuid()->toString();
+        }
+        
+        return $payload;
     }
 
     /**
@@ -490,6 +504,24 @@ class EventBus
                 $payload
             );
         }
+    }
+
+    /**
+     * Transform payload using event contract
+     * 
+     * @param string $eventName
+     * @param array $payload
+     * @return array
+     */
+    protected function transformPayload(string $eventName, array $payload): array
+    {
+        if (!isset($this->contracts[$eventName])) {
+            return $payload;
+        }
+
+        $contract = $this->contracts[$eventName];
+        
+        return $contract->transform($payload);
     }
 
     /**

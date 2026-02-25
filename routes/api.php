@@ -50,15 +50,20 @@ Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/bulk-assign-project', [TaskController::class, 'bulkAssignToProject']);
     
     // Update task date (for drag & drop)
-    Route::patch('/{id}/date', [TaskController::class, 'updateDate']);
+    Route::patch('/{task}/date', [TaskController::class, 'updateDate']);
     
     // Project assignment operations
-    Route::patch('/{id}/assign-project', [TaskController::class, 'assignToProject']);
-    Route::patch('/{id}/remove-from-project', [TaskController::class, 'removeFromProject']);
-    Route::patch('/{id}/move-to-project', [TaskController::class, 'moveToProject']);
+    Route::patch('/{task}/assign-project', [TaskController::class, 'assignToProject']);
+    Route::patch('/{task}/remove-from-project', [TaskController::class, 'removeFromProject']);
+    Route::patch('/{task}/move-to-project', [TaskController::class, 'moveToProject']);
+    
+    // Task completion endpoints
+    Route::patch('/{task}/complete', [TaskController::class, 'complete']);
+    Route::patch('/{task}/incomplete', [TaskController::class, 'incomplete']);
 });
 
 // Task Resource Routes (MUST be after specific routes)
+// Authorization is handled in the controller via policies
 Route::apiResource('tasks', TaskController::class)->middleware(['auth:sanctum']);
 
 // Subtask Routes (nested under tasks)
@@ -78,6 +83,7 @@ Route::prefix('tags')->middleware(['auth:sanctum'])->group(function () {
 });
 
 // Project Routes
+// Authorization is handled in the controller via policies
 Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
     // GET /api/projects - List all projects
     Route::get('/', [ProjectController::class, 'index']);

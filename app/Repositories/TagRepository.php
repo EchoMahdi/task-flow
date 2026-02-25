@@ -3,45 +3,84 @@
 namespace App\Repositories;
 
 use App\Models\Tag;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * Tag Repository
+ *
+ * Data access layer for Tag entities.
+ * IMPORTANT: This repository is completely unaware of HTTP context.
+ * All user context must be passed explicitly via method parameters.
+ */
 class TagRepository implements TagRepositoryInterface
 {
-    protected $tag;
+    protected Tag $tag;
 
     public function __construct(Tag $tag)
     {
         $this->tag = $tag;
     }
 
-    public function getAllTags()
+    /**
+     * Get all tags for a specific user.
+     *
+     * @param int $userId
+     * @return Collection
+     */
+    public function getAllTagsForUser(int $userId): Collection
     {
-        return $this->tag->where('user_id', Auth::id())
+        return $this->tag->newQuery()
+            ->where('user_id', $userId)
             ->withCount('tasks')
             ->orderBy('name')
             ->get();
     }
 
-    public function getTagById(int $id)
+    /**
+     * Find a tag by ID.
+     *
+     * @param int $id
+     * @return Tag|null
+     */
+    public function findById(int $id): ?Tag
     {
-        return $this->tag->where('user_id', Auth::id())->findOrFail($id);
+        return $this->tag->newQuery()->find($id);
     }
 
-    public function createTag(array $data)
+    /**
+     * Create a new tag.
+     *
+     * @param int $userId
+     * @param array $data
+     * @return Tag
+     */
+    public function createTag(int $userId, array $data): Tag
     {
-        return Auth::user()->tags()->create($data);
+        $data['user_id'] = $userId;
+        return $this->tag->newQuery()->create($data);
     }
 
-    public function updateTag(int $id, array $data)
+    /**
+     * Update an existing tag.
+     *
+     * @param Tag $tag
+     * @param array $data
+     * @return Tag
+     */
+    public function updateTag(Tag $tag, array $data): Tag
     {
-        $tag = $this->getTagById($id);
         $tag->update($data);
-        return $tag;
+        return $tag->fresh();
     }
 
-    public function deleteTag(int $id)
+    /**
+     * Delete a tag.
+     *
+     * @param Tag $tag
+     * @return bool
+     */
+    public function deleteTag(Tag $tag): bool
     {
-        $tag = $this->getTagById($id);
         $tag->tasks()->detach();
         return $tag->delete();
     }

@@ -5,12 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Resources\TagResource;
+use App\Models\Tag;
 use App\Services\TagService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
+/**
+ * Tag Controller
+ *
+ * Handles HTTP requests for Tag resources.
+ * Authorization is performed via Laravel Policies BEFORE any service calls.
+ * User context is explicitly passed to the service layer.
+ */
 class TagController extends Controller
 {
-    protected $tagService;
+    protected TagService $tagService;
 
     public function __construct(TagService $tagService)
     {
@@ -22,9 +31,9 @@ class TagController extends Controller
      *
      * GET /api/tags
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $tags = $this->tagService->getAllTags();
+        $tags = $this->tagService->getAllTagsForUser($request->user()->id);
         
         return response()->json([
             'tags' => TagResource::collection($tags),
@@ -39,7 +48,10 @@ class TagController extends Controller
      */
     public function store(StoreTagRequest $request): JsonResponse
     {
-        $tag = $this->tagService->createTag($request->validated());
+        $tag = $this->tagService->createTag(
+            $request->user()->id,
+            $request->validated()
+        );
         
         return response()->json([
             'tag' => new TagResource($tag),
@@ -50,11 +62,18 @@ class TagController extends Controller
     /**
      * Delete a tag
      *
-     * DELETE /api/tags/{id}
+     * DELETE /api/tags/{tag}
+     * 
+     * Uses Route Model Binding to resolve the Tag.
+     * Authorization is handled via TagPolicy BEFORE deletion.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, Tag $tag): JsonResponse
     {
-        $this->tagService->deleteTag($id);
+        // Authorization check - throws AuthorizationException if denied
+        $this->authorize('delete', $tag);
+        
+        // Authorization passed, proceed with deletion
+        $this->tagService->deleteTag($tag);
         
         return response()->json([
             'message' => 'Tag deleted successfully.',

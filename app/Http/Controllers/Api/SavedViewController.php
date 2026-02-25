@@ -31,9 +31,8 @@ class SavedViewController extends Controller
      */
     public function show(Request $request, SavedView $savedView): JsonResponse
     {
-        if ($savedView->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('view', $savedView);
 
         return response()->json([
             'saved_view' => new SavedViewResource($savedView),
@@ -78,9 +77,8 @@ class SavedViewController extends Controller
      */
     public function update(Request $request, SavedView $savedView): JsonResponse
     {
-        if ($savedView->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('update', $savedView);
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
@@ -114,9 +112,8 @@ class SavedViewController extends Controller
      */
     public function destroy(Request $request, SavedView $savedView): JsonResponse
     {
-        if ($savedView->user_id !== $request->user()->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+       
+        $this->authorize('delete', $savedView);
 
         $savedView->delete();
 

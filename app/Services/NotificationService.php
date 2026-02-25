@@ -54,38 +54,45 @@ class NotificationService
 
     /**
      * Update an existing notification rule.
+     * 
+     * @param NotificationRule $notificationRule The resolved notification rule (via Route Model Binding)
+     * @param array $data
+     * @return NotificationRule
      */
-    public function updateNotificationRule(int $ruleId, array $data): NotificationRule
+    public function updateNotificationRule(NotificationRule $notificationRule, array $data): NotificationRule
     {
-        $rule = NotificationRule::findOrFail($ruleId);
-        
-        $rule->update([
-            'reminder_offset' => $data['reminder_offset'] ?? $rule->reminder_offset,
-            'reminder_unit' => $data['reminder_unit'] ?? $rule->reminder_unit,
-            'is_enabled' => $data['is_enabled'] ?? $rule->is_enabled,
+        $notificationRule->update([
+            'reminder_offset' => $data['reminder_offset'] ?? $notificationRule->reminder_offset,
+            'reminder_unit' => $data['reminder_unit'] ?? $notificationRule->reminder_unit,
+            'is_enabled' => $data['is_enabled'] ?? $notificationRule->is_enabled,
         ]);
 
-        return $rule->fresh();
+        return $notificationRule->fresh();
     }
 
     /**
      * Delete a notification rule.
+     * 
+     * @param NotificationRule $notificationRule The resolved notification rule (via Route Model Binding)
+     * @return bool
      */
-    public function deleteNotificationRule(int $ruleId): bool
+    public function deleteNotificationRule(NotificationRule $notificationRule): bool
     {
-        return NotificationRule::destroy($ruleId);
+        return $notificationRule->delete();
     }
 
     /**
      * Toggle notification rule status.
+     * 
+     * @param NotificationRule $notificationRule The resolved notification rule (via Route Model Binding)
+     * @return NotificationRule
      */
-    public function toggleNotificationRule(int $ruleId): NotificationRule
+    public function toggleNotificationRule(NotificationRule $notificationRule): NotificationRule
     {
-        $rule = NotificationRule::findOrFail($ruleId);
-        $rule->is_enabled = !$rule->is_enabled;
-        $rule->save();
+        $notificationRule->is_enabled = !$notificationRule->is_enabled;
+        $notificationRule->save();
 
-        return $rule;
+        return $notificationRule;
     }
 
     /**

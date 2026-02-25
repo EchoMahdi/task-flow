@@ -213,6 +213,9 @@ class TeamService
 
     /**
      * Check if a user can access a team project.
+     * 
+     * @deprecated Use ProjectPolicy@view instead
+     * @see \App\Policies\ProjectPolicy::view()
      */
     public function canAccessTeamProject(User $user, Project $project): bool
     {
@@ -227,6 +230,9 @@ class TeamService
 
     /**
      * Check if a user can manage a team.
+     * 
+     * @deprecated Use TeamPolicy@update instead
+     * @see \App\Policies\TeamPolicy::update()
      */
     public function canManageTeam(User $user, Team $team): bool
     {

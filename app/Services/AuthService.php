@@ -114,9 +114,11 @@ class AuthService
             return false;
         }
 
-        // Token generation and notification logic based on your custom implementation
-        // $resetToken = PasswordResetToken::createForUser($user);
-        // $user->sendPasswordResetNotification($resetToken->token);
+        // Generate password reset token using Laravel's password broker
+        $token = app('auth.password.broker')->createToken($user);
+        
+        // Send the notification
+        $user->sendPasswordResetNotification($token);
 
         return true;
     }

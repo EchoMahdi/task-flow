@@ -8,6 +8,7 @@ use App\Http\Resources\NotificationRuleResource;
 use App\Http\Resources\UserNotificationSettingResource;
 use App\Models\NotificationLog;
 use App\Models\NotificationRule;
+use App\Models\Task;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,12 +25,16 @@ class NotificationController extends Controller
 
     /**
      * Get all notification rules for a task.
+     * 
+     * SECURITY: Authorization is handled via TaskPolicy.
      */
-    public function getTaskNotifications(int $taskId): JsonResponse
+    public function getTaskNotifications(Task $task): JsonResponse
     {
-        $userId = Auth::id();
+        // SECURITY: Policy-based authorization
+        $this->authorize('view', $task);
 
-        $rules = $this->notificationService->getTaskNotificationRules($taskId, $userId);
+        $userId = Auth::id();
+        $rules = $this->notificationService->getTaskNotificationRules($task->id, $userId);
 
         return response()->json([
             'success' => true,
@@ -39,9 +44,14 @@ class NotificationController extends Controller
 
     /**
      * Create a new notification rule for a task.
+     * 
+     * SECURITY: Authorization is handled via TaskPolicy.
      */
-    public function createTaskNotification(Request $request, int $taskId): JsonResponse
+    public function createTaskNotification(Request $request, Task $task): JsonResponse
     {
+        // SECURITY: Policy-based authorization - user must own the task
+        $this->authorize('update', $task);
+
         $request->validate([
             'channel' => 'sometimes|string|in:email,sms,push,in_app',
             'reminder_offset' => 'required|integer|min:1',
@@ -53,7 +63,7 @@ class NotificationController extends Controller
 
         $rule = $this->notificationService->createNotificationRule([
             'user_id' => $userId,
-            'task_id' => $taskId,
+            'task_id' => $task->id,
             'channel' => $request->input('channel', 'email'),
             'reminder_offset' => $request->input('reminder_offset'),
             'reminder_unit' => $request->input('reminder_unit'),
@@ -69,16 +79,21 @@ class NotificationController extends Controller
 
     /**
      * Update a notification rule.
+     * 
+     * SECURITY: Authorization is handled via NotificationRulePolicy.
      */
-    public function updateNotification(Request $request, int $ruleId): JsonResponse
+    public function updateNotification(Request $request, NotificationRule $notificationRule): JsonResponse
     {
+        // SECURITY: Policy-based authorization - user must own the notification rule
+        $this->authorize('update', $notificationRule);
+
         $request->validate([
             'reminder_offset' => 'sometimes|integer|min:1',
             'reminder_unit' => 'sometimes|string|in:minutes,hours,days',
             'is_enabled' => 'sometimes|boolean',
         ]);
 
-        $rule = $this->notificationService->updateNotificationRule($ruleId, $request->all());
+        $rule = $this->notificationService->updateNotificationRule($notificationRule, $request->all());
 
         return response()->json([
             'success' => true,
@@ -89,16 +104,21 @@ class NotificationController extends Controller
 
     /**
      * Delete a notification rule.
+     * 
+     * SECURITY: Authorization is handled via NotificationRulePolicy.
      */
-    public function deleteNotification(int $ruleId): JsonResponse
+    public function deleteNotification(NotificationRule $notificationRule): JsonResponse
     {
-        $deleted = $this->notificationService->deleteNotificationRule($ruleId);
+        // SECURITY: Policy-based authorization - user must own the notification rule
+        $this->authorize('delete', $notificationRule);
+
+        $deleted = $this->notificationService->deleteNotificationRule($notificationRule);
 
         if (!$deleted) {
             return response()->json([
                 'success' => false,
-                'message' => 'Notification rule not found',
-            ], 404);
+                'message' => 'Notification rule could not be deleted',
+            ], 500);
         }
 
         return response()->json([
@@ -109,10 +129,15 @@ class NotificationController extends Controller
 
     /**
      * Toggle a notification rule.
+     * 
+     * SECURITY: Authorization is handled via NotificationRulePolicy.
      */
-    public function toggleNotification(int $ruleId): JsonResponse
+    public function toggleNotification(NotificationRule $notificationRule): JsonResponse
     {
-        $rule = $this->notificationService->toggleNotificationRule($ruleId);
+        // SECURITY: Policy-based authorization - user must own the notification rule
+        $this->authorize('toggle', $notificationRule);
+
+        $rule = $this->notificationService->toggleNotificationRule($notificationRule);
 
         return response()->json([
             'success' => true,

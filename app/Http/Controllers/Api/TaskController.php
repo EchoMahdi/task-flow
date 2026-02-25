@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Task;
 use App\Services\TaskService;
 use App\Services\TaskSearchService;
 use App\Services\TranslationService;
@@ -206,13 +207,16 @@ class TaskController extends Controller
     /**
      * Update task date (for drag & drop)
      */
-    public function updateDate(Request $request, int $id): JsonResponse
+    public function updateDate(Request $request, Task $task): JsonResponse
     {
+       
+        $this->authorize('updateDate', $task);
+
         $validated = $request->validate([
             'due_date' => ['required', 'date'],
         ]);
 
-        $task = $this->taskService->updateTaskDate($id, $validated['due_date']);
+        $task = $this->taskService->updateTaskDate($task->id, $validated['due_date']);
         
         return response()->json([
             'message' => $this->translator->get('tasks.update_success'),
@@ -230,18 +234,22 @@ class TaskController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Task $task): JsonResponse
     {
-        $task = $this->taskService->getTask($id);
+       
+        $this->authorize('view', $task);
         
         return response()->json([
-            'data' => new TaskResource($task),
+            'data' => new TaskResource($task->load('tags', 'project')),
         ]);
     }
 
-    public function update(UpdateTaskRequest $request, int $id): JsonResponse
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
-        $task = $this->taskService->updateTask($id, $request->validated());
+       
+        $this->authorize('update', $task);
+
+        $task = $this->taskService->updateTask($task->id, $request->validated());
         
         return response()->json([
             'message' => $this->translator->get('tasks.update.success'),
@@ -249,18 +257,24 @@ class TaskController extends Controller
         ]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Task $task): JsonResponse
     {
-        $this->taskService->deleteTask($id);
+       
+        $this->authorize('delete', $task);
+
+        $this->taskService->deleteTask($task->id);
         
         return response()->json([
             'message' => $this->translator->get('tasks.delete.success'),
         ]);
     }
 
-    public function complete(int $id): JsonResponse
+    public function complete(Task $task): JsonResponse
     {
-        $task = $this->taskService->completeTask($id);
+       
+        $this->authorize('complete', $task);
+
+        $task = $this->taskService->completeTask($task->id);
         
         return response()->json([
             'message' => $this->translator->get('tasks.complete.success'),
@@ -268,9 +282,12 @@ class TaskController extends Controller
         ]);
     }
 
-    public function incomplete(int $id): JsonResponse
+    public function incomplete(Task $task): JsonResponse
     {
-        $task = $this->taskService->incompleteTask($id);
+       
+        $this->authorize('complete', $task);
+
+        $task = $this->taskService->incompleteTask($task->id);
         
         return response()->json([
             'message' => $this->translator->get('tasks.complete.undone'),
@@ -354,8 +371,11 @@ class TaskController extends Controller
      * PATCH /api/tasks/{id}/assign-project
      * Request body: { "project_id": 1 } or { "project_id": null } to remove from project
      */
-    public function assignToProject(Request $request, int $id): JsonResponse
+    public function assignToProject(Request $request, Task $task): JsonResponse
     {
+       
+        $this->authorize('assignToProject', $task);
+
         $validated = $request->validate([
             'project_id' => [
                 'nullable',
@@ -366,7 +386,7 @@ class TaskController extends Controller
             ],
         ]);
 
-        $task = $this->taskService->assignTaskToProject($id, $validated['project_id'] ?? null);
+        $task = $this->taskService->assignTaskToProject($task->id, $validated['project_id'] ?? null);
 
         $message = $validated['project_id'] === null
             ? $this->translator->get('tasks.removed_from_project')
@@ -383,9 +403,12 @@ class TaskController extends Controller
      *
      * PATCH /api/tasks/{id}/remove-from-project
      */
-    public function removeFromProject(int $id): JsonResponse
+    public function removeFromProject(Task $task): JsonResponse
     {
-        $task = $this->taskService->removeTaskFromProject($id);
+       
+        $this->authorize('assignToProject', $task);
+
+        $task = $this->taskService->removeTaskFromProject($task->id);
 
         return response()->json([
             'message' => $this->translator->get('tasks.removed_from_project'),
@@ -399,8 +422,11 @@ class TaskController extends Controller
      * PATCH /api/tasks/{id}/move-to-project
      * Request body: { "project_id": 1 } or { "project_id": null } to make standalone
      */
-    public function moveToProject(Request $request, int $id): JsonResponse
+    public function moveToProject(Request $request, Task $task): JsonResponse
     {
+       
+        $this->authorize('assignToProject', $task);
+
         $validated = $request->validate([
             'project_id' => [
                 'nullable',
@@ -411,7 +437,7 @@ class TaskController extends Controller
             ],
         ]);
 
-        $task = $this->taskService->moveTaskToProject($id, $validated['project_id'] ?? null);
+        $task = $this->taskService->moveTaskToProject($task->id, $validated['project_id'] ?? null);
 
         $message = $validated['project_id'] === null
             ? $this->translator->get('tasks.moved_to_standalone')
@@ -442,6 +468,12 @@ class TaskController extends Controller
                 })
             ],
         ]);
+
+        // SECURITY: Authorize each task before bulk operation
+        $tasks = Task::whereIn('id', $validated['task_ids'])->get();
+        foreach ($tasks as $task) {
+            $this->authorize('assignToProject', $task);
+        }
 
         $count = $this->taskService->bulkAssignTasksToProject(
             $validated['task_ids'],
