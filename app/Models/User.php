@@ -10,6 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
@@ -273,11 +274,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Get roles for the user.
+     * Cached permissions for the user.
+     *
+     * @var array|null
      */
-    public function roles(): HasMany
+    protected ?array $cachedPermissions = null;
+
+    /**
+     * Get roles for the user (RBAC).
+     */
+    public function roles(): BelongsToMany
     {
-        return $this->hasMany(UserRole::class);
+        return $this->belongsToMany(Role::class, 'user_role');
     }
 
     /**
@@ -285,7 +293,7 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
-        return $this->roles()->where('role', $role)->exists();
+        return $this->roles()->where('name', $role)->exists();
     }
 
     /**
@@ -293,7 +301,7 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles()->whereIn('role', $roles)->exists();
+        return $this->roles()->whereIn('name', $roles)->exists();
     }
 
     /**
@@ -301,46 +309,174 @@ class User extends Authenticatable
      */
     public function hasAllRoles(array $roles): bool
     {
-        $userRoles = $this->roles()->pluck('role')->toArray();
+        $userRoles = $this->roles()->pluck('name')->toArray();
         return count(array_intersect($roles, $userRoles)) === count($roles);
     }
 
     /**
-     * Add a role to the user.
+     * Assign a role to the user.
+     *
+     * @param Role|string $role
+     * @return void
      */
-    public function addRole(string $role): UserRole
+    public function assignRole(Role|string $role): void
     {
-        return $this->roles()->firstOrCreate(['role' => $role]);
+        if (is_string($role)) {
+            $role = Role::findByName($role);
+        }
+
+        if ($role) {
+            $this->roles()->syncWithoutDetaching([$role->id]);
+            $this->clearPermissionCache();
+        }
     }
 
     /**
      * Remove a role from the user.
+     *
+     * @param Role|string $role
+     * @return void
      */
-    public function removeRole(string $role): bool
+    public function removeRole(Role|string $role): void
     {
-        return $this->roles()->where('role', $role)->delete();
+        if (is_string($role)) {
+            $role = Role::findByName($role);
+        }
+
+        if ($role) {
+            $this->roles()->detach($role->id);
+            $this->clearPermissionCache();
+        }
     }
 
     /**
-     * Get user's permissions through roles.
+     * Sync roles for the user.
+     *
+     * @param array $roleNames
+     * @return void
      */
-    public function getPermissionsAttribute(): array
+    public function syncRoles(array $roleNames): void
     {
-        $permissions = [];
-        
-        foreach ($this->roles as $role) {
-            $permissions = array_merge($permissions, $role->permissions);
+        $roleIds = Role::whereIn('name', $roleNames)->pluck('id');
+        $this->roles()->sync($roleIds);
+        $this->clearPermissionCache();
+    }
+
+    /**
+     * Get all permission keys for the user through roles.
+     * Uses internal caching to avoid multiple DB queries.
+     *
+     * @return array
+     */
+    public function getAllPermissions(): array
+    {
+        if ($this->cachedPermissions !== null) {
+            return $this->cachedPermissions;
         }
-        
-        return array_unique($permissions);
+
+        // Single query to get all permissions through roles
+        $this->cachedPermissions = DB::table('permissions')
+            ->join('role_permission', 'permissions.id', '=', 'role_permission.permission_id')
+            ->join('user_role', 'role_permission.role_id', '=', 'user_role.role_id')
+            ->where('user_role.user_id', $this->id)
+            ->pluck('permissions.key')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return $this->cachedPermissions;
     }
 
     /**
      * Check if user has a specific permission.
+     * Uses cached permissions to avoid multiple DB queries.
+     *
+     * @param string $permission
+     * @return bool
      */
     public function hasPermission(string $permission): bool
     {
-        return in_array($permission, $this->permissions);
+        $permissions = $this->getAllPermissions();
+
+        // Check for wildcard permission
+        if (in_array('*', $permissions)) {
+            return true;
+        }
+
+        // Check exact match
+        if (in_array($permission, $permissions)) {
+            return true;
+        }
+
+        // Check wildcard patterns (e.g., 'tasks.*' matches 'tasks.create')
+        foreach ($permissions as $userPermission) {
+            if ($this->matchesWildcard($userPermission, $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user has any of the given permissions.
+     *
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user has all of the given permissions.
+     *
+     * @param array $permissions
+     * @return bool
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if (!$this->hasPermission($permission)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Clear the permission cache.
+     *
+     * @return void
+     */
+    public function clearPermissionCache(): void
+    {
+        $this->cachedPermissions = null;
+    }
+
+    /**
+     * Check if a permission matches a wildcard pattern.
+     *
+     * @param string $pattern
+     * @param string $permission
+     * @return bool
+     */
+    protected function matchesWildcard(string $pattern, string $permission): bool
+    {
+        if (!str_contains($pattern, '*')) {
+            return false;
+        }
+
+        $regex = str_replace('*', '.*', preg_quote($pattern, '/'));
+        return (bool) preg_match("/^{$regex}$/", $permission);
     }
 
     /**

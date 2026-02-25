@@ -35,6 +35,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed RBAC roles and permissions first
+        $this->call(RbacSeeder::class);
+
         // Check if test user already exists
         $existingUser = User::where('email', 'test@example.com')->first();
         
