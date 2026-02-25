@@ -61,3 +61,26 @@ export {
   StoreRegistry,
   withLoadingState,
 } from './store/index.js';
+
+// Auth & Permissions
+export {
+  permissionService,
+  usePermissions,
+  PERMISSIONS,
+  ROLES,
+  // Strategies
+  RoleStrategy,
+  OwnershipStrategy,
+  AdminOverrideStrategy,
+  StrategyManager,
+  strategyManager,
+  // Guards and Hooks
+  PermissionProvider,
+  usePermission,
+  Can,
+  CanAny,
+  CanAll,
+  HasRole,
+  IsAdmin,
+  IsSuperAdmin,
+} from './auth/index.ts';
