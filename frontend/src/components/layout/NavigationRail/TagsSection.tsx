@@ -5,7 +5,7 @@
  * ============================================================================
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -17,15 +17,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AddIcon from '@mui/icons-material/Add';
-import LabelIcon from '@mui/icons-material/Label';
-import TagItem, { TagItemData } from './TagItem';
-import AddTagModal from './AddTagModal';
-import { subscribe, unsubscribe, EventNames } from '@/core/observer';
-import type { Event } from '@/core/observer/types';
-import { useI18nStore } from '@/stores/i18nStore';
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AddIcon from "@mui/icons-material/Add";
+import LabelIcon from "@mui/icons-material/Label";
+import TagItem, { TagItemData } from "./TagItem";
+import AddTagModal from "./AddTagModal";
+import { subscribe, unsubscribe, EventNames } from "@/core/observer";
+import type { Event } from "@/core/observer/types";
+import { useI18nStore } from "@/stores/i18nStore";
 
 interface TagsSectionProps {
   collapsed: boolean;
@@ -39,7 +39,7 @@ interface TagsSectionProps {
 const loadCollapsedState = (key: string, defaultValue: boolean): boolean => {
   try {
     const stored = localStorage.getItem(key);
-    return stored === null ? defaultValue : stored === 'true';
+    return stored === null ? defaultValue : stored === "true";
   } catch {
     return defaultValue;
   }
@@ -52,44 +52,47 @@ const saveCollapsedState = (key: string, value: boolean): void => {
 };
 
 const fetchTags = async (): Promise<TagItemData[]> => {
-  const response = await fetch('/api/tags', {
+  const response = await fetch("/api/tags", {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      "Content-Type": "application/json",
     },
   });
-  if (!response.ok) throw new Error('Failed to fetch tags');
+  if (!response.ok) throw new Error("Failed to fetch tags");
   const data = await response.json();
   return data.data || data;
 };
 
-const createTag = async (tag: { name: string; color: string }): Promise<TagItemData> => {
-  const response = await fetch('/api/tags', {
-    method: 'POST',
+const createTag = async (tag: {
+  name: string;
+  color: string;
+}): Promise<TagItemData> => {
+  const response = await fetch("/api/tags", {
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(tag),
   });
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to create tag');
+    throw new Error(error.message || "Failed to create tag");
   }
   return response.json();
 };
 
 const deleteTag = async (tagId: number): Promise<void> => {
   const response = await fetch(`/api/tags/${tagId}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      "Content-Type": "application/json",
     },
   });
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Failed to delete tag');
+    throw new Error(error.message || "Failed to delete tag");
   }
 };
 
@@ -100,13 +103,12 @@ const TagsSection: React.FC<TagsSectionProps> = ({
   collapsed,
   onNavigate,
 }): React.ReactNode => {
-  const { t } = useTranslation();
-
+  const t = useI18nStore((state) => state.t);
   const [tags, setTags] = useState<TagItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(() =>
-    loadCollapsedState('nav_tags_expanded', false)
+    loadCollapsedState("nav_tags_expanded", false),
   );
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -121,22 +123,28 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       const data = await fetchTags();
       setTags(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('Failed to load tags'));
+      setError(err instanceof Error ? err.message : t("Failed to load tags"));
     } finally {
       setLoading(false);
     }
   }, [t]);
 
-  useEffect(() => { loadTags(); }, [loadTags]);
+  useEffect(() => {
+    loadTags();
+  }, [loadTags]);
 
   useEffect(() => {
-    saveCollapsedState('nav_tags_expanded', expanded);
+    saveCollapsedState("nav_tags_expanded", expanded);
   }, [expanded]);
 
   // Listen for task events to update counts locally
   useEffect(() => {
     const handleTaskCreated = (event: Event) => {
-      const payload = event.payload as { taskId?: string; projectId?: string; tagIds?: number[] };
+      const payload = event.payload as {
+        taskId?: string;
+        projectId?: string;
+        tagIds?: number[];
+      };
       // Refresh counts when a task is created with tags
       if (payload.tagIds && payload.tagIds.length > 0) {
         loadTags();
@@ -148,26 +156,33 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       if (payload.tagIds && payload.tagIds.length > 0) {
         setTags((prev) =>
           prev.map((t) =>
-            payload.tagIds.includes(t.id)
-              ? { ...t, task_count: Math.max(0, (t.task_count || 0) - 1) }
-              : t
-          )
+            payload.tagIds!.includes(t.id)
+              ? { ...t, tasks_count: Math.max(0, (t.tasks_count || 0) - 1) }
+              : t,
+          ),
         );
       }
     };
 
     const handleTaskCompleted = (event: Event) => {
-      const payload = event.payload as { taskId?: string; tagIds?: number[]; wasCompleted?: boolean };
+      const payload = event.payload as {
+        taskId?: string;
+        tagIds?: number[];
+        wasCompleted?: boolean;
+      };
       // When task is completed, decrement tag counts
       // When task is uncompleted (wasCompleted=false), increment tag counts
       if (payload.tagIds && payload.tagIds.length > 0) {
         const countDelta = payload.wasCompleted === false ? 1 : -1;
         setTags((prev) =>
           prev.map((t) =>
-            payload.tagIds.includes(t.id)
-              ? { ...t, task_count: Math.max(0, (t.task_count || 0) + countDelta) }
-              : t
-          )
+            payload.tagIds!.includes(t.id)
+              ? {
+                  ...t,
+                  tasks_count: Math.max(0, (t.tasks_count || 0) + countDelta),
+                }
+              : t,
+          ),
         );
       }
     };
@@ -178,9 +193,14 @@ const TagsSection: React.FC<TagsSectionProps> = ({
     };
 
     const handleTaskUpdated = (event: Event) => {
-      const payload = event.payload as { taskId?: string; projectId?: string; tagIds?: number[]; changes?: Record<string, unknown> };
+      const payload = event.payload as {
+        taskId?: string;
+        projectId?: string;
+        tagIds?: number[];
+        changes?: Record<string, unknown>;
+      };
       // If tags were modified, refresh the tags list
-      if (payload.changes && 'tag_ids' in payload.changes) {
+      if (payload.changes && "tag_ids" in payload.changes) {
         loadTags();
       }
     };
@@ -204,9 +224,13 @@ const TagsSection: React.FC<TagsSectionProps> = ({
   const handleTagClick = useCallback(
     (tag: TagItemData) => {
       setActiveTagId(tag.id);
-      onNavigate({ type: 'tag', id: `tag-${tag.id}`, params: { tag_id: tag.id } });
+      onNavigate({
+        type: "tag",
+        id: `tag-${tag.id}`,
+        params: { tag_id: tag.id },
+      });
     },
-    [onNavigate]
+    [onNavigate],
   );
 
   const handleDeleteClick = useCallback((tag: TagItemData) => {
@@ -223,15 +247,18 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       setTagToDelete(null);
     } catch (err) {
       setTags((prev) => [...prev, tagToDelete]);
-      setError(err instanceof Error ? err.message : t('Failed to delete tag'));
+      setError(err instanceof Error ? err.message : t("Failed to delete tag"));
     }
   }, [tagToDelete, t]);
 
-  const handleAddTag = useCallback(async (tag: { name: string; color: string }) => {
-    const newTag = await createTag(tag);
-    setTags((prev) => [...prev, newTag]);
-    setAddModalOpen(false);
-  }, []);
+  const handleAddTag = useCallback(
+    async (tag: { name: string; color: string }) => {
+      const newTag = await createTag(tag);
+      setTags((prev) => [...prev, newTag]);
+      setAddModalOpen(false);
+    },
+    [],
+  );
 
   // Section header
   const SectionHeader: React.FC<{ count?: number }> = ({ count }) => (
@@ -239,26 +266,26 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       onClick={() => setExpanded(!expanded)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && setExpanded(!expanded)}
+      onKeyDown={(e) => e.key === "Enter" && setExpanded(!expanded)}
       aria-expanded={expanded}
-      aria-label={t('Tags')}
+      aria-label={t("Tags")}
       sx={{
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         gap: 1,
         px: 1.5,
         py: 0.75,
         borderRadius: 1,
-        cursor: 'pointer',
-        userSelect: 'none',
-        '&:hover': { bgcolor: 'action.hover' },
+        cursor: "pointer",
+        userSelect: "none",
+        "&:hover": { bgcolor: "action.hover" },
       }}
     >
       <LabelIcon fontSize="small" />
       {!collapsed && (
         <>
           <Typography variant="subtitle2" sx={{ flex: 1 }} noWrap>
-            {t('Tags')}
+            {t("Tags")}
           </Typography>
           {count !== undefined && (
             <Typography variant="caption" color="text.secondary">
@@ -267,8 +294,8 @@ const TagsSection: React.FC<TagsSectionProps> = ({
           )}
           <ExpandMoreIcon
             sx={{
-              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 150ms ease',
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 150ms ease",
             }}
           />
         </>
@@ -279,11 +306,19 @@ const TagsSection: React.FC<TagsSectionProps> = ({
   // Loading state
   if (loading) {
     return (
-      <Box sx={{ px: collapsed ? 0.5 : 1.5, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          px: collapsed ? 0.5 : 1.5,
+          py: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
         <CircularProgress size={18} />
         {!collapsed && (
           <Typography variant="body2" color="text.secondary">
-            {t('Loading tags')}
+            {t("Loading tags")}
           </Typography>
         )}
       </Box>
@@ -304,7 +339,7 @@ const TagsSection: React.FC<TagsSectionProps> = ({
     return (
       <Box sx={{ px: collapsed ? 0.5 : 1.5, py: 1 }}>
         <Typography variant="body2" color="text.secondary">
-          {collapsed ? t('No tags') : t('No tags yet')}
+          {collapsed ? t("No tags") : t("No tags yet")}
         </Typography>
         {!collapsed && (
           <Button
@@ -314,7 +349,7 @@ const TagsSection: React.FC<TagsSectionProps> = ({
             fullWidth
             startIcon={<AddIcon />}
           >
-            {t('Create Tag')}
+            {t("Create Tag")}
           </Button>
         )}
         <AddTagModal
@@ -331,13 +366,14 @@ const TagsSection: React.FC<TagsSectionProps> = ({
       <SectionHeader count={tags.length} />
 
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
+        <Box
+          sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 0.5 }}
+        >
           {tags.map((tag) => (
             <TagItem
               key={tag.id}
               tag={tag}
               collapsed={collapsed}
-              active={activeTagId === tag.id}
               onClick={() => handleTagClick(tag)}
               onDelete={() => handleDeleteClick(tag)}
             />
@@ -349,10 +385,10 @@ const TagsSection: React.FC<TagsSectionProps> = ({
           <Button
             onClick={() => setAddModalOpen(true)}
             fullWidth
-            sx={{ justifyContent: 'flex-start', mt: 0.5 }}
+            sx={{ justifyContent: "flex-start", mt: 0.5 }}
             startIcon={<AddIcon />}
           >
-            {t('Add Tag')}
+            {t("Add Tag")}
           </Button>
         )}
       </Collapse>
@@ -371,18 +407,22 @@ const TagsSection: React.FC<TagsSectionProps> = ({
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{t('Delete Tag')}</DialogTitle>
+        <DialogTitle>{t("Delete Tag")}</DialogTitle>
         <DialogContent>
           <Typography>
-            {t('deleteTagConfirm', { name: tagToDelete?.name ?? '' })}
+            {t("deleteTagConfirm", { name: tagToDelete?.name ?? "" })}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>
-            {t('Cancel')}
+            {t("Cancel")}
           </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">
-            {t('Delete')}
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+          >
+            {t("Delete")}
           </Button>
         </DialogActions>
       </Dialog>

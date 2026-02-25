@@ -92,6 +92,10 @@ Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/{project}/statistics', [ProjectController::class, 'statistics']);
     // PATCH /api/projects/{id}/favorite - Update favorite status
     Route::patch('/{project}/favorite', [ProjectController::class, 'updateFavorite']);
+    // PATCH /api/projects/{id}/archive - Archive project
+    Route::patch('/{project}/archive', [ProjectController::class, 'archive']);
+    // PATCH /api/projects/{id}/restore - Restore project
+    Route::patch('/{project}/restore', [ProjectController::class, 'restore']);
     // DELETE /api/projects/{id} - Delete project
     Route::delete('/{project}', [ProjectController::class, 'destroy']);
 });

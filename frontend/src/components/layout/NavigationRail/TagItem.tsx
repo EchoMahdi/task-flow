@@ -15,6 +15,7 @@ export interface TagItemData {
   id: number;
   name: string;
   color: string;
+  tasks_count?: number;
 }
 
 interface TagItemProps {

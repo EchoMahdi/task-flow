@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Project;
+use App\Events\EventBus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -16,6 +17,19 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class TeamService
 {
+    /**
+     * @var EventBus
+     */
+    protected EventBus $eventBus;
+
+    /**
+     * Create a new team service instance.
+     */
+    public function __construct(EventBus $eventBus)
+    {
+        $this->eventBus = $eventBus;
+    }
+
     /**
      * Get all teams the user is a member of.
      */
@@ -55,6 +69,14 @@ class TeamService
         // Add owner as a member with owner role
         $team->addMember($owner, 'owner');
 
+        // Emit team created event
+        $this->eventBus->emit('teams.created', [
+            'teamId' => (string) $team->id,
+            'name' => $team->name,
+            'ownerId' => (string) $owner->id,
+            'source' => 'backend',
+        ]);
+
         return $team->load(['owner', 'members', 'projects']);
     }
 
@@ -69,6 +91,14 @@ class TeamService
             'avatar' => $data['avatar'] ?? null,
         ]));
 
+        // Emit team updated event
+        $this->eventBus->emit('teams.updated', [
+            'teamId' => (string) $team->id,
+            'name' => $team->name,
+            'description' => $team->description,
+            'source' => 'backend',
+        ]);
+
         return $team->load(['owner', 'members', 'projects']);
     }
 
@@ -79,7 +109,18 @@ class TeamService
      */
     public function deleteTeam(Team $team): bool
     {
-        return $team->delete();
+        $teamId = $team->id;
+        $result = $team->delete();
+
+        // Emit team deleted event
+        if ($result) {
+            $this->eventBus->emit('teams.deleted', [
+                'teamId' => (string) $teamId,
+                'source' => 'backend',
+            ]);
+        }
+
+        return $result;
     }
 
     /**
@@ -88,6 +129,14 @@ class TeamService
     public function addMember(Team $team, User $user, string $role = 'member'): void
     {
         $team->addMember($user, $role);
+
+        // Emit member added event
+        $this->eventBus->emit('teams.member.added', [
+            'teamId' => (string) $team->id,
+            'userId' => (string) $user->id,
+            'role' => $role,
+            'source' => 'backend',
+        ]);
     }
 
     /**
@@ -101,6 +150,13 @@ class TeamService
         }
 
         $team->removeMember($user);
+
+        // Emit member removed event
+        $this->eventBus->emit('teams.member.removed', [
+            'teamId' => (string) $team->id,
+            'userId' => (string) $user->id,
+            'source' => 'backend',
+        ]);
     }
 
     /**
@@ -117,7 +173,17 @@ class TeamService
             throw new \InvalidArgumentException('Invalid role specified.');
         }
 
+        $oldRole = $team->members()->where('user_id', $user->id)->first()->pivot->role ?? null;
         $team->updateMemberRole($user, $role);
+
+        // Emit role changed event
+        $this->eventBus->emit('teams.role.changed', [
+            'teamId' => (string) $team->id,
+            'userId' => (string) $user->id,
+            'oldRole' => $oldRole,
+            'newRole' => $role,
+            'source' => 'backend',
+        ]);
     }
 
     /**

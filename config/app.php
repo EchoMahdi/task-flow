@@ -22,9 +22,16 @@ return [
     'providers' => ServiceProvider::defaultProviders()->merge([
         App\Providers\AppServiceProvider::class,
         App\Providers\SocialAuthServiceProvider::class,
+        App\Providers\EventBusServiceProvider::class,
         Laravel\Socialite\SocialiteServiceProvider::class,
     ])->toArray(),
     'aliases' => Facade::defaultAliases()->merge([
         // Custom aliases
     ])->toArray(),
 ];
+
+// Register the EventBusServiceProvider in config/app.php
+// Add event contracts for projects, teams, and notifications
+// Update TeamService and NotificationService with event emission
+// Create integration tests for event flows
+// Add async event processing via queues

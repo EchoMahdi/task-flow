@@ -7,6 +7,7 @@ use App\Models\NotificationLog;
 use App\Models\NotificationRule;
 use App\Models\Task;
 use App\Models\User;
+use App\Events\EventBus;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,6 +27,20 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
     protected NotificationRule $rule;
 
     /**
+     * @var EventBus
+     */
+    protected EventBus $eventBus;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(NotificationRule $rule)
+    {
+        $this->rule = $rule;
+        $this->eventBus = app(EventBus::class);
+    }
+
+    /**
      * The number of seconds the job can run before timing out.
      */
     public $timeout = 60;
@@ -34,14 +49,6 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
      * The number of times the job may be attempted.
      */
     public $maxExceptions = 3;
-
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(NotificationRule $rule)
-    {
-        $this->rule = $rule->withoutRelations();
-    }
 
     /**
      * Get the unique ID for this job.
@@ -105,6 +112,20 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
                     'reminder_unit' => $rule->reminder_unit,
                     'due_date' => $task->due_date,
                 ],
+            ]);
+
+            // Emit notification received event
+            $this->eventBus->emit('notifications.received', [
+                'notificationId' => (string) $log->id,
+                'userId' => (string) $user->id,
+                'type' => 'task_reminder',
+                'title' => 'Task Reminder: ' . $task->title,
+                'message' => 'Your task "' . $task->title . '" is due soon.',
+                'data' => [
+                    'taskId' => (string) $task->id,
+                    'ruleId' => (string) $rule->id,
+                ],
+                'source' => 'backend',
             ]);
 
             // Send notification based on channel

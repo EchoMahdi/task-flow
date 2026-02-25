@@ -6,11 +6,24 @@ use App\Models\NotificationLog;
 use App\Models\NotificationRule;
 use App\Models\Task;
 use App\Models\UserNotificationSetting;
+use App\Events\EventBus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class NotificationService
 {
+    /**
+     * @var EventBus
+     */
+    protected EventBus $eventBus;
+
+    /**
+     * Create a new notification service instance.
+     */
+    public function __construct(EventBus $eventBus)
+    {
+        $this->eventBus = $eventBus;
+    }
     /**
      * Get all notification rules for a user's task.
      */
@@ -232,6 +245,14 @@ class NotificationService
         
         if ($log) {
             $log->markAsRead();
+            
+            // Emit notification read event
+            $this->eventBus->emit('notifications.read', [
+                'notificationId' => (string) $log->id,
+                'userId' => (string) $userId,
+                'readAt' => $log->read_at->timestamp ?? time(),
+                'source' => 'backend',
+            ]);
         }
         
         return $log;
@@ -242,9 +263,22 @@ class NotificationService
      */
     public function markAllNotificationsAsRead(int $userId): int
     {
-        return NotificationLog::where('user_id', $userId)
+        $count = NotificationLog::where('user_id', $userId)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+        
+        // Emit all notifications read event
+        if ($count > 0) {
+            $this->eventBus->emit('notifications.read', [
+                'notificationId' => 'all',
+                'userId' => (string) $userId,
+                'readAt' => time(),
+                'count' => $count,
+                'source' => 'backend',
+            ]);
+        }
+        
+        return $count;
     }
 
     /**

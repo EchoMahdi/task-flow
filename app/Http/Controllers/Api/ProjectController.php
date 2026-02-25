@@ -26,14 +26,26 @@ class ProjectController extends Controller
      *
      * GET /api/projects
      * Returns: { favorites: [], other: [] }
+     * 
+     * Query parameters:
+     * - include_archived: boolean (default: false) - Include archived projects
      */
     public function index(Request $request): JsonResponse
     {
-        $projects = $request->user()
+        $includeArchived = $request->boolean('include_archived', false);
+        
+        $query = $request->user()
             ->projects()
             ->withCount(['tasks' => function ($query) {
                 $query->where('is_completed', false);
-            }])
+            }]);
+        
+        // Exclude archived projects by default
+        if (!$includeArchived) {
+            $query->active();
+        }
+        
+        $projects = $query
             ->orderBy('is_favorite', 'desc')
             ->orderBy('name')
             ->get();
@@ -269,6 +281,64 @@ class ProjectController extends Controller
                     ? "{$taskCount} tasks have been moved to standalone"
                     : null,
             ],
+        ]);
+    }
+
+    /**
+     * Archive a project
+     * 
+     * PATCH /api/projects/{id}/archive
+     */
+    public function archive(Request $request, Project $project): JsonResponse
+    {
+        // Check ownership
+        if ($project->user_id !== $request->user()->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Check if already archived
+        if ($project->isArchived()) {
+            return response()->json([
+                'message' => 'Project is already archived',
+                'data' => new ProjectResource($project),
+            ]);
+        }
+
+        $project->archive();
+        $project->refresh();
+
+        return response()->json([
+            'message' => 'Project archived successfully',
+            'data' => new ProjectResource($project),
+        ]);
+    }
+
+    /**
+     * Restore a project from archive
+     * 
+     * PATCH /api/projects/{id}/restore
+     */
+    public function restore(Request $request, Project $project): JsonResponse
+    {
+        // Check ownership
+        if ($project->user_id !== $request->user()->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Check if not archived
+        if (!$project->isArchived()) {
+            return response()->json([
+                'message' => 'Project is not archived',
+                'data' => new ProjectResource($project),
+            ]);
+        }
+
+        $project->restore();
+        $project->refresh();
+
+        return response()->json([
+            'message' => 'Project restored successfully',
+            'data' => new ProjectResource($project),
         ]);
     }
 }
