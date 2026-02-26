@@ -7,6 +7,10 @@ use App\Http\Resources\ProjectResource;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Services\TaskService;
+use App\Events\Project\ProjectCreated;
+use App\Events\Project\ProjectUpdated;
+use App\Events\Project\ProjectDeleted;
+use App\Events\Project\ProjectArchived;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -176,6 +180,15 @@ class ProjectController extends Controller
             $query->where('is_completed', false);
         }]);
 
+        // Dispatch project created event
+        event(new ProjectCreated([
+            'projectId' => (string) $project->id,
+            'name' => $project->name,
+            'icon' => $project->icon,
+            'color' => $project->color,
+            'userId' => (string) $request->user()->id,
+        ]));
+
         return response()->json([
             'project' => new ProjectResource($project),
             'message' => 'Project created successfully',
@@ -207,6 +220,13 @@ class ProjectController extends Controller
         $project->loadCount(['tasks' => function ($query) {
             $query->where('is_completed', false);
         }]);
+
+        // Dispatch project updated event
+        event(new ProjectUpdated([
+            'projectId' => (string) $project->id,
+            'changes' => $request->only(['name', 'icon', 'color']),
+            'name' => $project->name,
+        ]));
 
         return response()->json([
             'project' => new ProjectResource($project),
@@ -261,6 +281,11 @@ class ProjectController extends Controller
 
         $project->delete();
 
+        // Dispatch project deleted event
+        event(new ProjectDeleted([
+            'projectId' => (string) $project->id,
+        ]));
+
         return response()->json([
             'message' => 'Project deleted successfully',
             'data' => [
@@ -293,6 +318,12 @@ class ProjectController extends Controller
         $project->archive();
         $project->refresh();
 
+        // Dispatch project archived event
+        event(new ProjectArchived([
+            'projectId' => (string) $project->id,
+            'isArchived' => true,
+        ]));
+
         return response()->json([
             'message' => 'Project archived successfully',
             'data' => new ProjectResource($project),
@@ -319,6 +350,12 @@ class ProjectController extends Controller
 
         $project->restore();
         $project->refresh();
+
+        // Dispatch project archived event (restored = not archived)
+        event(new ProjectArchived([
+            'projectId' => (string) $project->id,
+            'isArchived' => false,
+        ]));
 
         return response()->json([
             'message' => 'Project restored successfully',

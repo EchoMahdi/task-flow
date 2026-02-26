@@ -2,21 +2,23 @@
 
 namespace App\Services;
 
-use App\Events\EventBus;
+use App\Events\Task\TaskAssignedToProject;
+use App\Events\Task\TaskCompleted;
+use App\Events\Task\TaskCreated;
+use App\Events\Task\TaskDeleted;
+use App\Events\Task\TaskUpdated;
 use App\Repositories\TaskRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TaskService
 {
     protected $taskRepository;
-    protected $eventBus;
 
     public function __construct(
-        TaskRepositoryInterface $taskRepository,
-        ?EventBus $eventBus = null
+        TaskRepositoryInterface $taskRepository
     ) {
         $this->taskRepository = $taskRepository;
-        $this->eventBus = $eventBus;
     }
 
     public function getAllTasks(Request $request)
@@ -42,14 +44,14 @@ class TaskService
         
         $updatedTask = $this->taskRepository->updateTask($id, ['due_date' => $dueDate]);
         
-        // Emit task updated event for due date change
-        $this->emitTaskEvent('tasks.updated', [
+        // Dispatch task updated event for due date change
+        event(new TaskUpdated([
             'taskId' => (string) $id,
             'projectId' => $task->project_id ? (string) $task->project_id : null,
             'changes' => ['due_date' => $dueDate],
             'previousValues' => ['due_date' => $previousDueDate],
-            'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+            'title' => $task->title,
+        ]));
         
         return $updatedTask;
     }
@@ -63,16 +65,17 @@ class TaskService
     {
         $task = $this->taskRepository->createTask($data);
         
-        // Emit task created event
-        $this->emitTaskEvent('tasks.created', [
+        // Dispatch task created event
+        event(new TaskCreated([
             'taskId' => (string) $task->id,
             'projectId' => $task->project_id ? (string) $task->project_id : null,
             'title' => $task->title,
             'description' => $task->description,
             'priority' => $task->priority,
             'dueDate' => $task->due_date ? $task->due_date->toIso8601String() : null,
+            'assigneeId' => $task->assignee_id ? (string) $task->assignee_id : null,
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $task;
     }
@@ -84,14 +87,15 @@ class TaskService
         
         $updatedTask = $this->taskRepository->updateTask($id, $data);
         
-        // Emit task updated event
-        $this->emitTaskEvent('tasks.updated', [
+        // Dispatch task updated event
+        event(new TaskUpdated([
             'taskId' => (string) $id,
             'projectId' => $task->project_id ? (string) $task->project_id : null,
             'changes' => $data,
             'previousValues' => array_intersect_key($previousValues, $data),
+            'title' => $updatedTask->title,
             'tagIds' => $updatedTask->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -104,12 +108,12 @@ class TaskService
         
         $result = $this->taskRepository->deleteTask($id);
         
-        // Emit task deleted event
-        $this->emitTaskEvent('tasks.deleted', [
+        // Dispatch task deleted event
+        event(new TaskDeleted([
             'taskId' => (string) $id,
             'projectId' => $projectId,
             'tagIds' => $tagIds,
-        ]);
+        ]));
         
         return $result;
     }
@@ -120,14 +124,15 @@ class TaskService
         
         $updatedTask = $this->taskRepository->markAsCompleted($id);
         
-        // Emit task completed event
-        $this->emitTaskEvent('tasks.completed', [
+        // Dispatch task completed event
+        event(new TaskCompleted([
             'taskId' => (string) $id,
             'projectId' => $task->project_id ? (string) $task->project_id : null,
-            'wasCompleted' => true,
+            'wasCompleted' => (bool) $task->is_completed,
+            'isCompleted' => true,
             'completedAt' => $updatedTask->completed_at ? $updatedTask->completed_at->timestamp : time(),
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -138,13 +143,14 @@ class TaskService
         
         $updatedTask = $this->taskRepository->markAsIncomplete($id);
         
-        // Emit task uncompleted event
-        $this->emitTaskEvent('tasks.completed', [
+        // Dispatch task uncompleted event
+        event(new TaskCompleted([
             'taskId' => (string) $id,
             'projectId' => $task->project_id ? (string) $task->project_id : null,
-            'wasCompleted' => false,
+            'wasCompleted' => (bool) $task->is_completed,
+            'isCompleted' => false,
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -182,13 +188,13 @@ class TaskService
         
         $updatedTask = $this->taskRepository->assignToProject($taskId, $projectId);
         
-        // Emit task assigned to project event
-        $this->emitTaskEvent('tasks.assignedToProject', [
+        // Dispatch task assigned to project event
+        event(new TaskAssignedToProject([
             'taskId' => (string) $taskId,
             'projectId' => $projectId ? (string) $projectId : null,
             'previousProjectId' => $previousProjectId,
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -203,13 +209,13 @@ class TaskService
         
         $updatedTask = $this->taskRepository->removeFromProject($taskId);
         
-        // Emit task assigned to project event (with null projectId)
-        $this->emitTaskEvent('tasks.assignedToProject', [
+        // Dispatch task assigned to project event (with null projectId)
+        event(new TaskAssignedToProject([
             'taskId' => (string) $taskId,
             'projectId' => null,
             'previousProjectId' => $previousProjectId,
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -227,13 +233,13 @@ class TaskService
         
         $updatedTask = $this->taskRepository->moveToProject($taskId, $targetProjectId);
         
-        // Emit task assigned to project event
-        $this->emitTaskEvent('tasks.assignedToProject', [
+        // Dispatch task assigned to project event
+        event(new TaskAssignedToProject([
             'taskId' => (string) $taskId,
             'projectId' => $targetProjectId ? (string) $targetProjectId : null,
             'previousProjectId' => $previousProjectId,
             'tagIds' => $task->tags->pluck('id')->toArray(),
-        ]);
+        ]));
         
         return $updatedTask;
     }
@@ -249,41 +255,19 @@ class TaskService
     {
         $count = $this->taskRepository->bulkAssignToProject($taskIds, $projectId);
         
-        // Emit individual task assignment events for each task
+        // Dispatch individual task assignment events for each task
         foreach ($taskIds as $taskId) {
             $task = $this->taskRepository->getTaskById($taskId);
             $previousProjectId = $task->project_id ? (string) $task->project_id : null;
             
-            $this->emitTaskEvent('tasks.assignedToProject', [
+            event(new TaskAssignedToProject([
                 'taskId' => (string) $taskId,
                 'projectId' => $projectId ? (string) $projectId : null,
                 'previousProjectId' => $previousProjectId,
                 'tagIds' => $task->tags->pluck('id')->toArray(),
-            ]);
+            ]));
         }
         
         return $count;
-    }
-
-    /**
-     * Emit a task event through the event bus
-     * 
-     * @param string $eventName
-     * @param array $payload
-     * @return void
-     */
-    protected function emitTaskEvent(string $eventName, array $payload): void
-    {
-        if ($this->eventBus) {
-            try {
-                $this->eventBus->emit($eventName, $payload);
-            } catch (\Exception $e) {
-                // Log error but don't break the main operation
-                \Illuminate\Support\Facades\Log::error('Event emission failed', [
-                    'event' => $eventName,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
     }
 }

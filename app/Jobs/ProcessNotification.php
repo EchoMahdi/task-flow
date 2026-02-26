@@ -7,7 +7,7 @@ use App\Models\NotificationLog;
 use App\Models\NotificationRule;
 use App\Models\Task;
 use App\Models\User;
-use App\Events\EventBus;
+use App\Events\Notification\NotificationReceived;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,17 +27,11 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
     protected NotificationRule $rule;
 
     /**
-     * @var EventBus
-     */
-    protected EventBus $eventBus;
-
-    /**
      * Create a new job instance.
      */
     public function __construct(NotificationRule $rule)
     {
         $this->rule = $rule;
-        $this->eventBus = app(EventBus::class);
     }
 
     /**
@@ -114,8 +108,8 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
                 ],
             ]);
 
-            // Emit notification received event
-            $this->eventBus->emit('notifications.received', [
+            // Dispatch notification received event
+            event(new NotificationReceived([
                 'notificationId' => (string) $log->id,
                 'userId' => (string) $user->id,
                 'type' => 'task_reminder',
@@ -126,7 +120,7 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
                     'ruleId' => (string) $rule->id,
                 ],
                 'source' => 'backend',
-            ]);
+            ]));
 
             // Send notification based on channel
             switch ($rule->channel) {

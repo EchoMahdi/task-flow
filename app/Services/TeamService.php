@@ -5,7 +5,12 @@ namespace App\Services;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Project;
-use App\Events\EventBus;
+use App\Events\Team\TeamCreated;
+use App\Events\Team\TeamUpdated;
+use App\Events\Team\TeamDeleted;
+use App\Events\Team\TeamMemberAdded;
+use App\Events\Team\TeamMemberRemoved;
+use App\Events\Team\TeamRoleChanged;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -18,16 +23,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class TeamService
 {
     /**
-     * @var EventBus
-     */
-    protected EventBus $eventBus;
-
-    /**
      * Create a new team service instance.
      */
-    public function __construct(EventBus $eventBus)
+    public function __construct()
     {
-        $this->eventBus = $eventBus;
+        //
     }
 
     /**
@@ -69,13 +69,13 @@ class TeamService
         // Add owner as a member with owner role
         $team->addMember($owner, 'owner');
 
-        // Emit team created event
-        $this->eventBus->emit('teams.created', [
+        // Dispatch team created event
+        event(new TeamCreated([
             'teamId' => (string) $team->id,
             'name' => $team->name,
             'ownerId' => (string) $owner->id,
             'source' => 'backend',
-        ]);
+        ]));
 
         return $team->load(['owner', 'members', 'projects']);
     }
@@ -91,13 +91,14 @@ class TeamService
             'avatar' => $data['avatar'] ?? null,
         ]));
 
-        // Emit team updated event
-        $this->eventBus->emit('teams.updated', [
+        // Dispatch team updated event
+        event(new TeamUpdated([
             'teamId' => (string) $team->id,
             'name' => $team->name,
             'description' => $team->description,
+            'changes' => array_keys(array_filter($data)),
             'source' => 'backend',
-        ]);
+        ]));
 
         return $team->load(['owner', 'members', 'projects']);
     }
@@ -112,12 +113,12 @@ class TeamService
         $teamId = $team->id;
         $result = $team->delete();
 
-        // Emit team deleted event
+        // Dispatch team deleted event
         if ($result) {
-            $this->eventBus->emit('teams.deleted', [
+            event(new TeamDeleted([
                 'teamId' => (string) $teamId,
                 'source' => 'backend',
-            ]);
+            ]));
         }
 
         return $result;
@@ -130,13 +131,13 @@ class TeamService
     {
         $team->addMember($user, $role);
 
-        // Emit member added event
-        $this->eventBus->emit('teams.member.added', [
+        // Dispatch member added event
+        event(new TeamMemberAdded([
             'teamId' => (string) $team->id,
             'userId' => (string) $user->id,
             'role' => $role,
             'source' => 'backend',
-        ]);
+        ]));
     }
 
     /**
@@ -151,12 +152,12 @@ class TeamService
 
         $team->removeMember($user);
 
-        // Emit member removed event
-        $this->eventBus->emit('teams.member.removed', [
+        // Dispatch member removed event
+        event(new TeamMemberRemoved([
             'teamId' => (string) $team->id,
             'userId' => (string) $user->id,
             'source' => 'backend',
-        ]);
+        ]));
     }
 
     /**
@@ -176,14 +177,14 @@ class TeamService
         $oldRole = $team->members()->where('user_id', $user->id)->first()->pivot->role ?? null;
         $team->updateMemberRole($user, $role);
 
-        // Emit role changed event
-        $this->eventBus->emit('teams.role.changed', [
+        // Dispatch role changed event
+        event(new TeamRoleChanged([
             'teamId' => (string) $team->id,
             'userId' => (string) $user->id,
-            'oldRole' => $oldRole,
-            'newRole' => $role,
+            'role' => $role,
+            'previousRole' => $oldRole,
             'source' => 'backend',
-        ]);
+        ]));
     }
 
     /**
@@ -199,82 +200,60 @@ class TeamService
      */
     public function getTeamProjects(Team $team): Collection
     {
-        return $team->projects()->with('user')->get();
+        return $team->projects()->get();
     }
 
     /**
-     * Assign a project to a team.
+     * Add a project to a team.
      */
-    public function assignProjectToTeam(Project $project, ?Team $team): Project
+    public function addProject(Team $team, Project $project): void
     {
-        $project->update(['team_id' => $team?->id]);
-        return $project->fresh();
+        $team->addProject($project);
     }
 
     /**
-     * Check if a user can access a team project.
-     * 
-     * @deprecated Use ProjectPolicy@view instead
-     * @see \App\Policies\ProjectPolicy::view()
+     * Remove a project from a team.
      */
-    public function canAccessTeamProject(User $user, Project $project): bool
+    public function removeProject(Team $team, Project $project): void
     {
-        // If project has no team, use regular access rules
-        if (!$project->team_id) {
-            return true;
-        }
-
-        // Check if user is a member of the team
-        return $project->team->hasMember($user);
+        $team->removeProject($project);
     }
 
     /**
-     * Check if a user can manage a team.
-     * 
-     * @deprecated Use TeamPolicy@update instead
-     * @see \App\Policies\TeamPolicy::update()
+     * Get team statistics.
      */
-    public function canManageTeam(User $user, Team $team): bool
+    public function getTeamStatistics(Team $team): array
     {
-        return $team->isAdmin($user);
+        return [
+            'member_count' => $team->members()->count(),
+            'project_count' => $team->projects()->count(),
+            'task_count' => $team->projects()->withCount('tasks')->get()->sum('tasks_count'),
+        ];
     }
 
     /**
-     * Get all teams a user can access (owned + member).
+     * Check if user is a member of the team.
      */
-    public function getAccessibleTeams(User $user): Collection
+    public function isMember(Team $team, User $user): bool
     {
-        return Team::where('owner_id', $user->id)
-            ->orWhereHas('members', function ($query) use ($user) {
-                $query->where('users.id', $user->id);
-            })
-            ->with(['owner', 'members'])
-            ->get();
+        return $team->members()->where('user_id', $user->id)->exists();
     }
 
     /**
-     * Get team options for a user (for dropdowns).
+     * Check if user is the owner of the team.
      */
-    public function getTeamOptions(User $user): Collection
+    public function isOwner(Team $team, User $user): bool
     {
-        return $this->getAccessibleTeams($user)->map(function ($team) use ($user) {
-            return [
-                'id' => $team->id,
-                'name' => $team->name,
-                'role' => $team->getMemberRole($user),
-            ];
-        });
+        return $team->owner_id === $user->id;
     }
 
     /**
-     * Leave a team (for non-owners).
+     * Check if user has a specific role in the team.
      */
-    public function leaveTeam(Team $team, User $user): void
+    public function hasRole(Team $team, User $user, string $role): bool
     {
-        if ($team->isOwner($user)) {
-            throw new \InvalidArgumentException('Team owners cannot leave. Transfer ownership or delete the team instead.');
-        }
-
-        $team->removeMember($user);
+        $member = $team->members()->where('user_id', $user->id)->first();
+        
+        return $member && $member->pivot->role === $role;
     }
 }
