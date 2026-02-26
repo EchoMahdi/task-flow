@@ -2,28 +2,24 @@
 
 namespace App\Policies;
 
-use App\Authorization\AuthorizationManager;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
  * Project Policy
- *
- * Centralized authorization for Project resources.
- * All ownership and role logic exists ONLY here.
- * Delegates to AuthorizationManager for consistent decision-making.
+ * 
+ * Refactored to use Spatie's laravel-permission package.
+ * Previous AuthorizationManager dependencies have been removed.
+ * 
+ * Authorization Logic:
+ * 1. Owner can always perform any action on their own projects
+ * 2. Team members can perform actions based on team permissions
+ * 3. Role-based permissions are checked via Spatie's $user->can()
  */
 class ProjectPolicy
 {
     use HandlesAuthorization;
-
-    protected AuthorizationManager $authorizationManager;
-
-    public function __construct(AuthorizationManager $authorizationManager)
-    {
-        $this->authorizationManager = $authorizationManager;
-    }
 
     /**
      * Determine if the user can view the project.
@@ -44,8 +40,33 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.view', $project);
+        // Use Spatie's can() method - checks both direct permissions and role permissions
+        // This replaces: $this->authorizationManager->can($user, 'project.view', $project)
+        return $user->can('project view');
+    }
+
+    /**
+     * Determine if the user can view any project.
+     * Used for listing projects.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function viewAny(User $user): bool
+    {
+        // User needs at least one permission to view any project
+        return $user->can('project view') || $user->can('project view own');
+    }
+
+    /**
+     * Determine if the user can create a project.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+        return $user->can('project create');
     }
 
     /**
@@ -72,8 +93,9 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.update', $project);
+        // Use Spatie's permission check
+        // Replaces: $this->authorizationManager->can($user, 'project.update', $project)
+        return $user->can('project update');
     }
 
     /**
@@ -95,8 +117,8 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.delete', $project);
+        // Use Spatie's permission check
+        return $user->can('project delete');
     }
 
     /**
@@ -123,8 +145,8 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.archive', $project);
+        // Use Spatie's permission check
+        return $user->can('project archive');
     }
 
     /**
@@ -151,8 +173,8 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.restore', $project);
+        // Use Spatie's permission check
+        return $user->can('project restore');
     }
 
     /**
@@ -179,8 +201,8 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.manage_tasks', $project);
+        // Use Spatie's permission check
+        return $user->can('project manage-tasks');
     }
 
     /**
@@ -215,7 +237,7 @@ class ProjectPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'project.toggle_favorite', $project);
+        // Use Spatie's permission check
+        return $user->can('project toggle-favorite');
     }
 }

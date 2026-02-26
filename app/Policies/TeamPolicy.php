@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Authorization\AuthorizationManager;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -11,19 +10,18 @@ use Illuminate\Auth\Access\HandlesAuthorization;
  * Team Policy
  *
  * Centralized authorization for Team resources.
- * All ownership and role logic exists ONLY here.
- * Delegates to AuthorizationManager for consistent decision-making.
+ * Refactored to use Spatie's laravel-permission package.
+ * Previous AuthorizationManager dependencies have been removed.
+ * 
+ * Authorization Logic:
+ * 1. Team members can view their teams
+ * 2. Team admins can manage team settings and members
+ * 3. Team owners can delete teams
+ * 4. Role-based permissions are checked via Spatie's $user->can()
  */
 class TeamPolicy
 {
     use HandlesAuthorization;
-
-    protected AuthorizationManager $authorizationManager;
-
-    public function __construct(AuthorizationManager $authorizationManager)
-    {
-        $this->authorizationManager = $authorizationManager;
-    }
 
     /**
      * Determine if the user can view the team.
@@ -39,8 +37,8 @@ class TeamPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'team.view', $team);
+        // Use Spatie's permission check
+        return $user->can('team view');
     }
 
     /**
@@ -57,8 +55,8 @@ class TeamPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'team.update', $team);
+        // Use Spatie's permission check
+        return $user->can('team update');
     }
 
     /**
@@ -75,8 +73,8 @@ class TeamPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'team.delete', $team);
+        // Use Spatie's permission check
+        return $user->can('team delete');
     }
 
     /**
@@ -93,8 +91,8 @@ class TeamPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'team.manage_members', $team);
+        // Use Spatie's permission check
+        return $user->can('team manage members');
     }
 
     /**
@@ -147,8 +145,8 @@ class TeamPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'team.manage_projects', $team);
+        // Use Spatie's permission check
+        return $user->can('team manage projects');
     }
 
     /**

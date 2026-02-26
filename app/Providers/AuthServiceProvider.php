@@ -18,6 +18,7 @@ use App\Policies\TaskPolicy;
 use App\Policies\TeamPolicy;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Auth Service Provider
@@ -59,6 +60,16 @@ class AuthServiceProvider extends ServiceProvider
         foreach ($this->policies as $model => $policy) {
             Gate::policy($model, $policy);
         }
+
+        // Admin Override Strategy replacement - Super Admin gets all permissions
+        Gate::before(function ($user, $ability) {
+            // Check if user has 'Super Admin' role
+            if ($user->hasRole('Super Admin')) {
+                return true;
+            }
+            
+            return null; // Continue with other checks
+        });
 
         // Implicit model-policy binding is automatic in Laravel 11
         // but we can define additional gates here if needed

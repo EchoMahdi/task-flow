@@ -110,6 +110,47 @@ const DEFAULT_CONFIG: PermissionServiceConfig = {
 
 const STORAGE_KEY = 'user_permissions';
 
+/**
+ * API endpoint for fetching user permissions
+ * This is the Single Source of Truth that should be called
+ * after receiving a permission update event.
+ */
+const PERMISSIONS_API_ENDPOINT = '/api/user/permissions';
+
+/**
+ * Maximum number of retry attempts for permission refetch
+ */
+const MAX_REFETCH_RETRIES = 3;
+
+/**
+ * Delay between retry attempts (in milliseconds)
+ */
+const REFETCH_RETRY_DELAY = 1000;
+
+/**
+ * ============================================================================
+ * Jitter + Debounce Configuration (DDoS Prevention)
+ * ============================================================================
+ * 
+ * When an admin updates a Role assigned to 1,000 online users, we need to
+ * prevent a thundering herd of 1,000 simultaneous API requests.
+ * 
+ * JITTER: Random delay 0-3000ms spreads requests over 3 seconds
+ * DEBOUNCE: If 5 events arrive within 1 second, only refetch ONCE at the end
+ */
+
+/** Maximum jitter delay in milliseconds (spreads requests over 3 seconds) */
+const JITTER_MAX_DELAY_MS = 3000;
+
+/** Number of events that trigger immediate debounced refetch */
+const DEBOUNCE_EVENT_THRESHOLD = 5;
+
+/** Time window for debounce (in milliseconds) */
+const DEBOUNCE_TIME_WINDOW_MS = 1000;
+
+/** Minimum delay before first refetch (in milliseconds) */
+const MIN_REFETCH_DELAY_MS = 500;
+
 // ============================================================================
 // Permission Service Class
 // ============================================================================
@@ -149,6 +190,15 @@ class PermissionService {
   private cacheTimestamp: number = 0;
   private subscriptions: Array<{ unsubscribe: () => void }> = [];
   private listeners: Set<(permissions: UserPermissionPayload) => void> = new Set();
+  
+  // ============================================================================
+  // Jitter + Debounce State (DDoS Prevention)
+  // ============================================================================
+  private eventCount: number = 0;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private jitterTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingRefetch: boolean = false;
+  private lastEventTimestamp: number = 0;
 
   constructor(config: Partial<PermissionServiceConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -366,35 +416,302 @@ class PermissionService {
   }
 
   /**
+   * Fetch permissions from the API endpoint
+   * This is the Single Source of Truth for user permissions
+   * 
+   * @returns Promise with the user permission payload
+   * @throws Error if fetch fails
+   */
+  async fetchFromAPI(): Promise<UserPermissionPayload> {
+    const response = await fetch(PERMISSIONS_API_ENDPOINT, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        // Include CSRF token if available
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      },
+      credentials: 'same-origin',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch permissions: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Transform API response to UserPermissionPayload format
+    return {
+      permissions: data.permissions || [],
+      roles: data.roles || [],
+      isSuperAdmin: data.is_super_admin || false,
+      isAdmin: data.is_admin || false,
+      contextualPermissions: data.contextual_permissions,
+    };
+  }
+
+  /**
+   * Refetch permissions from API with retry logic
+   * This implements the "Invalidate and Refetch" pattern
+   * 
+   * @param retries - Number of retry attempts remaining
+   * @returns Promise that resolves when permissions are updated
+   */
+  async refetchWithRetry(retries: number = MAX_REFETCH_RETRIES): Promise<void> {
+    try {
+      this.log('Refetching permissions from API...');
+      const payload = await this.fetchFromAPI();
+      this.sync(payload);
+      this.log('Permissions refetched successfully');
+    } catch (error) {
+      this.log('Error refetching permissions:', error);
+      
+      if (retries > 0) {
+        this.log(`Retrying in ${REFETCH_RETRY_DELAY}ms... (${retries} attempts remaining)`);
+        await new Promise(resolve => setTimeout(resolve, REFETCH_RETRY_DELAY));
+        return this.refetchWithRetry(retries - 1);
+      }
+      
+      // All retries failed - degrade gracefully
+      this.log('All refetch attempts failed, degrading gracefully');
+      this.handleRefetchFailure();
+    }
+  }
+
+  /**
+   * Handle refetch failure with graceful degradation
+   * Clear sensitive permissions or force a page reload
+   */
+  private handleRefetchFailure(): void {
+    // Option 1: Clear permissions entirely (safer but disruptive)
+    // this.clear();
+    
+    // Option 2: Mark cache as stale and notify listeners
+    // The UI can decide to show limited functionality
+    this.cacheTimestamp = 0;
+    this.notifyListeners();
+    
+    // Emit a warning event that the UI can listen to
+    emit('permissions.refetch_failed', {
+      type: 'permissions.updated',
+      timestamp: Date.now(),
+    } as PermissionEventPayload);
+    
+    // Option 3: Force page reload as last resort (uncomment if needed)
+    // window.location.reload();
+  }
+
+  /**
+   * ============================================================================
+   * Jitter + Debounce Implementation (DDoS Prevention)
+   * ============================================================================
+   * 
+   * Generates a random delay between 0 and JITTER_MAX_DELAY_MS
+   * This spreads out API requests when many users receive events simultaneously
+   */
+  private getJitterDelay(): number {
+    return Math.floor(Math.random() * JITTER_MAX_DELAY_MS);
+  }
+
+  /**
+   * Handle permission update event with Jitter + Debounce
+   * 
+   * DEBOUNCE: If we receive 5+ events within 1 second, we only refetch ONCE
+   * JITTER: After debounce settles, we wait a random time before refetching
+   * 
+   * This prevents:
+   * - 1,000 simultaneous API calls when admin updates a role for 1,000 users
+   * - Multiple API calls during bulk permission updates
+   */
+  private handlePermissionUpdateEvent(payload?: any): void {
+    const currentTime = Date.now();
+    const currentUserId = this.getCurrentUserId();
+    const eventUserId = payload?.user_id;
+    
+    // Only process events for the current user or broadcast events
+    if (eventUserId && eventUserId !== currentUserId) {
+      this.log('Ignoring permission event for different user:', eventUserId);
+      return;
+    }
+    
+    this.eventCount++;
+    this.lastEventTimestamp = currentTime;
+    
+    this.log(
+      `Permission event #${this.eventCount} received, ` +
+      `threshold: ${DEBOUNCE_EVENT_THRESHOLD}, window: ${DEBOUNCE_TIME_WINDOW_MS}ms`
+    );
+    
+    // If we already have a pending refetch, don't schedule another
+    if (this.pendingRefetch) {
+      this.log('Refetch already pending, skipping duplicate request');
+      return;
+    }
+    
+    // Clear any existing timers
+    this.clearThrottleTimers();
+    
+    // DEBOUNCE LOGIC:
+    // If we've received enough events (5+) in the time window,
+    // schedule an immediate refetch after the debounce window
+    if (this.eventCount >= DEBOUNCE_EVENT_THRESHOLD) {
+      this.log('Debounce threshold reached, scheduling refetch');
+      
+      // Wait for any straggler events, then refetch
+      this.debounceTimer = setTimeout(() => {
+        this.executeThrottledRefetch();
+      }, 100); // Small buffer to catch stragglers
+      
+      return;
+    }
+    
+    // STANDARD LOGIC (1-4 events):
+    // Wait for the debounce window to see if more events come in,
+    // then apply jitter before refetching
+    this.debounceTimer = setTimeout(() => {
+      // Check if more events arrived during the debounce window
+      if (this.eventCount >= DEBOUNCE_EVENT_THRESHOLD) {
+        this.log('Debounce threshold reached after window, scheduling refetch');
+        this.executeThrottledRefetch();
+      } else {
+        // Few events - apply jitter and refetch
+        this.executeThrottledRefetch();
+      }
+    }, DEBOUNCE_TIME_WINDOW_MS);
+  }
+
+  /**
+   * Execute the throttled refetch with jitter
+   * Combines both jitter and minimum delay to prevent thundering herd
+   */
+  private executeThrottledRefetch(): void {
+    // Mark as pending to prevent duplicate requests
+    this.pendingRefetch = true;
+    
+    // Calculate total delay: minimum delay + random jitter
+    const jitterDelay = this.getJitterDelay();
+    const totalDelay = MIN_REFETCH_DELAY_MS + jitterDelay;
+    
+    this.log(
+      `Executing throttled refetch in ${totalDelay}ms ` +
+      `(min: ${MIN_REFETCH_DELAY_MS}ms + jitter: ${jitterDelay}ms)`
+    );
+    
+    this.jitterTimer = setTimeout(async () => {
+      try {
+        await this.refetchWithRetry();
+      } finally {
+        // Reset state after refetch completes
+        this.resetThrottleState();
+      }
+    }, totalDelay);
+  }
+
+  /**
+   * Clear all throttle/debounce timers
+   */
+  private clearThrottleTimers(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+    if (this.jitterTimer) {
+      clearTimeout(this.jitterTimer);
+      this.jitterTimer = null;
+    }
+  }
+
+  /**
+   * Reset throttle state after refetch completes
+   */
+  private resetThrottleState(): void {
+    this.eventCount = 0;
+    this.pendingRefetch = false;
+    this.lastEventTimestamp = 0;
+  }
+
+  /**
+   * Cleanup throttle timers - call on service destroy/logout
+   */
+  public cleanupThrottle(): void {
+    this.clearThrottleTimers();
+    this.resetThrottleState();
+  }
+
+  // ==========================================================================
+  // Legacy Event Handlers (for backward compatibility)
+  // ==========================================================================
+
+  /**
    * Setup event listeners for permission updates
    * Call this during app initialization
+   * 
+   * IMPORTANT: This now implements the "Invalidate and Refetch" pattern
+   * with Jitter + Debounce to prevent DDoS when admin updates many users.
    */
   setupEventListeners(): () => void {
     const unsubscribers: Array<{ unsubscribe: () => void }> = [];
 
-    // Listen for role updates
+    // Listen for user permissions updated event (from WebSocket/EventBus)
+    // Implements Jitter + Debounce to prevent thundering herd
     unsubscribers.push(
-      subscribe('roles.updated', () => {
-        this.log('Roles updated event received, marking cache for refresh');
-        // Mark cache as stale - next check will trigger refresh
-        this.cacheTimestamp = 0;
-        this.notifyListeners();
+      subscribe('user.permissions.updated', (payload: any) => {
+        this.log('User permissions updated event received:', payload);
+        this.handlePermissionUpdateEvent(payload);
       })
     );
 
-    // Listen for permission updates
+    // Legacy support: Listen for role updates
+    unsubscribers.push(
+      subscribe('roles.updated', () => {
+        this.log('Legacy roles.updated event received');
+        this.handlePermissionUpdateEvent();
+      })
+    );
+
+    // Legacy support: Listen for permission updates
     unsubscribers.push(
       subscribe('permissions.updated', () => {
-        this.log('Permissions updated event received, marking cache for refresh');
-        this.cacheTimestamp = 0;
-        this.notifyListeners();
+        this.log('Legacy permissions.updated event received');
+        this.handlePermissionUpdateEvent();
       })
     );
 
     // Return cleanup function
     return () => {
+      this.cleanupThrottle();
       unsubscribers.forEach(unsub => unsub.unsubscribe());
     };
+  }
+
+  /**
+   * Get current user ID from the application
+   * This should be implemented based on your auth system
+   */
+  private getCurrentUserId(): string | null {
+    // Try to get from localStorage (common pattern)
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        return user.id?.toString();
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    
+    // Try to get from auth token payload
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.sub?.toString() || payload.user_id?.toString();
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    
+    return null;
   }
 
   /**

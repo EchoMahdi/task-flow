@@ -2,14 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Authorization\Models\Permission;
-use App\Authorization\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
  * Authorization Seeder
  *
  * Seeds default roles and permissions for the application.
+ * Refactored to use Spatie's laravel-permission package.
  */
 class AuthorizationSeeder extends Seeder
 {
@@ -18,6 +19,9 @@ class AuthorizationSeeder extends Seeder
      */
     public function run(): void
     {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // Create permissions
         $this->createPermissions();
 
@@ -32,54 +36,51 @@ class AuthorizationSeeder extends Seeder
     {
         $permissions = [
             // Task permissions
-            ['name' => 'tasks.create', 'display_name' => 'Create Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.read', 'display_name' => 'Read All Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.update', 'display_name' => 'Update All Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.delete', 'display_name' => 'Delete All Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.own.read', 'display_name' => 'Read Own Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.own.update', 'display_name' => 'Update Own Tasks', 'module' => 'tasks', 'scope' => 'global'],
-            ['name' => 'tasks.own.delete', 'display_name' => 'Delete Own Tasks', 'module' => 'tasks', 'scope' => 'global'],
+            ['name' => 'task create', 'guard_name' => 'web'],
+            ['name' => 'task view', 'guard_name' => 'web'],
+            ['name' => 'task update', 'guard_name' => 'web'],
+            ['name' => 'task delete', 'guard_name' => 'web'],
+            ['name' => 'task complete', 'guard_name' => 'web'],
 
             // Project permissions
-            ['name' => 'projects.create', 'display_name' => 'Create Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.read', 'display_name' => 'Read All Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.update', 'display_name' => 'Update All Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.delete', 'display_name' => 'Delete All Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.own.read', 'display_name' => 'Read Own Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.own.update', 'display_name' => 'Update Own Projects', 'module' => 'projects', 'scope' => 'global'],
-            ['name' => 'projects.own.delete', 'display_name' => 'Delete Own Projects', 'module' => 'projects', 'scope' => 'global'],
+            ['name' => 'project create', 'guard_name' => 'web'],
+            ['name' => 'project view', 'guard_name' => 'web'],
+            ['name' => 'project view own', 'guard_name' => 'web'],
+            ['name' => 'project update', 'guard_name' => 'web'],
+            ['name' => 'project update any', 'guard_name' => 'web'],
+            ['name' => 'project delete', 'guard_name' => 'web'],
+            ['name' => 'project archive', 'guard_name' => 'web'],
+            ['name' => 'project restore', 'guard_name' => 'web'],
+            ['name' => 'project manage-tasks', 'guard_name' => 'web'],
+            ['name' => 'project toggle-favorite', 'guard_name' => 'web'],
 
-            // User management permissions
-            ['name' => 'users.create', 'display_name' => 'Create Users', 'module' => 'users', 'scope' => 'global'],
-            ['name' => 'users.read', 'display_name' => 'Read Users', 'module' => 'users', 'scope' => 'global'],
-            ['name' => 'users.update', 'display_name' => 'Update Users', 'module' => 'users', 'scope' => 'global'],
-            ['name' => 'users.delete', 'display_name' => 'Delete Users', 'module' => 'users', 'scope' => 'global'],
+            // Tag permissions
+            ['name' => 'tag view', 'guard_name' => 'web'],
+            ['name' => 'tag update', 'guard_name' => 'web'],
+            ['name' => 'tag delete', 'guard_name' => 'web'],
 
             // Team permissions
-            ['name' => 'teams.create', 'display_name' => 'Create Teams', 'module' => 'teams', 'scope' => 'global'],
-            ['name' => 'teams.read', 'display_name' => 'Read Teams', 'module' => 'teams', 'scope' => 'global'],
-            ['name' => 'teams.update', 'display_name' => 'Update Teams', 'module' => 'teams', 'scope' => 'global'],
-            ['name' => 'teams.delete', 'display_name' => 'Delete Teams', 'module' => 'teams', 'scope' => 'global'],
-            ['name' => 'teams.manage', 'display_name' => 'Manage Team', 'module' => 'teams', 'scope' => 'team'],
-            ['name' => 'teams.invite', 'display_name' => 'Invite Team Members', 'module' => 'teams', 'scope' => 'team'],
-            ['name' => 'teams.remove_member', 'display_name' => 'Remove Team Members', 'module' => 'teams', 'scope' => 'team'],
+            ['name' => 'team view', 'guard_name' => 'web'],
+            ['name' => 'team create', 'guard_name' => 'web'],
+            ['name' => 'team update', 'guard_name' => 'web'],
+            ['name' => 'team delete', 'guard_name' => 'web'],
+            ['name' => 'team manage members', 'guard_name' => 'web'],
+            ['name' => 'team manage projects', 'guard_name' => 'web'],
+
+            // User management permissions
+            ['name' => 'user create', 'guard_name' => 'web'],
+            ['name' => 'user view', 'guard_name' => 'web'],
+            ['name' => 'user update', 'guard_name' => 'web'],
+            ['name' => 'user delete', 'guard_name' => 'web'],
 
             // Settings permissions
-            ['name' => 'settings.manage', 'display_name' => 'Manage Settings', 'module' => 'settings', 'scope' => 'global'],
-
-            // Profile permissions
-            ['name' => 'profile.update', 'display_name' => 'Update Profile', 'module' => 'profile', 'scope' => 'global'],
-
-            // Project-scoped permissions
-            ['name' => 'project.tasks.create', 'display_name' => 'Create Tasks in Project', 'module' => 'tasks', 'scope' => 'project'],
-            ['name' => 'project.tasks.update', 'display_name' => 'Update Tasks in Project', 'module' => 'tasks', 'scope' => 'project'],
-            ['name' => 'project.tasks.delete', 'display_name' => 'Delete Tasks in Project', 'module' => 'tasks', 'scope' => 'project'],
-            ['name' => 'project.manage', 'display_name' => 'Manage Project', 'module' => 'projects', 'scope' => 'project'],
+            ['name' => 'settings manage', 'guard_name' => 'web'],
+            ['name' => 'profile update', 'guard_name' => 'web'],
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                ['name' => $permission['name']],
+                ['name' => $permission['name'], 'guard_name' => $permission['guard_name']],
                 $permission
             );
         }
@@ -90,92 +91,50 @@ class AuthorizationSeeder extends Seeder
      */
     protected function createRoles(): void
     {
-        // Super Admin - Full system access
-        $superAdmin = Role::createSystemRole(
-            Role::ROLE_SUPER_ADMIN,
-            'Super Admin',
-            1000,
-            Role::SCOPE_GLOBAL
+        // Super Admin - Full system access (bypasses all checks via Gate::before)
+        $superAdmin = Role::firstOrCreate(
+            ['name' => 'Super Admin', 'guard_name' => 'web']
         );
-        $superAdmin->syncPermissions(['*']);
+        $superAdmin->givePermissionTo(Permission::all());
 
         // Admin - Full application access
-        $admin = Role::createSystemRole(
-            Role::ROLE_ADMIN,
-            'Administrator',
-            900,
-            Role::SCOPE_GLOBAL
+        $admin = Role::firstOrCreate(
+            ['name' => 'Admin', 'guard_name' => 'web']
         );
-        $admin->syncPermissions([
-            'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
-            'projects.create', 'projects.read', 'projects.update', 'projects.delete',
-            'users.create', 'users.read', 'users.update', 'users.delete',
-            'teams.create', 'teams.read', 'teams.update', 'teams.delete',
-            'settings.manage', 'profile.update',
+        $admin->givePermissionTo([
+            'task create', 'task view', 'task update', 'task delete', 'task complete',
+            'project create', 'project view', 'project view own', 'project update', 'project delete',
+            'project archive', 'project restore', 'project manage-tasks', 'project toggle-favorite',
+            'tag view', 'tag update', 'tag delete',
+            'team create', 'team view', 'team update', 'team delete', 'team manage members', 'team manage projects',
+            'user create', 'user view', 'user update', 'user delete',
+            'settings manage', 'profile update',
         ]);
 
         // Moderator - Content moderation
-        $moderator = Role::createSystemRole(
-            Role::ROLE_MODERATOR,
-            'Moderator',
-            500,
-            Role::SCOPE_GLOBAL
+        $moderator = Role::firstOrCreate(
+            ['name' => 'Moderator', 'guard_name' => 'web']
         );
-        $moderator->syncPermissions([
-            'tasks.create', 'tasks.read', 'tasks.own.update', 'tasks.own.delete',
-            'projects.create', 'projects.read', 'projects.own.update', 'projects.own.delete',
-            'users.read',
-            'teams.read',
-            'profile.update',
+        $moderator->givePermissionTo([
+            'task create', 'task view', 'task update',
+            'project create', 'project view', 'project view own', 'project update',
+            'tag view', 'tag update',
+            'team view',
+            'user view',
+            'profile update',
         ]);
 
         // User - Basic user permissions
-        $user = Role::createSystemRole(
-            Role::ROLE_USER,
-            'User',
-            100,
-            Role::SCOPE_GLOBAL
+        $user = Role::firstOrCreate(
+            ['name' => 'User', 'guard_name' => 'web']
         );
-        $user->syncPermissions([
-            'tasks.create', 'tasks.own.read', 'tasks.own.update', 'tasks.own.delete',
-            'projects.create', 'projects.own.read', 'projects.own.update', 'projects.own.delete',
-            'teams.read',
-            'profile.update',
-        ]);
-
-        // Project Manager - Project-scoped role
-        $projectManager = Role::findOrCreate(
-            Role::ROLE_PROJECT_MANAGER,
-            'Project Manager',
-            Role::SCOPE_PROJECT,
-            300
-        );
-        $projectManager->syncPermissions([
-            'project.tasks.create', 'project.tasks.update', 'project.tasks.delete',
-            'project.manage',
-        ]);
-
-        // Team Admin - Team-scoped role
-        $teamAdmin = Role::findOrCreate(
-            Role::ROLE_TEAM_ADMIN,
-            'Team Admin',
-            Role::SCOPE_TEAM,
-            300
-        );
-        $teamAdmin->syncPermissions([
-            'teams.manage', 'teams.invite', 'teams.remove_member',
-            'project.tasks.create', 'project.tasks.update', 'project.tasks.delete',
-        ]);
-
-        // Team Member - Basic team role
-        $teamMember = Role::findOrCreate(
-            Role::ROLE_TEAM_MEMBER,
-            'Team Member',
-            Role::SCOPE_TEAM,
-            100
-        );
-        $teamMember->syncPermissions([
-            'project.tasks.create', 'project.tasks.update',
+        $user->givePermissionTo([
+            'task create', 'task view', 'task update',
+            'project create', 'project view', 'project view own', 'project update',
+            'project toggle-favorite',
+            'tag view',
+            'team view',
+            'profile update',
         ]);
     }
 }

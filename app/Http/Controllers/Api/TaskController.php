@@ -179,6 +179,168 @@ class TaskController extends Controller
     }
 
     /**
+     * =========================================================================
+     * PERFORMANCE OPTIMIZED: Eager Loading for Policy Authorization
+     * =========================================================================
+     * 
+     * This method demonstrates how to properly use Eager Loading BEFORE
+     * calling authorization checks to prevent N+1 queries.
+     * 
+     * PROBLEM:
+     * When looping through tasks and calling $this->authorize() on each one,
+     * Laravel's Policy checks $task->project->team->hasMember($user).
+     * Without eager loading, each task triggers:
+     *   1. Query to fetch the project
+     *   2. Query to fetch the team (if project has team_id)
+     *   3. Query to check team membership
+     * 
+     * For N tasks, this results in 3N+ queries (N+1 problem).
+     * 
+     * SOLUTION:
+     * 1. Eager load 'project.team' relationship BEFORE the loop
+     * 2. This loads all projects and teams in just 2 queries total
+     * 3. Combined with TaskPolicy caching, subsequent authorization checks
+     *    use cached results instead of hitting the database
+     * 
+     * HOW IT WORKS WITH TASKPOLICY CACHING:
+     * - First task checks team membership → queries DB, caches result
+     * - All subsequent tasks in same team → uses cached result (0 queries)
+     * - Different team → queries DB once, caches that team's result
+     * 
+     * RESULT: For 100 tasks with 5 different teams, instead of 300+ queries,
+     * we get ~7 queries (2 for eager loading + 5 for team membership checks).
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function indexWithEagerLoading(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'sort_by' => ['sometimes', 'string', 'in:due_date,priority,created_at,title'],
+            'sort_order' => ['sometimes', 'string', 'in:asc,desc'],
+            'search' => ['sometimes', 'nullable', 'string', 'min:1', 'max:255'],
+            'status' => ['sometimes', 'nullable', 'string', 'in:pending,completed,all'],
+            'priority' => ['sometimes', 'nullable', 'string', 'in:low,medium,high'],
+            'project_id' => ['sometimes', 'nullable', 'integer'],
+            'tag_id' => ['sometimes', 'nullable', 'integer'],
+        ]);
+
+        // Map status to is_completed for repository
+        $request->merge([
+            'is_completed' => isset($validated['status']) && $validated['status'] !== 'all' 
+                ? ($validated['status'] === 'completed' ? true : false) 
+                : null,
+        ]);
+
+        // =========================================================================
+        // STEP 1: EAGER LOAD RELATIONSHIPS REQUIRED BY POLICY
+        // =========================================================================
+        // The TaskPolicy checks these relationships:
+        // - $task->project (for project ownership check)
+        // - $task->project->team (for team membership check)
+        // - $task->user_id (for task ownership check)
+        // 
+        // By eager loading 'project.team', we fetch all related data upfront
+        // instead of lazy loading it inside the policy for each task.
+        // =========================================================================
+        $tasks = $this->taskService->getAllTasks($request);
+        
+        // Get the task IDs for authorization
+        $taskIds = $tasks->pluck('id')->toArray();
+        
+        if (!empty($taskIds)) {
+            // =========================================================================
+            // STEP 2: BULK LOAD AUTHORIZATION DATA
+            // =========================================================================
+            // Load all tasks with their required relationships for policy checks.
+            // This single query loads ALL tasks + their projects + team relationships.
+            // 
+            // Without this: 1 query per task = N queries
+            // With this: 1 query for all = 1 query
+            // =========================================================================
+            $tasksWithRelations = Task::with(['project.team'])
+                ->whereIn('id', $taskIds)
+                ->get()
+                ->keyBy('id');
+            
+            // =========================================================================
+            // STEP 3: AUTHORIZE EACH TASK
+            // =========================================================================
+            // Now when we call $this->authorize(), the Policy can access
+            // $task->project->team without triggering additional queries.
+            // Combined with the Policy's caching, this achieves optimal performance.
+            // =========================================================================
+            foreach ($tasksWithRelations as $task) {
+                $this->authorize('view', $task);
+            }
+        }
+        
+        return response()->json([
+            'data' => TaskResource::collection($tasks),
+            'meta' => [
+                'current_page' => $tasks->currentPage(),
+                'last_page' => $tasks->lastPage(),
+                'per_page' => $tasks->perPage(),
+                'total' => $tasks->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * =========================================================================
+     * PERFORMANCE OPTIMIZED: Bulk Authorization with Eager Loading
+     * =========================================================================
+     * 
+     * Demonstrates bulk authorization pattern for operations like bulk-update,
+     * bulk-delete, or any scenario where multiple tasks need authorization.
+     * 
+     * This pattern is especially useful for:
+     * - Bulk operations (PATCH /tasks/bulk-update)
+     * - Displaying task lists with action buttons
+     * - Admin dashboards showing all tasks
+     * 
+     * @param Request $request
+     * @param array $taskIds Array of task IDs to authorize
+     * @param string $ability The policy ability to check
+     * @return void
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    protected function authorizeBulkTasks(array $taskIds, string $ability = 'view'): void
+    {
+        if (empty($taskIds)) {
+            return;
+        }
+
+        // =========================================================================
+        // STEP 1: EAGER LOAD ALL REQUIRED RELATIONSHIPS
+        // =========================================================================
+        // This is the KEY optimization. Load all relationships that ANY policy
+        // method might need in a single query.
+        //
+        // For TaskPolicy, we need:
+        // - project (for project ownership check)
+        // - project.team (for team membership/admin checks)
+        // =========================================================================
+        $tasks = Task::with([
+            'project.team',
+            'project',
+        ])->whereIn('id', $taskIds)->get();
+
+        // =========================================================================
+        // STEP 2: AUTHORIZE EACH TASK
+        // =========================================================================
+        // With relationships pre-loaded, each authorize() call can access
+        // $task->project->team without triggering additional queries.
+        // Combined with TaskPolicy caching, this achieves optimal performance.
+        // =========================================================================
+        foreach ($tasks as $task) {
+            $this->authorize($ability, $task);
+        }
+    }
+
+    /**
      * Get tasks for calendar view
      * Supports date range queries for efficient loading
      */

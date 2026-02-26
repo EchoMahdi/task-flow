@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Authorization\AuthorizationManager;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -11,19 +10,16 @@ use Illuminate\Auth\Access\HandlesAuthorization;
  * Tag Policy
  *
  * Centralized authorization for Tag resources.
- * All ownership and role logic exists ONLY here.
- * Delegates to AuthorizationManager for consistent decision-making.
+ * Refactored to use Spatie's laravel-permission package.
+ * Previous AuthorizationManager dependencies have been removed.
+ * 
+ * Authorization Logic:
+ * 1. Owner can always perform any action on their own tags
+ * 2. Role-based permissions are checked via Spatie's $user->can()
  */
 class TagPolicy
 {
     use HandlesAuthorization;
-
-    protected AuthorizationManager $authorizationManager;
-
-    public function __construct(AuthorizationManager $authorizationManager)
-    {
-        $this->authorizationManager = $authorizationManager;
-    }
 
     /**
      * Determine if the user can view the tag.
@@ -39,8 +35,8 @@ class TagPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'tag.view', $tag);
+        // Use Spatie's can() method - checks both direct permissions and role permissions
+        return $user->can('tag view');
     }
 
     /**
@@ -57,8 +53,8 @@ class TagPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'tag.update', $tag);
+        // Use Spatie's permission check
+        return $user->can('tag update');
     }
 
     /**
@@ -75,7 +71,7 @@ class TagPolicy
             return true;
         }
 
-        // Delegate to authorization manager for role-based access
-        return $this->authorizationManager->can($user, 'tag.delete', $tag);
+        // Use Spatie's permission check
+        return $user->can('tag delete');
     }
 }
