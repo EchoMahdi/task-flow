@@ -153,18 +153,19 @@ class TaskSearchService
             return $query->orderBy('created_at', $sortOrder);
         }
 
-        // Add relevance ordering using CASE statements for MySQL
-        $relevanceOrder = "
-            CASE
-                WHEN title LIKE '{$queryString}%' THEN 1
-                WHEN title LIKE '%{$queryString}%' THEN 2
-                WHEN description LIKE '%{$queryString}%' THEN 3
-                ELSE 4
-            END
-        ";
+        // Use parameterized queries to prevent SQL injection
+        $queryStringWildcardStart = $queryString . '%';
+        $queryStringWildcardBoth = '%' . $queryString . '%';
 
-        return $query->orderByRaw($relevanceOrder)
-            ->orderBy('created_at', $sortOrder);
+        return $query->orderByRaw(
+            "CASE 
+                WHEN title LIKE ? THEN 1 
+                WHEN title LIKE ? THEN 2 
+                WHEN description LIKE ? THEN 3 
+                ELSE 4 
+            END",
+            [$queryStringWildcardStart, $queryStringWildcardBoth, $queryStringWildcardBoth]
+        )->orderBy('created_at', $sortOrder);
     }
 
     /**

@@ -33,6 +33,8 @@ class TagController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Tag::class);
+
         $tags = $this->tagService->getAllTagsForUser($request->user()->id);
         
         return response()->json([
@@ -48,6 +50,8 @@ class TagController extends Controller
      */
     public function store(StoreTagRequest $request): JsonResponse
     {
+        $this->authorize('create', Tag::class);
+
         $tag = $this->tagService->createTag(
             $request->user()->id,
             $request->validated()

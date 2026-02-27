@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\NotificationLog;
 use App\Models\NotificationRule;
 use App\Models\Project;
 use App\Models\SavedView;
@@ -9,6 +10,9 @@ use App\Models\Subtask;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\Team;
+use App\Models\User;
+use App\Models\UserNotificationSetting;
+use App\Policies\NotificationPolicy;
 use App\Policies\NotificationRulePolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\SavedViewPolicy;
@@ -34,6 +38,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
+        NotificationLog::class => NotificationPolicy::class,
         NotificationRule::class => NotificationRulePolicy::class,
         Project::class => ProjectPolicy::class,
         SavedView::class => SavedViewPolicy::class,
@@ -41,6 +46,8 @@ class AuthServiceProvider extends ServiceProvider
         Tag::class => TagPolicy::class,
         Task::class => TaskPolicy::class,
         Team::class => TeamPolicy::class,
+        UserNotificationSetting::class => NotificationPolicy::class,
+        User::class => \App\Policies\UserPolicy::class,
     ];
 
     /**
@@ -61,10 +68,9 @@ class AuthServiceProvider extends ServiceProvider
             Gate::policy($model, $policy);
         }
 
-        // Admin Override Strategy replacement - Super Admin gets all permissions
         Gate::before(function ($user, $ability) {
-            // Check if user has 'Super Admin' role
-            if ($user->hasRole('Super Admin')) {
+            // Use permission-based check (Single Source of Truth via Spatie)
+            if ($user->can('super admin access')) {
                 return true;
             }
             

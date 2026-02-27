@@ -29,11 +29,11 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'name'     => ['required', 'string', 'max:255'],
+                'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
                 'password' => ['required', 'string', 'min:8', 'confirmed'],
                 'timezone' => ['nullable', 'string', 'timezone'],
-                'locale' => ['nullable', 'string', 'in:en,fa'],
+                'locale'   => ['nullable', 'string', 'in:en,fa'],
             ]);
 
             $user = $this->authService->register($validated);
@@ -194,7 +194,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $this->translator->get('preferences.updated'),
-                'data' => $preferences,
+                'data'    => $preferences,
             ]);
         } catch (ValidationException $e) {
             return $this->translator->validationErrorResponse($e);

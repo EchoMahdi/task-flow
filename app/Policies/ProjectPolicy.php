@@ -206,6 +206,26 @@ class ProjectPolicy
     }
 
     /**
+     * Unified "manage" ability for projects.
+     *
+     * This can be used by administrative UIs or bulk operations
+     * to represent full management rights over a project.
+     *
+     * @param User $user
+     * @param Project $project
+     * @return bool
+     */
+    public function manage(User $user, Project $project): bool
+    {
+        if ($user->can('project manage')) {
+            return true;
+        }
+
+        // Managing a project implies being able to update it
+        return $this->update($user, $project);
+    }
+
+    /**
      * Determine if the user can view project statistics.
      *
      * @param User $user

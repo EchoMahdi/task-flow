@@ -238,25 +238,22 @@ class NotificationService
 
     /**
      * Mark a notification log as read.
+     *
+     * Authorization is enforced at the controller/policy layer. This method
+     * assumes the caller has already ensured the acting user is allowed to
+     * read the given notification.
      */
-    public function markNotificationAsRead(int $id, int $userId): ?NotificationLog
+    public function markNotificationAsRead(NotificationLog $log): NotificationLog
     {
-        $log = NotificationLog::where('id', $id)
-            ->where('user_id', $userId)
-            ->first();
-        
-        if ($log) {
-            $log->markAsRead();
-            
-            // Dispatch notification read event
-            event(new NotificationRead([
-                'notificationId' => (string) $log->id,
-                'userId' => (string) $userId,
-                'readAt' => optional($log->read_at)->timestamp ?? time(),
-                'source' => 'backend',
-            ]));
-        }
-        
+        $log->markAsRead();
+
+        event(new NotificationRead([
+            'notificationId' => (string) $log->id,
+            'userId' => (string) $log->user_id,
+            'readAt' => optional($log->read_at)->timestamp ?? time(),
+            'source' => 'backend',
+        ]));
+
         return $log;
     }
 
@@ -295,11 +292,13 @@ class NotificationService
 
     /**
      * Delete a notification log.
+     *
+     * Authorization is enforced at the controller/policy layer. This method
+     * assumes the caller has already ensured the acting user is allowed to
+     * delete the given notification.
      */
-    public function deleteNotificationLog(int $id, int $userId): bool
+    public function deleteNotificationLog(NotificationLog $log): bool
     {
-        return NotificationLog::where('id', $id)
-            ->where('user_id', $userId)
-            ->delete();
+        return (bool) $log->delete();
     }
 }

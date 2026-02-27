@@ -22,6 +22,30 @@ class TagPolicy
     use HandlesAuthorization;
 
     /**
+     * Determine if the user can view any tags.
+     *
+     * Used for listing tags.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('tag view') || $user->can('tag view own');
+    }
+
+    /**
+     * Determine if the user can create a tag.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+        return $user->can('tag create') || $user->can('tag create own');
+    }
+
+    /**
      * Determine if the user can view the tag.
      *
      * @param User $user

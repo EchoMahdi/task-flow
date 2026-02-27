@@ -17,6 +17,15 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * Processes a single notification (e.g. task reminder) for a NotificationRule.
+ *
+ * Authorization is enforced where this job is dispatched: rule creation is
+ * gated by TaskPolicy/NotificationRulePolicy; dispatch from scheduler uses
+ * only rules loaded from the DB. This job does not perform authorization;
+ * it uses the rule's relationships (rule->user, rule->task) and does not
+ * trust raw IDs.
+ */
 class ProcessNotification implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -62,7 +71,9 @@ class ProcessNotification implements ShouldQueue, ShouldBeUnique
         $rule = $this->rule->fresh();
         
         if (!$rule || !$rule->is_enabled) {
-            Log::info("Notification rule {$rule->id} is disabled, skipping");
+            Log::info('Notification rule is missing or disabled, skipping', [
+                'rule_id' => $rule?->id ?? $this->rule->id ?? null,
+            ]);
             return;
         }
 

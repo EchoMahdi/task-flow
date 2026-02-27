@@ -12,11 +12,14 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Job to log permission changes to the audit trail.
- * 
- * This job is dispatched to avoid slowing down the main request
- * when recording permission changes. It runs asynchronously via
- * the queue system.
- * 
+ *
+ * Runs asynchronously via the queue. Does not perform authorization;
+ * the caller must have already enforced policy/middleware.
+ *
+ * SECURITY: adminId MUST be the authenticated user's ID at the site where
+ * this job is dispatched (e.g. auth()->id()). Never pass user-controlled
+ * or request input as adminId.
+ *
  * @example
  * LogPermissionAudit::dispatch(
  *     adminId: auth()->id(),

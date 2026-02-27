@@ -12,13 +12,27 @@ class Task extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
     protected $fillable = [
-        'user_id',
-        'project_id',
         'title',
         'description',
         'priority',
         'due_date',
+        'project_id',
+    ];
+
+    /**
+     * The attributes that should NOT be mass assigned.
+     * These fields can only be set programmatically, not via mass assignment.
+     *
+     * @var array<string>
+     */
+    protected $guarded = [
+        'user_id',
         'is_completed',
         'completed_at',
     ];

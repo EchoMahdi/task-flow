@@ -10,7 +10,11 @@ use Illuminate\Auth\Access\HandlesAuthorization;
  * NotificationRule Policy
  *
  * Centralized authorization for NotificationRule resources.
- * Users can only manage their own notification rules.
+ * Uses Spatie permissions for role-based access control.
+ * 
+ * Authorization Logic:
+ * 1. Users can only manage their own notification rules
+ * 2. Admin users can view/manage all rules via permission
  */
 class NotificationRulePolicy
 {
@@ -25,7 +29,26 @@ class NotificationRulePolicy
      */
     public function view(User $user, NotificationRule $notificationRule): bool
     {
-        return $notificationRule->user_id === $user->id;
+        // Owner can always view their own rules
+        if ($notificationRule->user_id === $user->id) {
+            return true;
+        }
+
+        // Use Spatie's permission check for admin access
+        return $user->can('notification view');
+    }
+
+    /**
+     * Determine if the user can create a notification rule.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+        // Any authenticated user can create notification rules for themselves
+        // This is intentional - users own their notification rules
+        return true;
     }
 
     /**
@@ -37,7 +60,13 @@ class NotificationRulePolicy
      */
     public function update(User $user, NotificationRule $notificationRule): bool
     {
-        return $notificationRule->user_id === $user->id;
+        // Owner can update their own rules
+        if ($notificationRule->user_id === $user->id) {
+            return true;
+        }
+
+        // Use Spatie's permission check
+        return $user->can('notification update');
     }
 
     /**
@@ -49,7 +78,13 @@ class NotificationRulePolicy
      */
     public function delete(User $user, NotificationRule $notificationRule): bool
     {
-        return $notificationRule->user_id === $user->id;
+        // Owner can delete their own rules
+        if ($notificationRule->user_id === $user->id) {
+            return true;
+        }
+
+        // Use Spatie's permission check
+        return $user->can('notification delete');
     }
 
     /**
@@ -61,6 +96,12 @@ class NotificationRulePolicy
      */
     public function toggle(User $user, NotificationRule $notificationRule): bool
     {
-        return $notificationRule->user_id === $user->id;
+        // Owner can toggle their own rules
+        if ($notificationRule->user_id === $user->id) {
+            return true;
+        }
+
+        // Use Spatie's permission check
+        return $user->can('notification update');
     }
 }

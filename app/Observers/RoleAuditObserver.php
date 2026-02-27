@@ -18,19 +18,12 @@ use Spatie\Permission\Models\Role;
 class RoleAuditObserver
 {
     /**
-     * Get the current admin user performing the action.
+     * Get the current authenticated user ID for audit attribution.
+     * Only uses Auth::id(); never trusts request input (authorization is at dispatch site).
      */
     protected function getAdminId(): ?int
     {
-        if (Auth::check()) {
-            return Auth::id();
-        }
-        
-        if (request()->has('admin_id')) {
-            return request()->input('admin_id');
-        }
-        
-        return null;
+        return Auth::check() ? Auth::id() : null;
     }
 
     /**

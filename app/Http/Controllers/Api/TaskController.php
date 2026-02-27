@@ -53,6 +53,8 @@ class TaskController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'q' => ['sometimes', 'string', 'min:1', 'max:255'],
             'project_id' => ['sometimes', 'nullable', 'integer'],
@@ -102,6 +104,8 @@ class TaskController extends Controller
      */
     public function quickSearch(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'q' => ['required', 'string', 'min:1'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:20'],
@@ -133,6 +137,8 @@ class TaskController extends Controller
      */
     public function suggestions(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'q' => ['required', 'string', 'min:1'],
         ]);
@@ -146,6 +152,8 @@ class TaskController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
@@ -215,6 +223,8 @@ class TaskController extends Controller
      */
     public function indexWithEagerLoading(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
@@ -346,6 +356,8 @@ class TaskController extends Controller
      */
     public function calendar(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -388,6 +400,8 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request): JsonResponse
     {
+        $this->authorize('create', \App\Models\Task::class);
+        
         $task = $this->taskService->createTask($request->validated());
         
         return response()->json([
@@ -505,6 +519,8 @@ class TaskController extends Controller
      */
     public function standalone(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Task::class);
+        
         $validated = $request->validate([
             'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],

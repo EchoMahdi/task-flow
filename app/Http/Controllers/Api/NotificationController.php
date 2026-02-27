@@ -154,6 +154,9 @@ class NotificationController extends Controller
         $userId = Auth::id();
         $settings = $this->notificationService->getUserSettings($userId);
 
+        // Policy-based authorization
+        $this->authorize('viewSettings', $settings);
+
         return response()->json([
             'success' => true,
             'data' => new UserNotificationSettingResource($settings),
@@ -174,6 +177,11 @@ class NotificationController extends Controller
         ]);
 
         $userId = Auth::id();
+        $settings = $this->notificationService->getUserSettings($userId);
+
+        // Policy-based authorization
+        $this->authorize('updateSettings', $settings);
+
         $settings = $this->notificationService->updateUserSettings($userId, $request->all());
 
         return response()->json([
@@ -188,6 +196,9 @@ class NotificationController extends Controller
      */
     public function getNotificationHistory(Request $request): JsonResponse
     {
+        // Policy-based authorization for listing notifications
+        $this->authorize('viewAny', NotificationLog::class);
+
         $userId = Auth::id();
         $limit = $request->input('limit', 50);
 
@@ -204,9 +215,12 @@ class NotificationController extends Controller
      */
     public function markAsRead(int $id): JsonResponse
     {
-        $userId = Auth::id();
+        $log = NotificationLog::findOrFail($id);
 
-        $log = $this->notificationService->markNotificationAsRead($id, $userId);
+        // Policy-based authorization
+        $this->authorize('markAsRead', $log);
+
+        $log = $this->notificationService->markNotificationAsRead($log);
 
         if (!$log) {
             return response()->json([
@@ -226,6 +240,9 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(): JsonResponse
     {
+        // Policy-based authorization for bulk mark-as-read
+        $this->authorize('markAllAsRead', NotificationLog::class);
+
         $userId = Auth::id();
 
         $count = $this->notificationService->markAllNotificationsAsRead($userId);
@@ -241,9 +258,12 @@ class NotificationController extends Controller
      */
     public function deleteNotificationLog(int $id): JsonResponse
     {
-        $userId = Auth::id();
+        $log = NotificationLog::findOrFail($id);
 
-        $deleted = $this->notificationService->deleteNotificationLog($id, $userId);
+        // Policy-based authorization
+        $this->authorize('delete', $log);
+
+        $deleted = $this->notificationService->deleteNotificationLog($log);
 
         if (!$deleted) {
             return response()->json([
@@ -263,6 +283,9 @@ class NotificationController extends Controller
      */
     public function getUnreadCount(): JsonResponse
     {
+        // Policy-based authorization for viewing notification counts
+        $this->authorize('viewAny', NotificationLog::class);
+
         $userId = Auth::id();
         $count = $this->notificationService->getUnreadCount($userId);
 

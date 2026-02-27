@@ -86,6 +86,30 @@ class TaskPolicy
     }
 
     /**
+     * Determine if the user can view any tasks.
+     * Used for listing tasks.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function viewAny(User $user): bool
+    {
+        // User needs at least one permission to view any task
+        return $user->can('task view') || $user->can('task view own');
+    }
+
+    /**
+     * Determine if the user can create a task.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+        return $user->can('task create');
+    }
+
+    /**
      * Determine if the user can view the task.
      *
      * PERFORMANCE OPTIMIZED: Uses caching for team membership checks.
@@ -181,6 +205,46 @@ class TaskPolicy
     }
 
     /**
+     * Determine if the user can archive the task.
+     *
+     * This provides a unified "archive" ability even if, at the
+     * domain level, archiving is implemented via delete or a
+     * soft-delete flag.
+     *
+     * @param User $user
+     * @param Task $task
+     * @return bool
+     */
+    public function archive(User $user, Task $task): bool
+    {
+        // Explicit archive permission takes precedence
+        if ($user->can('task archive')) {
+            return true;
+        }
+
+        // Fallback to delete semantics
+        return $this->delete($user, $task);
+    }
+
+    /**
+     * Determine if the user can restore an archived task.
+     *
+     * @param User $user
+     * @param Task $task
+     * @return bool
+     */
+    public function restore(User $user, Task $task): bool
+    {
+        // Explicit restore permission
+        if ($user->can('task restore')) {
+            return true;
+        }
+
+        // Fallback to update semantics
+        return $this->update($user, $task);
+    }
+
+    /**
      * Determine if the user can complete/uncomplete the task.
      *
      * PERFORMANCE OPTIMIZED: Uses caching for team membership checks.
@@ -219,8 +283,8 @@ class TaskPolicy
      */
     public function assignToProject(User $user, Task $task): bool
     {
-        // Must be task owner
-        if ($task->user_id !== $user->id) {
+        // Must be task owner or have generic task update permission
+        if ($task->user_id !== $user->id && !$user->can('task update')) {
             return false;
         }
 
@@ -242,6 +306,25 @@ class TaskPolicy
     public function updateDate(User $user, Task $task): bool
     {
         // Same as update permission
+        return $this->update($user, $task);
+    }
+
+    /**
+     * Determine if the user can manage the task.
+     *
+     * This is a high-level ability that can be used for
+     * administrative UIs or bulk operations.
+     *
+     * @param User $user
+     * @param Task $task
+     * @return bool
+     */
+    public function manage(User $user, Task $task): bool
+    {
+        if ($user->can('task manage')) {
+            return true;
+        }
+
         return $this->update($user, $task);
     }
 

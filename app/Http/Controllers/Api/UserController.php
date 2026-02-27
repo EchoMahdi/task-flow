@@ -88,14 +88,8 @@ class UserController extends Controller
      */
     public function userPermissions(User $user): JsonResponse
     {
-        // Check if the requesting user has permission to view other user's permissions
-        $requestingUser = auth()->user();
-        
-        if (!$requestingUser || !$requestingUser->hasPermission('users.view_permissions')) {
-            return response()->json([
-                'message' => 'Unauthorized to view this user\'s permissions',
-            ], 403);
-        }
+        // Policy-based authorization: centralize access control in UserPolicy
+        $this->authorize('viewPermissions', $user);
 
         $permissions = $this->fetchUserPermissions($user);
 
@@ -157,11 +151,11 @@ class UserController extends Controller
         // Get role names using Spatie's method
         $roles = $user->getRoleNames()->toArray();
 
-        // Check for super admin (typically has a special role or permission)
-        $isSuperAdmin = $user->hasRole('super_admin') || in_array('*', $permissions);
+        // Check for super admin using permission (Single Source of Truth)
+        $isSuperAdmin = $user->can('super admin access') || in_array('*', $permissions);
         
-        // Check for admin
-        $isAdmin = $user->hasRole('admin') || $user->hasRole('super_admin');
+        // Check for admin using permission
+        $isAdmin = $user->can('admin access') || $user->can('super admin access');
 
         // Generate a version hash based on current state
         // This helps the frontend detect changes

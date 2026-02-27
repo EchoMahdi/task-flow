@@ -24,6 +24,35 @@ class TeamPolicy
     use HandlesAuthorization;
 
     /**
+     * Determine if the user can view any teams.
+     *
+     * Used for listing teams.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->can('team view') || $user->can('team view own');
+    }
+
+    /**
+     * Determine if the user can create a team.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function create(User $user): bool
+    {
+        // Dedicated permission for team creation, or generic team management
+        if ($user->can('team create') || $user->can('team manage')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Determine if the user can view the team.
      *
      * @param User $user
@@ -75,6 +104,40 @@ class TeamPolicy
 
         // Use Spatie's permission check
         return $user->can('team delete');
+    }
+
+    /**
+     * Archive a team (if/when soft-deletion or archival is introduced).
+     *
+     * @param User $user
+     * @param Team $team
+     * @return bool
+     */
+    public function archive(User $user, Team $team): bool
+    {
+        if ($user->can('team archive')) {
+            return true;
+        }
+
+        // Fallback to delete semantics
+        return $this->delete($user, $team);
+    }
+
+    /**
+     * Restore an archived team.
+     *
+     * @param User $user
+     * @param Team $team
+     * @return bool
+     */
+    public function restore(User $user, Team $team): bool
+    {
+        if ($user->can('team restore')) {
+            return true;
+        }
+
+        // Fallback to update semantics
+        return $this->update($user, $team);
     }
 
     /**
@@ -193,5 +256,25 @@ class TeamPolicy
         }
 
         return true;
+    }
+
+    /**
+     * Unified "manage" ability for teams.
+     *
+     * This can be used anywhere full management capabilities
+     * over a team are required.
+     *
+     * @param User $user
+     * @param Team $team
+     * @return bool
+     */
+    public function manage(User $user, Team $team): bool
+    {
+        if ($user->can('team manage')) {
+            return true;
+        }
+
+        // Team admins are treated as managers
+        return $team->isAdmin($user);
     }
 }

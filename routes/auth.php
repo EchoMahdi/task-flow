@@ -16,12 +16,10 @@ Route::prefix('auth')->middleware('guest')->group(function () {
 // Authenticated routes
 Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
-
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1');
-
     Route::get('/verify-email/{id}', [AuthController::class, 'verifyEmail'])
         ->middleware(['signed', 'throttle:6,1']);
 });
