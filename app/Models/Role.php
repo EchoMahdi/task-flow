@@ -22,7 +22,6 @@ class Role extends Model
     protected $fillable = [
         'name',
         'description',
-        'is_system',
     ];
 
     protected $casts = [
@@ -144,5 +143,18 @@ class Role extends Model
     public function isSystem(): bool
     {
         return $this->is_system;
+    }
+
+    /**
+     * Set this role as a system role.
+     *
+     * This method uses forceFill to bypass mass assignment protection
+     * for the sensitive is_system flag.
+     *
+     * @return $this
+     */
+    public function setAsSystem(): static
+    {
+        return $this->forceFill(['is_system' => true]);
     }
 }

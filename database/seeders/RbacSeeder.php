@@ -186,9 +186,9 @@ class RbacSeeder extends Seeder
             ['name' => self::ROLE_SUPER_ADMIN],
             [
                 'description' => 'Super administrator with full system access and all permissions',
-                'is_system' => true,
             ]
         );
+        $superAdmin->setAsSystem();
 
         $superAdmin->permissions()->syncWithoutDetaching(
             collect($permissions)->pluck('id')->toArray()
@@ -203,9 +203,9 @@ class RbacSeeder extends Seeder
             ['name' => self::ROLE_ADMIN],
             [
                 'description' => 'Administrator with user and content management access',
-                'is_system' => true,
             ]
         );
+        $admin->setAsSystem();
 
         $admin->permissions()->syncWithoutDetaching([
             $permissions['project_create']->id,
@@ -239,9 +239,9 @@ class RbacSeeder extends Seeder
             ['name' => self::ROLE_MANAGER],
             [
                 'description' => 'Manager with project and team management capabilities',
-                'is_system' => true,
             ]
         );
+        $manager->setAsSystem();
 
         $manager->permissions()->syncWithoutDetaching([
             $permissions['project_create']->id,
@@ -269,9 +269,9 @@ class RbacSeeder extends Seeder
             ['name' => self::ROLE_MEMBER],
             [
                 'description' => 'Active team member with task and project participation',
-                'is_system' => true,
             ]
         );
+        $member->setAsSystem();
 
         $member->permissions()->syncWithoutDetaching([
             $permissions['project_create']->id,
@@ -293,9 +293,9 @@ class RbacSeeder extends Seeder
             ['name' => self::ROLE_VIEWER],
             [
                 'description' => 'Viewer with read-only access to projects and tasks',
-                'is_system' => true,
             ]
         );
+        $viewer->setAsSystem();
 
         $viewer->permissions()->syncWithoutDetaching([
             $permissions['project_read']->id,

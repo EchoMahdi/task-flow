@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Role;
 
+use App\Models\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,6 +10,7 @@ use Illuminate\Validation\Rule;
  * Sync Role Permissions Request
  *
  * Validates input for syncing permissions to a role.
+ * Includes hierarchy validation to prevent privilege escalation.
  */
 class SyncRolePermissionsRequest extends FormRequest
 {
@@ -17,7 +19,7 @@ class SyncRolePermissionsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('roles.update');
     }
 
     /**
@@ -34,6 +36,37 @@ class SyncRolePermissionsRequest extends FormRequest
                 Rule::exists('permissions', 'key'),
             ],
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     *
+     * Adds hierarchy validation to ensure users cannot assign
+     * permissions that exceed their authority level.
+     *
+     * @param \Illuminate\Validation\Validator $validator
+     * @return void
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $userLevel = $this->user()->getPermissionLevel();
+            $requestedPermissions = $this->input('permissions', []);
+            
+            // Get permissions from database by keys
+            $permissions = Permission::whereIn('key', $requestedPermissions)->get();
+            
+            foreach ($permissions as $permission) {
+                $permissionLevel = (int) $permission->level;
+                
+                if ($permissionLevel > $userLevel) {
+                    $validator->errors()->add(
+                        'permissions',
+                        "Permission '{$permission->key}' exceeds your authority level."
+                    );
+                }
+            }
+        });
     }
 
     /**

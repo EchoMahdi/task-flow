@@ -24,10 +24,12 @@ class RoleManagementResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'is_system' => $this->is_system,
+            // Only expose is_system flag to users with explicit permission (security: prevents reconnaissance)
+            'is_system' => $this->when(
+                $request->user()?->can('roles.viewSystemFlags'),
+                $this->is_system
+            ),
             'permissions' => $this->getPermissionKeys(),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

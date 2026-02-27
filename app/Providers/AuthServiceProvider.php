@@ -10,11 +10,13 @@ use App\Models\Subtask;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\Team;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserNotificationSetting;
 use App\Policies\NotificationPolicy;
 use App\Policies\NotificationRulePolicy;
 use App\Policies\ProjectPolicy;
+use App\Policies\RolePolicy;
 use App\Policies\SavedViewPolicy;
 use App\Policies\SubtaskPolicy;
 use App\Policies\TagPolicy;
@@ -41,6 +43,7 @@ class AuthServiceProvider extends ServiceProvider
         NotificationLog::class => NotificationPolicy::class,
         NotificationRule::class => NotificationRulePolicy::class,
         Project::class => ProjectPolicy::class,
+        Role::class => RolePolicy::class,
         SavedView::class => SavedViewPolicy::class,
         Subtask::class => SubtaskPolicy::class,
         Tag::class => TagPolicy::class,

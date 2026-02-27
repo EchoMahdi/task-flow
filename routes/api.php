@@ -24,7 +24,3 @@ require __DIR__.'/api-tags.php';
 require __DIR__.'/api-user.php';
 require __DIR__.'/api-user-theme.php';
 require __DIR__.'/api-roles.php';
-
-
-
-

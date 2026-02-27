@@ -472,4 +472,36 @@ class User extends Authenticatable
     {
         return $this->guard_name;
     }
+
+    /**
+     * Get the maximum permission level among the user's own permissions.
+     * 
+     * This is used for permission hierarchy validation - a user can only
+     * assign permissions that are at or below their own permission level.
+     *
+     * @return int
+     */
+    public function getPermissionLevel(): int
+    {
+        // Get all permissions through Spatie (includes direct and role-based)
+        $permissions = $this->getAllPermissions();
+        
+        // If no permissions, return 0 (lowest level)
+        if ($permissions->isEmpty()) {
+            return 0;
+        }
+        
+        // Return the maximum level from all permissions
+        // Handle both custom permissions (with 'level' attribute) and Spatie permissions
+        return $permissions->max(function ($permission) {
+            // Check if it's our custom Permission model with 'level' attribute
+            if ($permission instanceof \App\Models\Permission) {
+                return (int) $permission->level;
+            }
+            
+            // For Spatie permissions, try to get level attribute
+            // If level doesn't exist, assume 0
+            return (int) ($permission->level ?? 0);
+        });
+    }
 }

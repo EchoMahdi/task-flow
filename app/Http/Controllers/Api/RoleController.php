@@ -11,12 +11,28 @@ use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Role Controller
  *
  * Handles CRUD operations for roles.
- * Access restricted to super administrators only.
+ * Uses Policy-based authorization for fine-grained access control.
+ *
+ * Authorization:
+ * - All actions require 'roles.view' permission
+ * - Create requires 'roles.create' permission
+ * - Update requires 'roles.update' permission
+ * - Delete requires 'roles.delete' permission
+ * - Sync permissions requires 'roles.assign_permissions' permission
+ *
+ * System Role Protection:
+ * - System roles (is_system=true) cannot be modified or deleted
+ * - Protected roles (super_admin, admin) cannot be modified or deleted
+ *
+ * Permission Escalation Protection:
+ * - Users can only assign permissions they possess
+ * - Users cannot elevate roles above their authority
  */
 class RoleController extends Controller
 {
@@ -29,6 +45,8 @@ class RoleController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Role::class);
+
         $roles = Role::with('permissions')->get();
 
         return RoleManagementResource::collection($roles);
@@ -44,13 +62,17 @@ class RoleController extends Controller
      */
     public function store(StoreRoleRequest $request): JsonResponse
     {
+        $this->authorize('create', Role::class);
+
         $role = Role::create([
             'name' => $request->name,
             'description' => $request->description,
-            'is_system' => false,
         ]);
 
         if ($request->has('permissions') && !empty($request->permissions)) {
+            // Validate permission escalation - user can only assign permissions they have
+            Gate::authorize('assignPermissions', [$role, $request->permissions]);
+
             $role->syncPermissions($request->permissions);
         }
 
@@ -73,11 +95,8 @@ class RoleController extends Controller
      */
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
-        if ($role->isSystem()) {
-            return response()->json([
-                'message' => 'System roles cannot be modified.',
-            ], Response::HTTP_FORBIDDEN);
-        }
+        // Policy handles system role and protected role protection
+        $this->authorize('update', $role);
 
         $role->update($request->validated());
 
@@ -99,11 +118,8 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): JsonResponse
     {
-        if ($role->isSystem()) {
-            return response()->json([
-                'message' => 'System roles cannot be deleted.',
-            ], Response::HTTP_FORBIDDEN);
-        }
+        // Policy handles system role and protected role protection
+        $this->authorize('delete', $role);
 
         $role->delete();
 
@@ -123,11 +139,9 @@ class RoleController extends Controller
      */
     public function syncPermissions(SyncRolePermissionsRequest $request, Role $role): JsonResponse
     {
-        if ($role->isSystem()) {
-            return response()->json([
-                'message' => 'System roles permissions cannot be modified.',
-            ], Response::HTTP_FORBIDDEN);
-        }
+        // Policy handles system role and protected role protection
+        // Also validates user has the permissions they're assigning
+        Gate::authorize('assignPermissions', [$role, $request->permissions]);
 
         $role->syncPermissions($request->permissions);
 
